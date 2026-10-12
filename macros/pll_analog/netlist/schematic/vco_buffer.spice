@@ -1,0 +1,8 @@
+** sch_path: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/macros/pll_analog/schematic/xschem/vco_buffer.sch
+.subckt vco_buffer VIN VOUT VDD VSS
+*.PININFO VIN:I VOUT:O VDD:B VSS:B
+XM1 net1 VIN VDD VDD sg13_lv_pmos w=0.30u l=0.13u ng=1 m=1 mm_ok=1
+XM2 net1 VIN VSS VSS sg13_lv_nmos w=0.15u l=0.13u ng=1 m=1 mm_ok=1
+XM3 VOUT net1 VDD VDD sg13_lv_pmos w=0.90u l=0.13u ng=3 m=1 mm_ok=1
+XM4 VOUT net1 VSS VSS sg13_lv_nmos w=0.45u l=0.13u ng=3 m=1 mm_ok=1
+.ends
