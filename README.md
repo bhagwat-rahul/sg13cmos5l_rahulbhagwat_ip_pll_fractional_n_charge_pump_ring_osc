@@ -1,4 +1,21 @@
-# Chipalooza Analog Project (ihp-sg13cmos5l)
+# Fractional-N charge-pump ring-oscillator PLL (ihp-sg13cmos5l)
+
+The PLL design and simulation sources have been imported from
+`Intubun/chipalooza_lvds_pll` for a fresh, manual physical implementation.
+Start with [the PLL migration and layout plan](docs/pll_restart.md).
+Run `make pll-test` for RTL regression or `make pll-cosim` inside the
+IIC-OSIC-TOOLS container for RTL/transistor co-simulation.
+
+**Source-only restart:** no old PLL layout, physical-flow configuration,
+extracted netlist, or sign-off result was imported. The standalone MPW top,
+slot assignment, and pin mapping are not yet implemented. The original
+inverter/counter template files remain as flow examples, not PLL deliverables;
+the submission paths below now name only the future PLL deliverables.
+
+## Original template flow reference
+
+The remainder of this README describes the original inverter/counter example,
+not the current PLL's implementation or verification status.
 
 (c) 2026 Tim Edwards and Simon Dorrer
 

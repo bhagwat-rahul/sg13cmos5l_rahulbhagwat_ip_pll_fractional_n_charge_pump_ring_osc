@@ -25,3 +25,13 @@ sim_build/
 /macros/counter/testbenches/xschem/simulations
 /macros/counter/flow/final
 /macros/counter/fpga/*/build/
+
+# Generated PLL simulation/characterization outputs (keep design sources).
+/macros/pll_analog/schematic/xschem/simulations/
+/macros/pll_analog/testbenches/xschem/simulations/
+/macros/pll_analog/cace/_runs/
+/macros/pll_analog/cace/_docs/
+/macros/pll_analog/cace/netlist/
+/macros/pll_analog/cace/templates/simulations/
+/macros/pll_digital/schematic/xschem/simulations/
+/macros/pll_digital/testbenches/xschem/simulations/

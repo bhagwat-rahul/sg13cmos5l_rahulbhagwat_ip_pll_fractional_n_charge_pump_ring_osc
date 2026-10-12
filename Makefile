@@ -4,7 +4,7 @@
 MAKEFILE_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
 # Variables
-TOP = sg13cmos5l_chipalooza_analog_project
+TOP = sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc
 
 .DEFAULT_GOAL := help
 
@@ -88,6 +88,29 @@ open: ## Open the design files of this folder in the sak-open.py file browser (n
 	sak-open.py $(OPEN_ARGS) .
 .PHONY: open
 # ================================================================================================
+
+
+# PLL source-only simulation targets. Physical targets below require a new
+# standalone top schematic and layout; the template is not the PLL.
+pll-test: ## Run the fractional-divider and behavioral closed-loop RTL regression
+	IVERILOG=$${IVERILOG:-iverilog} VVP=$${VVP:-vvp} scripts/pll/run_pll_behavioral_tests.sh
+.PHONY: pll-test
+
+pll-cosim: ## Run configurable RTL/transistor co-simulation (IIC-OSIC-TOOLS)
+	scripts/pll/run_pll_cosim.sh
+.PHONY: pll-cosim
+
+pll-ring: ## Characterize the schematic VCO over PVT (IIC-OSIC-TOOLS)
+	scripts/pll/characterize_ring.sh
+.PHONY: pll-ring
+
+pll-charge-pump: ## Characterize the schematic charge pump over PVT (IIC-OSIC-TOOLS)
+	scripts/pll/characterize_charge_pump.sh
+.PHONY: pll-charge-pump
+
+pll-cace: ## Characterize the schematic VCO with CACE (IIC-OSIC-TOOLS)
+	cd macros/pll_analog/cace && python3 gen_template.py && cace ring_oscillator.yaml -s schematic
+.PHONY: pll-cace
 
 
 # Simulation Targets
