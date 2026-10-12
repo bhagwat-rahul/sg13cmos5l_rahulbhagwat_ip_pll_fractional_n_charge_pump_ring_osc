@@ -1,0 +1,43 @@
+** sch_path: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/macros/pll_analog/schematic/xschem/ring_oscillator.sch
+.subckt ring_oscillator VCTRL VCO_OUT VDD VSS
+*.PININFO VCTRL:I VDD:B VSS:B VCO_OUT:O
+x1 VCO_CORE net1 VBP VDD VCTRL VSS inverter
+x2 net1 net2 VBP VDD VCTRL VSS inverter
+x3 net2 VCO_CORE VBP VDD VCTRL VSS inverter
+x_bias VCTRL VBP VDD VSS vco_bias
+x_buffer VCO_CORE VCO_OUT VDD VSS vco_buffer
+.ends
+
+* expanding   symbol:  inverter.sym # of pins=6
+** sym_path: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/macros/pll_analog/schematic/xschem/inverter.sym
+** sch_path: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/macros/pll_analog/schematic/xschem/inverter.sch
+.subckt inverter VIN VOUT VBP VDD VBN VSS
+*.PININFO VIN:I VBP:I VBN:I VOUT:O VDD:B VSS:B
+XM1 net1 VBP VDD VDD sg13_lv_pmos w=4.5u l=0.13u ng=5 m=1
+XM2 VOUT VIN net1 VDD sg13_lv_pmos w=0.9u l=0.13u ng=1 m=1
+XM3 VOUT VIN net2 VSS sg13_lv_nmos w=0.9u l=0.13u ng=1 m=1
+XM4 net2 VBN VSS VSS sg13_lv_nmos w=4.5u l=0.13u ng=5 m=1
+.ends
+
+
+* expanding   symbol:  vco_bias.sym # of pins=4
+** sym_path: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/macros/pll_analog/schematic/xschem/vco_bias.sym
+** sch_path: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/macros/pll_analog/schematic/xschem/vco_bias.sch
+.subckt vco_bias VCTRL VBP VDD VSS
+*.PININFO VCTRL:I VBP:O VDD:B VSS:B
+XM1 VBP VBP VDD VDD sg13_lv_pmos w=0.15u l=0.13u ng=1 m=1
+XM2 VBP VCTRL VSS VSS sg13_lv_nmos w=0.15u l=0.13u ng=1 m=1
+.ends
+
+
+* expanding   symbol:  vco_buffer.sym # of pins=4
+** sym_path: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/macros/pll_analog/schematic/xschem/vco_buffer.sym
+** sch_path: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/macros/pll_analog/schematic/xschem/vco_buffer.sch
+.subckt vco_buffer VIN VOUT VDD VSS
+*.PININFO VIN:I VOUT:O VDD:B VSS:B
+XM1 net1 VIN VDD VDD sg13_lv_pmos w=0.30u l=0.13u ng=1 m=1
+XM2 net1 VIN VSS VSS sg13_lv_nmos w=0.15u l=0.13u ng=1 m=1
+XM3 VOUT net1 VDD VDD sg13_lv_pmos w=0.90u l=0.13u ng=3 m=1
+XM4 VOUT net1 VSS VSS sg13_lv_nmos w=0.45u l=0.13u ng=3 m=1
+.ends
+
