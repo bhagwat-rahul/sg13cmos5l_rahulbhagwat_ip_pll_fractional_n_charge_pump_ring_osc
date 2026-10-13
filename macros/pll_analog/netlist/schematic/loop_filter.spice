@@ -1,6 +1,7 @@
 ** sch_path: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/macros/pll_analog/schematic/xschem/loop_filter.sch
-.subckt loop_filter VCTRL VSS
-*.PININFO VCTRL:B VSS:B
+**.subckt loop_filter VCTRL VSS
+*.iopin VCTRL
+*.iopin VSS
 XR1 VCTRL FILTER_ZERO VSS rhigh w=1.0u l=22.08u m=1 b=0 mm_ok=1
 XC1A FILTER_ZERO VSS cap_cmomf w=100u l=100u mmin=2 mmax=4 subblock=0 m=1 mm_ok=1
 XC2 VCTRL VSS cap_cmomf w=32.6431u l=32.6431u mmin=2 mmax=4 subblock=0 m=1 mm_ok=1
@@ -13,4 +14,5 @@ XC2 VCTRL VSS cap_cmomf w=32.6431u l=32.6431u mmin=2 mmax=4 subblock=0 m=1 mm_ok
 
 
 **** end user architecture code
-.ends
+**.ends
+.end
