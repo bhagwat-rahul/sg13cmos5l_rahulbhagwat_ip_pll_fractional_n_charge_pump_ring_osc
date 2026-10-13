@@ -37,11 +37,13 @@ if {![llength [info commands pin_netlist_dir]]} {
   proc pin_netlist_dir {dir} {
     set dir [file normalize $dir]
     if {[string match */schematic/xschem $dir]} {
-      set dir [file join $dir ../../testbenches/xschem]
-    } elseif {![string match */testbenches/xschem $dir] && ![string match */cace/templates $dir]} {
+      set ::netlist_dir [file normalize [file join $dir ../../netlist/schematic]]
+    } elseif {[string match */testbenches/xschem $dir] || [string match */cace/templates $dir]} {
+      set ::netlist_dir [file join $dir simulations]
+    } else {
       return
     }
-    set ::netlist_dir [file normalize [file join $dir simulations]]
+    file mkdir $::netlist_dir
   }
 }
 pin_netlist_dir [file dirname [info script]]

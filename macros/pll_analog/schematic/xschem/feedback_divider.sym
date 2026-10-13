@@ -4,12 +4,12 @@ format="@name @pinlist @symname"
 spectre_format="@name ( @pinlist ) @symname"
 template="name=x1"
 }
-T {@symname} -42 -6 0 0 0.3 0.3 {}
-T {@name} 55 -52 0 0 0.2 0.2 {}
-P 4 5 50 -40 -50 -40 -50 40 50 40 50 -40 {}
-B 5 -72.5 -2.5 -67.5 2.5 {name=VCO_IN dir=in}
-L 4 -70 0 -50 0 {}
-T {VCO} -45 -4 0 0 0.2 0.2 {}
-B 5 67.5 -2.5 72.5 2.5 {name=FB_OUT dir=out}
-L 4 50 0 70 0 {}
-T {FB} 45 -4 0 1 0.2 0.2 {}
+T {@symname} -90 -6 0 0 0.3 0.3 {}
+T {@name} 135 -22 0 0 0.2 0.2 {}
+P 4 5 130 -10 -130 -10 -130 10 130 10 130 -10 {}
+B 5 147.5 -2.5 152.5 2.5 {name=FB_OUT dir=out}
+L 4 130 0 150 0 {}
+T {FB_OUT} 125 -4 0 1 0.2 0.2 {}
+B 5 -152.5 -2.5 -147.5 2.5 {name=VCO_IN dir=in}
+L 4 -150 0 -130 0 {}
+T {VCO_IN} -125 -4 0 0 0.2 0.2 {}

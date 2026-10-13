@@ -6,25 +6,27 @@ S {}
 F {}
 E {}
 T {Custom-layout analog portion of the PLL.
-Digital PFD/divider logic drives UP and DOWN and consumes VCO_CLK.} -300 -250 0 0 0.3 0.3 {}
-C {charge_pump.sym} -120 -60 0 0 {name=x_charge_pump}
-C {lab_pin.sym} -200 -90 0 0 {name=p_cp_up sig_type=std_logic lab=UP}
-C {lab_pin.sym} -200 -50 0 0 {name=p_cp_down sig_type=std_logic lab=DOWN}
-C {lab_pin.sym} -200 -20 0 0 {name=p_cp_iref sig_type=std_logic lab=IREF}
-C {lab_pin.sym} -40 -60 0 1 {name=p_cp_vctrl sig_type=std_logic lab=VCTRL}
-C {lab_pin.sym} -140 -140 1 0 {name=p_cp_vdd sig_type=std_logic lab=VDD}
-C {lab_pin.sym} -100 20 3 0 {name=p_cp_vss sig_type=std_logic lab=VSS}
-C {loop_filter.sym} 80 -60 0 0 {name=x_loop_filter}
-C {lab_pin.sym} 10 -60 0 0 {name=p_filter_vctrl sig_type=std_logic lab=VCTRL}
-C {lab_pin.sym} 80 10 3 0 {name=p_filter_vss sig_type=std_logic lab=VSS}
-C {ring_oscillator.sym} 280 -60 0 0 {name=x_vco}
-C {lab_pin.sym} 160 -90 0 0 {name=p_vco_ctrl sig_type=std_logic lab=VCTRL}
-C {lab_pin.sym} 400 -90 0 1 {name=p_vco_out sig_type=std_logic lab=VCO_CLK}
-C {lab_pin.sym} 400 -70 0 1 {name=p_vco_vdd sig_type=std_logic lab=VDD}
-C {lab_pin.sym} 400 -10 0 1 {name=p_vco_vss sig_type=std_logic lab=VSS}
-C {ipin.sym} -300 -90 0 0 {name=p_UP lab=UP}
-C {ipin.sym} -300 -50 0 0 {name=p_DOWN lab=DOWN}
-C {iopin.sym} -300 -10 2 0 {name=p_IREF lab=IREF}
-C {opin.sym} 500 -90 0 0 {name=p_VCO_CLK lab=VCO_CLK}
-C {iopin.sym} 0 -180 3 0 {name=p_VDD lab=VDD}
-C {iopin.sym} 0 100 1 0 {name=p_VSS lab=VSS}
+Digital PFD/divider logic drives UP and DOWN and consumes VCO_CLK.} -280 -350 0 0 0.3 0.3 {}
+N -480 -90 -410 -90 {lab=UP}
+N -480 -70 -410 -70 {lab=DOWN}
+N -110 -70 -60 -70 {lab=IREF}
+N -110 -50 0 -50 {lab=#net1}
+N 300 -50 340 -50 {lab=VDD}
+N 340 -90 340 -50 {lab=VDD}
+N -110 -90 340 -90 {lab=VDD}
+N 0 -50 0 30 {lab=#net1}
+N -110 -30 -110 50 {lab=VSS}
+N -110 50 0 50 {lab=VSS}
+N 0 50 0 90 {lab=VSS}
+N 0 90 300 90 {lab=VSS}
+N 300 -10 300 90 {lab=VSS}
+N 300 -30 360 -30 {lab=VCO_CLK}
+C {charge_pump.sym} -260 -60 0 0 {name=x_charge_pump}
+C {loop_filter.sym} 150 40 0 1 {name=x_loop_filter}
+C {ring_oscillator.sym} 150 -30 0 0 {name=x_vco}
+C {ipin.sym} -480 -90 0 0 {name=p_UP lab=UP}
+C {ipin.sym} -480 -70 0 0 {name=p_DOWN lab=DOWN}
+C {iopin.sym} -60 -70 0 0 {name=p_IREF lab=IREF}
+C {opin.sym} 360 -30 0 0 {name=p_VCO_CLK lab=VCO_CLK}
+C {iopin.sym} 140 -90 3 0 {name=p_VDD lab=VDD}
+C {iopin.sym} 0 90 2 0 {name=p_VSS lab=VSS}

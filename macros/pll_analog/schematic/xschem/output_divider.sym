@@ -4,15 +4,15 @@ format="@name @pinlist @symname"
 spectre_format="@name ( @pinlist ) @symname"
 template="name=x1"
 }
-T {@symname} -42 -6 0 0 0.3 0.3 {}
-T {@name} 55 -52 0 0 0.2 0.2 {}
-P 4 5 50 -40 -50 -40 -50 40 50 40 50 -40 {}
-B 5 -72.5 -2.5 -67.5 2.5 {name=VCO_IN dir=in}
-L 4 -70 0 -50 0 {}
-T {VCO} -45 -4 0 0 0.2 0.2 {}
-B 5 67.5 -22.5 72.5 -17.5 {name=PLL_CLK dir=out}
-L 4 50 -20 70 -20 {}
-T {PLL} 45 -24 0 1 0.2 0.2 {}
-B 5 67.5 17.5 72.5 22.5 {name=TEST_CLK dir=out}
-L 4 50 20 70 20 {}
-T {TEST} 45 16 0 1 0.2 0.2 {}
+T {@symname} -81 -6 0 0 0.3 0.3 {}
+T {@name} 135 -32 0 0 0.2 0.2 {}
+P 4 5 130 -20 -130 -20 -130 20 130 20 130 -20 {}
+B 5 147.5 -12.5 152.5 -7.5 {name=PLL_CLK dir=out}
+L 4 130 -10 150 -10 {}
+T {PLL_CLK} 125 -14 0 1 0.2 0.2 {}
+B 5 -152.5 -12.5 -147.5 -7.5 {name=VCO_IN dir=in}
+L 4 -150 -10 -130 -10 {}
+T {VCO_IN} -125 -14 0 0 0.2 0.2 {}
+B 5 147.5 7.5 152.5 12.5 {name=TEST_CLK dir=out}
+L 4 130 10 150 10 {}
+T {TEST_CLK} 125 6 0 1 0.2 0.2 {}
