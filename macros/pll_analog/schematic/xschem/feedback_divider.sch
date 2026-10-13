@@ -6,19 +6,19 @@ S {}
 F {}
 E {}
 T {Integer XSPICE feedback-divider model for transistor-level loop simulation.
-The synthesizable integer/fractional implementation is rtl/fractional_divider.v.} -250 -170 0 0 0.3 0.3 {}
-N -220 0 -150 0 {lab=VCO_IN}
-N 150 0 220 0 {lab=FB_OUT}
-C {adc_bridge.sym} -120 0 0 0 {name=A_ADC adc_bridge_model=pll_div_adc}
-C {lab_pin.sym} -90 0 0 1 {name=p_dvco sig_type=std_logic lab=dvco}
+The synthesizable integer/fractional implementation is rtl/fractional_divider.v.} -280 -360 0 0 0.3 0.3 {}
+N 180 0 250 0 {lab=FB_OUT}
+N 60 -0 120 -0 {lab=dfb}
+N -120 0 -60 0 {lab=dvco}
+N -240 0 -180 -0 {lab=VCO_IN}
+C {adc_bridge.sym} -150 0 0 0 {name=A_ADC adc_bridge_model=pll_div_adc}
 C {d_fdiv.sym} 0 0 0 0 {name=A_DIV divider_model=pll_feedback_div}
-C {lab_pin.sym} -60 0 0 0 {name=p_div_in sig_type=std_logic lab=dvco}
-C {lab_pin.sym} 60 0 0 1 {name=p_div_out sig_type=std_logic lab=dfb}
-C {dac_bridge.sym} 120 0 0 0 {name=A_DAC dac_bridge_model=pll_div_dac}
-C {lab_pin.sym} 90 0 0 0 {name=p_dac_in sig_type=std_logic lab=dfb}
-C {ipin.sym} -220 0 0 0 {name=p_VCO_IN lab=VCO_IN}
-C {opin.sym} 220 0 0 0 {name=p_FB_OUT lab=FB_OUT}
-C {simulator_commands_shown.sym} -250 100 0 0 {name=MODELS
+C {lab_wire.sym} -90 0 1 0 {name=p_div_in sig_type=std_logic lab=dvco}
+C {dac_bridge.sym} 150 0 0 0 {name=A_DAC dac_bridge_model=pll_div_dac}
+C {lab_wire.sym} 90 0 1 0 {name=p_dac_in sig_type=std_logic lab=dfb}
+C {ipin.sym} -240 0 0 0 {name=p_VCO_IN lab=VCO_IN}
+C {opin.sym} 250 0 0 0 {name=p_FB_OUT lab=FB_OUT}
+C {simulator_commands_shown.sym} -450 -280 0 0 {name=MODELS
 simulator=ngspice
 only_toplevel=false
 value="
