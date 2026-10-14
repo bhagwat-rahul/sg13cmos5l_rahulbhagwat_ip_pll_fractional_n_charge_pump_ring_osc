@@ -16,9 +16,9 @@ module async_toggle_ff (
     end
 endmodule
 
-// Portable boundary for the full-rate divide-by-two stage. IHP synthesis maps
-// this module to the characterized TSPC prescaler with its modulus fixed at
-// two; other PDKs retain the behavioral implementation.
+// Portable boundary for the full-rate fixed divide-by-two stage. The intended
+// IHP implementation is pll_tspc_div2; its transistor implementation and
+// technology mapping are pending. Simulation retains this toggle model.
 module high_speed_div2 (
     input  wire clk,
     input  wire reset_b,
