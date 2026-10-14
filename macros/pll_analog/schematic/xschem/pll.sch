@@ -7,7 +7,7 @@ F {}
 E {}
 T {Integer/fractional-N charge-pump PLL top level.
 The XSPICE feedback model is fixed at N=20 for analog loop simulation.
-rtl/pll_digital.v replaces the behavioral divider for programmable implementation.} -500 -330 0 0 0.3 0.3 {}
+rtl/pll_digital.v replaces the behavioral divider for programmable implementation.} -320 -500 0 0 0.3 0.3 {}
 C {pfd.sym} -300 -100 0 0 {name=x_pfd}
 C {lab_pin.sym} -380 -120 0 0 {name=p_pfd_ref sig_type=std_logic lab=REF_CLK}
 C {lab_pin.sym} -380 -80 0 0 {name=p_pfd_fb sig_type=std_logic lab=FB_CLK}

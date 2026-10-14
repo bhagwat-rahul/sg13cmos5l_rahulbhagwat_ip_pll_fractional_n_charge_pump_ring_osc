@@ -1,0 +1,23 @@
+** sch_path: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/macros/pll_analog/schematic/xschem/output_divider.sch
+**.subckt output_divider PLL_CLK VCO_IN TEST_CLK
+*.ipin VCO_IN
+*.opin PLL_CLK
+*.opin TEST_CLK
+A_ADC [ VCO_IN ] [ dvco_out ] pll_out_adc
+A_PLL_DIV dvco_out dpll pll_out_div2
+A_PLL_DAC [ dpll ] [ PLL_CLK ] pll_out_dac
+A_TEST_DIV dvco_out net1 pll_out_div4
+A_TEST_DAC [ net1 ] [ TEST_CLK ] pll_out_dac
+**** begin user architecture code
+
+
+
+.model pll_out_adc adc_bridge(in_low=0.3 in_high=0.9 rise_delay=5p fall_delay=5p)
+.model pll_out_dac dac_bridge(out_low=0 out_high=1.2 out_undef=0.6 input_load=1p t_rise=20p t_fall=20p)
+.model pll_out_div2 d_fdiv(div_factor=2 high_cycles=1 i_count=0 rise_delay=5p fall_delay=5p freq_in_load=1p)
+.model pll_out_div4 d_fdiv(div_factor=4 high_cycles=2 i_count=0 rise_delay=5p fall_delay=5p freq_in_load=1p)
+
+
+**** end user architecture code
+**.ends
+.end

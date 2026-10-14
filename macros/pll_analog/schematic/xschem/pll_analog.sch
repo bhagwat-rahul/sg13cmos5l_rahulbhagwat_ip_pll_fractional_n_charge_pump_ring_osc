@@ -10,11 +10,11 @@ Digital PFD/divider logic drives UP and DOWN and consumes VCO_CLK.} -280 -350 0 
 N -480 -90 -410 -90 {lab=UP}
 N -480 -70 -410 -70 {lab=DOWN}
 N -110 -70 -60 -70 {lab=IREF}
-N -110 -50 0 -50 {lab=#net1}
+N -110 -50 0 -50 {lab=xxx}
 N 300 -50 340 -50 {lab=VDD}
 N 340 -90 340 -50 {lab=VDD}
 N -110 -90 340 -90 {lab=VDD}
-N 0 -50 0 30 {lab=#net1}
+N 0 -50 0 30 {lab=xxx}
 N -110 -30 -110 50 {lab=VSS}
 N -110 50 0 50 {lab=VSS}
 N 0 50 0 90 {lab=VSS}
@@ -30,3 +30,4 @@ C {iopin.sym} -60 -70 0 0 {name=p_IREF lab=IREF}
 C {opin.sym} 360 -30 0 0 {name=p_VCO_CLK lab=VCO_CLK}
 C {iopin.sym} 140 -90 3 0 {name=p_VDD lab=VDD}
 C {iopin.sym} 0 90 2 0 {name=p_VSS lab=VSS}
+C {lab_wire.sym} -60 -50 2 0 {name=VCTRL sig_type=std_logic lab=VCTRL}

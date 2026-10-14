@@ -187,12 +187,12 @@ commands = [
     "set numdgt=15",
     'pre_set auto_bridge_d_in = ( ".model auto_adc adc_bridge(in_low=0.3 in_high=0.9 rise_delay=5p fall_delay=5p)" "auto_bridge%d [ %s ] [ %s ] auto_adc" )',
     f'pre_set auto_bridge_d_out = ( ".model auto_dac dac_bridge(out_low=0 out_high={vdd} t_rise=20p t_fall=20p)" "auto_bridge%d [ %s ] [ %s ] auto_dac" )',
-    "save v(PLL_CLK) v(x_pll.x_analog.VCTRL)",
+    "save v(TEST_CLK) v(x_pll.x_analog.VCTRL)",
     f"tran {max_step:.12g} {sim_time:.12g} uic",
 ]
 for edge in range(1, 102):
     commands.append(
-        f"meas tran cosim_edge_{edge} when v(PLL_CLK)={vdd / 2} rise={edge} TD={settled_start:.12g}"
+        f"meas tran cosim_edge_{edge} when v(TEST_CLK)={vdd / 2} rise={edge} TD={settled_start:.12g}"
     )
 commands.append(
     f"meas tran vctrl_avg avg v(x_pll.x_analog.VCTRL) from={settled_start:.12g} to={sim_time:.12g}"
@@ -226,14 +226,15 @@ def value(name):
 
 edges = [value(f"cosim_edge_{index}") for index in range(1, 102)]
 if any(edge is None for edge in edges):
-    raise SystemExit("co-simulation did not produce 101 settled PLL output edges")
+    raise SystemExit("co-simulation did not produce 101 settled TEST_CLK output edges")
 periods = [edges[index + 1] - edges[index] for index in range(100)]
 mean_period = statistics.mean(periods)
 rms_jitter = math.sqrt(statistics.mean((period - mean_period) ** 2 for period in periods))
 ratio = int(os.environ["DIV_RATIO"])
+test_div = int(os.environ["TEST_DIV"])
 fref = float(os.environ["FREF_HZ"])
 divide = ratio / 8.0
-target = fref * divide / 2.0
+target = fref * divide / 2 ** (test_div + 1)
 measured = 1.0 / mean_period
 if abs(measured / target - 1.0) > 0.01:
     raise SystemExit(f"co-simulation frequency error exceeds 1%: target={target} measured={measured}")
@@ -242,6 +243,7 @@ print(json.dumps({
     "divide": divide,
     "reference_hz": fref,
     "target_output_hz": target,
+    "test_div": test_div,
     "temp_c": float(os.environ["TEMP_C"]),
     "vdd_v": float(os.environ["VDD"]),
     "measured_output_hz": measured,
