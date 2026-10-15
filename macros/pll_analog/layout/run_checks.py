@@ -24,7 +24,7 @@ RC = PDK / 'libs.tech/magic/ihp-sg13cmos5l.magicrc'
 
 
 class Checks:
-    def __init__(self, cell):
+    def __init__(self, cell, library):
         self.cell = cell
         self.work = ROOT / 'build' / cell / datetime.now().strftime('%Y%m%d-%H%M%S-%f')
         self.work.mkdir(parents=True)
@@ -33,7 +33,7 @@ class Checks:
         self.results = {}
         self.exported = False
         # Snapshot all cells so a running check never writes into the layout library.
-        for source in (ROOT / 'mag').glob('*.mag'):
+        for source in library.glob('*.mag'):
             shutil.copy2(source, self.inputs / source.name)
         hashes = {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
                   for p in self.inputs.glob('*.mag')}
@@ -186,6 +186,13 @@ extract do capacitance
 extract do coupling
 extract do resistance
 extract all
+ext2spice lvs
+ext2spice hierarchy off
+ext2spice subcircuit top on
+ext2spice cthresh 0
+ext2spice rthresh 0
+ext2spice extresist off
+ext2spice -o {self.cell}_c_only.spice
 ext2sim labels on
 ext2sim
 extresist threshold 0
@@ -193,6 +200,7 @@ extresist minres 1
 extresist mindelay 0
 extresist all
 ext2spice lvs
+ext2spice hierarchy off
 ext2spice subcircuit top on
 ext2spice cthresh 0
 ext2spice rthresh 0
@@ -207,10 +215,48 @@ ext2spice -o {self.cell}_pex.spice''')
         text = netlist.read_text()
         if not re.search(rf'^\.subckt\s+{self.cell}_pex\s', text, re.M | re.I):
             raise RuntimeError('PEX netlist has no expected top subcircuit')
+        # Magic 8.3.681 extresist distributes coupling as grounded C while
+        # retaining the original explicit coupling. Use the independently
+        # exported flat C matrix, attached at the original named nodes.
+        # This is full resistance + LUMPED coupled C, not spatially resolved C.
+        # Keep the raw export and reject missing/shorted capacitor endpoints.
+        reference = (directory / f'{self.cell}_c_only.spice').read_text()
+        caps = re.findall(r'^C\S+[^\n]*', reference, re.M)
+        parents = {}
+
+        def root(node):
+            parents.setdefault(node, node)
+            if parents[node] != node:
+                parents[node] = root(parents[node])
+            return parents[node]
+
+        connected = set(re.search(r'^\.subckt\s+\S+\s+([^\n]+)', text, re.M)[1].split())
+        for line in text.splitlines():
+            fields = line.split()
+            if fields and fields[0][0] in ('R', 'X'):
+                connected.update(fields[1:3] if fields[0][0] == 'R' else fields[1:5])
+            if fields and fields[0][0] == 'R':
+                parents[root(fields[1])] = root(fields[2])
+        endpoints = {node for cap in caps for node in cap.split()[1:3]}
+        if endpoints - connected - {'0'}:
+            raise RuntimeError('C-only extraction has endpoints absent from the resistance network')
+        if len({root(node) for node in endpoints}) != len(endpoints):
+            raise RuntimeError('resistance network shorts distinct C-only endpoints')
+        netlist.with_name(f'{self.cell}_raw_extresist.spice').write_text(text)
+        text = re.sub(r'^C\S+[^\n]*\n', '', text, flags=re.M)
+        text = re.sub(r'^\.ends\b', '\n'.join(caps) + '\n.ends', text, count=1, flags=re.M)
+        netlist.write_text(text)
+        (directory / 'capacitance_model.json').write_text(json.dumps({
+            'mode': 'full resistance; original-node lumped ground and coupling capacitance',
+            'reference': f'{self.cell}_c_only.spice',
+            'capacitors_preserved': len(caps),
+            'limitations': 'No spatial distribution of C along wires; not foundry-qualified extraction',
+        }, indent=2) + '\n')
         resistors = len(re.findall(r'^R\S+\s', text, re.M | re.I))
         capacitors = len(re.findall(r'^C\S+\s', text, re.M | re.I))
         self.command('pex-ports', ['python3', REPO / 'scripts/check_pex_ports.py', netlist])
-        return f'extracted {resistors} resistors, {capacitors} capacitors; port-fragment check passed (LVS still required)'
+        return (f'extracted {resistors} resistors, {capacitors} original-node lumped capacitors; '
+                'C matrix preserved; port-fragment check passed (LVS still required)')
 
     def run(self, name, action):
         try:
@@ -225,7 +271,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('mode', choices=MODES)
     parser.add_argument('cells', nargs='*', metavar='CELL', help=', '.join(CELLS))
+    parser.add_argument('--library', type=Path, default=ROOT / 'mag',
+                        help='candidate .mag library; defaults to the manual library')
     args = parser.parse_args()
+    args.library = args.library.resolve()
+    if not args.library.is_dir():
+        parser.error(f'layout library not found: {args.library}')
     args.cells = args.cells or ['pll_analog']
     for cell in args.cells:
         if cell not in CELLS:
@@ -240,7 +291,7 @@ def main():
     failed = False
     for cell in dict.fromkeys(args.cells):
         print(f'Checking {cell} (saved .mag sources)', flush=True)
-        checks = Checks(cell)
+        checks = Checks(cell, args.library)
         checks.run('input-hierarchy', lambda: checks.validate_hierarchy(cell, set()))
         mode = args.mode
         if checks.results['input-hierarchy']['status'] != 'PASS':
@@ -257,7 +308,7 @@ def main():
             checks.run('lvs-magic', checks.lvs)
             checks.run('lvs-klayout', lambda: checks.lvs(True))
         if mode in ('all', 'pex'):
-            checks.run('pex-full-rc', checks.pex)
+            checks.run('pex-resistance-lumped-c', checks.pex)
         (checks.work / 'summary.json').write_text(json.dumps(checks.results, indent=2) + '\n')
         summary = '\n'.join(f"{name}: {r['status']} — {r['detail']}" for name, r in checks.results.items())
         (checks.work / 'summary.txt').write_text(summary + '\n')
