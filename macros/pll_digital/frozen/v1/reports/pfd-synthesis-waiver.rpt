@@ -1,0 +1,32 @@
+
+23. Executing CHECK pass (checking for obvious problems).
+Checking module pll_digital...
+Checking module high_speed_div2...
+Checking module half_rate_clock_buffer...
+Checking module async_toggle_ff...
+Checking module $paramod$72e6f728c8736cbcd02319f011203b1e307794e9\fractional_config_decode...
+Checking module fractional_divider...
+Checking module pll_pfd...
+Warning: found logic loop in module pll_pfd:
+    cell $auto$proc_dff.cc:225:proc_dff$1247 ($reduce_or)
+      A[0] --> Y[0]
+    cell $procdff$1249 ($adff) source: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/macros/pll_digital/rtl/pfd.v:21.5-26.8
+      ARST[0] --> Q[0]
+    wire \down source: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/macros/pll_digital/rtl/pfd.v:10.17-10.21
+    cell $logic_and$/foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/macros/pll_digital/rtl/pfd.v:12$5 ($logic_and) source: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/macros/pll_digital/rtl/pfd.v:12.31-12.41
+      B[0] --> Y[0]
+    cell $logic_or$/foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/macros/pll_digital/rtl/pfd.v:12$6 ($logic_or) source: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/macros/pll_digital/rtl/pfd.v:12.18-12.42
+      B[0] --> Y[0]
+Warning: found logic loop in module pll_pfd:
+    cell $procdff$1252 ($adff) source: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/macros/pll_digital/rtl/pfd.v:14.5-19.8
+      ARST[0] --> Q[0]
+    wire \up source: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/macros/pll_digital/rtl/pfd.v:9.17-9.19
+    cell $logic_and$/foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/macros/pll_digital/rtl/pfd.v:12$5 ($logic_and) source: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/macros/pll_digital/rtl/pfd.v:12.31-12.41
+      A[0] --> Y[0]
+    cell $logic_or$/foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/macros/pll_digital/rtl/pfd.v:12$6 ($logic_or) source: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/macros/pll_digital/rtl/pfd.v:12.18-12.42
+      B[0] --> Y[0]
+    cell $auto$proc_dff.cc:225:proc_dff$1250 ($reduce_or)
+      A[0] --> Y[0]
+Checking module clock_output_divider...
+Checking module vco_clock_buffer...
+Found and reported 2 problems.

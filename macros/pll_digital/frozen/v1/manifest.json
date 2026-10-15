@@ -1,0 +1,39 @@
+{
+  "freeze": "pll_digital_integration_v1",
+  "run_tag": "digital-freeze-v1",
+  "status": "integration_baseline_not_unconditional_tapeout_signoff",
+  "base_commit_before_promotion": "43e2cd86825921fb3ba47ff5fb41ee65d982b8d8",
+  "source_identity": "SOURCES.sha256 hashes promoted local inputs; base commit is NOT the promoted source identity",
+  "toolchain": {
+    "container": "IIC-OSIC-TOOLS 2026.08",
+    "librelane": "3.1.0.dev3",
+    "pdk": "ihp-sg13cmos5l",
+    "library": "sg13cmos5l_stdcell"
+  },
+  "constraints": {
+    "vco_GHz": 2,
+    "half_rate_GHz": 1,
+    "reference_MHz": 100,
+    "uncertainty_ps": 25,
+    "vco_slew_ps": 150,
+    "vco_duty_STA": 0.5,
+    "output_load_fF": 5,
+    "output_selection_STA": "01",
+    "ratio_case_specialized": false
+  },
+  "waivers": [
+    "Checker.YosysSynthChecks: exactly two intentional PFD asynchronous reset loops"
+  ],
+  "validation": {
+    "default_yaml_no_overrides_flow_exit": 0,
+    "candidate_netlist_and_lef_byte_identical": true,
+    "candidate_gds_identical_excluding_timestamps": true,
+    "routed_zero_delay_all_992_ratios_and_four_outputs": true,
+    "receiver_nominal_RC_schematic_ring_TT_FF_SS": true,
+    "SDF_simulation": false,
+    "full_analog_digital_PEX": false
+  },
+  "integration_contract": "README.md",
+  "metrics": "reports/metrics.json",
+  "receiver_results": "reports/receiver-summary.json"
+}

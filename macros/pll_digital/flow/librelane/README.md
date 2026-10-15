@@ -1,15 +1,44 @@
-# PLL digital physical-design experiments
+# PLL digital physical-design flow
 
 This flow implements `pll_digital` in SG13CMOS5L standard cells, including the
 fixed full-rate `/2` as a complementary-output DFF-based toggle. The technology
 map connects Q_N to D and initially buffers Q with a buf16. The current flow
 removes early buffers and lets CTS build the half-rate distribution tree. It
 does **not** import the old TSPC layout or require custom prescaler views.
-The 160 x 140 um die is provisional.
+The frozen integration macro is 160 x 140 um.
 The internal `pll_clk`/`feedback_clk` ports are macro-level observation and
 hierarchy interfaces, not additional standalone chip clock outputs.
 
 ## Current checkpoint
+
+**Integration freeze v1:** [macro views and integration contract](../../frozen/v1/README.md).
+The default YAML now uses the tested inv4 → inv16 VCO receiver, DELAY 0,
+and preservation of both receiver cells. Run `digital-freeze-v1` reproduced the
+candidate `receiver-inv4-delay0` through GDS without config overrides, with
+identical routed netlist, LEF and timing metrics. The frozen views are tracked
+outside `runs/`, with source and output checksums. Use those views for analog
+layout/top integration; do not substitute an earlier buf16 run.
+
+| Frozen routed metric | TT | FF | SS |
+| --- | ---: | ---: | ---: |
+| Setup slack (ns) | +0.184496 | +0.291726 | +0.013616 |
+| Hold slack (ns) | +0.167326 | +0.106804 | +0.273020 |
+| Clock pulse-width slack (ns) | +0.103106 | +0.162672 | +0.007949 |
+
+Physical/electrical checks are clean. There are 600 functional standard cells
+plus 703 fill-class cells, with 11004.3 um² functional area and 67.6822% core
+utilization. Routed zero-delay simulation passed all 992 ratios, four output
+modes and reset/disable checks. Fresh TT/FF/SS transistor receiver probes using
+this run's nominal SPEF and the schematic ring all divide correctly; SS gives
+2.00023 GHz → 1.00011 GHz, whereas the old buf16 receiver's Q stays low.
+
+This freezes an **integration baseline**, not unconditional tapeout sign-off.
+The PFD loop waiver, 50% STA input duty assumption, limited receiver probes,
+reset/PFD/acquisition checks, output loading and top-level mixed-signal PEX
+qualifications remain explicit in the integration contract. The ten-minute
+schedule remains cleared.
+
+## Historical buf16 checkpoint (superseded, not the frozen macro)
 
 The ten-minute continuation schedule was cleared at the user's request. No
 physical-design run remains active. The retained RTL/YAML match
@@ -163,12 +192,12 @@ Use a new run tag for each experiment. Outputs and reports live under
 `final/gds/pll_digital.gds` within that run directory.
 These generated runs are Git-ignored and were created locally, not imported.
 
-The current YAML uses the stronger root16 CTS baseline (slow synthesis, DELAY 2,
+The current YAML uses the stronger root16 CTS baseline (slow synthesis, DELAY 0,
 buffer removal, no early output-port buffering). The SDC now leaves `div_ratio`
 unspecialized so the optimizer must time fractional arithmetic and all reload
 masks. Only external configuration transitions are false-pathed under the
 static-while-enabled protocol; sequential paths are not excluded. This is an
-exploratory baseline, not a green sign-off recipe. Earlier history below records
+integration baseline, not unconditional tapeout sign-off. Earlier history below records
 overrides and constraints relative to the config at the time of those experiments.
 
 The earlier slow-corner optimization experiment used the same command with run tag

@@ -1,0 +1,18 @@
+check_setup -verbose -unconstrained_endpoints -multiple_clock -no_clock -no_input_delay -loops -generated_clocks
+===========================================================================
+Warning: There are 11 input ports missing set_input_delay.
+  div_ratio[0]
+  div_ratio[1]
+  div_ratio[2]
+  div_ratio[3]
+  div_ratio[4]
+  div_ratio[5]
+  div_ratio[6]
+  div_ratio[7]
+  div_ratio[8]
+  div_ratio[9]
+  reset_n
+Warning: There are 3 unconstrained endpoints.
+  feedback_clk
+  pll_clk
+  test_clk

@@ -1,0 +1,23 @@
+Pin: output_divider_i.div2_ff/CLK
+Check: sequential_clock_pulse_width
+
+      Delay        Time   Description
+-----------------------------------------------------------------
+   0.250000    0.250000   clock vco (fall edge)
+   0.188026    0.438026   clock network delay (propagated)
+   0.000000    0.438026   output_divider_i.div2_ff/CLK
+               0.438026   open edge arrival time
+
+   0.500000    0.500000   clock vco (rise edge)
+   0.148236    0.648236   clock network delay (propagated)
+   0.000000    0.648236   output_divider_i.div2_ff/CLK
+   0.031976    0.680212   clock reconvergence pessimism
+               0.680212   close edge arrival time
+-----------------------------------------------------------------
+               0.234237   required pulse width (low)
+               0.242186   actual pulse width
+-----------------------------------------------------------------
+               0.007949   slack (MET)
+
+
+

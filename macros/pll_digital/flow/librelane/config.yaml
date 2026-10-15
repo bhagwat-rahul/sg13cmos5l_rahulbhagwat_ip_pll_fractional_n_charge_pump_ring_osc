@@ -19,7 +19,7 @@ STA_CORNERS:
   - nom_slow_1p08V_125C
 TIMING_VIOLATION_CORNERS: ["*"]
 
-SYNTH_STRATEGY: DELAY 2
+SYNTH_STRATEGY: DELAY 0
 SYNTH_HIERARCHY_MODE: deferred_flatten
 SYNTH_EXTRA_MAPPING_FILE: dir::standardcell_div2_map.v
 # After removing fractional arithmetic from the live path, stronger FFs improve
@@ -56,7 +56,7 @@ RUN_CTS: true
 CTS_ROOT_BUFFER: sg13cmos5l_buf_16
 # Short trunks otherwise drive sixteen leaf buffers directly (library limit 8).
 CTS_DISTANCE_BETWEEN_BUFFERS: 25
-# Preserve only the intentional full-rate input-conditioning buffer.
-RSZ_DONT_TOUCH_RX: 'vco_input_buffer$'
+# Preserve both cells within the intentional full-rate receiver boundary.
+RSZ_DONT_TOUCH_RX: 'vco_input_buffer'
 RUN_MAGIC_DRC: true
 RUN_KLAYOUT_DRC: true

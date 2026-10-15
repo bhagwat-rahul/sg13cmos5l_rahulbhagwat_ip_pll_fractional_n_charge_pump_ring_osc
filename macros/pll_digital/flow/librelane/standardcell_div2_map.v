@@ -16,14 +16,16 @@ module standardcell_toggle_map (
     );
 endmodule
 
-// Restore the analog edge before the full-rate prescaler's clock pin.
-// _4/_8 variants failed routed SS pulse-width checks despite passing setup.
+// Reduce the schematic VCO's input load while retaining a strong clock driver.
+// The monolithic buf16 receiver failed the SS transistor-level VCO probe.
 (* techmap_celltype = "vco_clock_buffer" *)
 module standardcell_vco_clock_buffer_map (
     input wire a,
     output wire y
 );
-    sg13cmos5l_buf_16 _TECHMAP_REPLACE_ (.A(a), .X(y));
+    wire inverted;
+    (* keep *) sg13cmos5l_inv_4 input_inverter (.A(a), .Y(inverted));
+    (* keep *) sg13cmos5l_inv_16 output_inverter (.A(inverted), .Y(y));
 endmodule
 
 (* techmap_celltype = "half_rate_clock_buffer" *)
