@@ -16,9 +16,18 @@ module async_toggle_ff (
     end
 endmodule
 
-// Portable boundary for the full-rate fixed divide-by-two stage. The intended
-// IHP implementation is pll_tspc_div2; its transistor implementation and
-// technology mapping are pending. Simulation retains this toggle model.
+// Analog VCO edge-conditioning boundary. The standard-cell flow maps this to
+// a small buffer and preserves its public instance name during timing repair.
+module vco_clock_buffer (
+    input wire a,
+    output wire y
+);
+    assign y = a;
+endmodule
+
+// Portable boundary for the full-rate fixed divide-by-two stage. The current
+// standard-cell flow maps this to a complementary-output DFF; a custom TSPC
+// implementation remains an alternative. Simulation retains this toggle model.
 module high_speed_div2 (
     input  wire clk,
     input  wire reset_b,
@@ -32,7 +41,7 @@ module high_speed_div2 (
     end
 endmodule
 
-// Portable buffering boundary between the custom full-rate divider and the
+// Portable buffering boundary between the full-rate divider and the
 // half-rate CMOS clock domain. A PDK-specific technology map may replace this
 // with an appropriately sized clock-capable standard-cell buffer.
 module half_rate_clock_buffer (
@@ -43,7 +52,7 @@ module half_rate_clock_buffer (
 endmodule
 
 // Shared full-rate front end and binary test divider. pll_clk is both the
-// internal LVDS clock and the half-rate clock for the feedback interval engine.
+// internal half-rate clock and the clock for the feedback interval engine.
 // test_div_sel selects VCO/2, /4, /8, or /16.
 module clock_output_divider (
     input  wire       vco_clk,
@@ -54,6 +63,7 @@ module clock_output_divider (
     output reg        test_clk
 );
     wire reset_b = reset_n && enable;
+    wire conditioned_vco_clk;
     wire div2_raw_clk;
     wire div2_clk;
     wire div4_clk;
@@ -62,8 +72,11 @@ module clock_output_divider (
 
     // Only the first stage sees the full VCO rate. Later stages form an
     // asynchronous ripple chain.
+    vco_clock_buffer vco_input_buffer (
+        .a(vco_clk), .y(conditioned_vco_clk)
+    );
     high_speed_div2 div2_ff (
-        .clk(vco_clk), .reset_b(reset_b), .q(div2_raw_clk)
+        .clk(conditioned_vco_clk), .reset_b(reset_b), .q(div2_raw_clk)
     );
     half_rate_clock_buffer half_clk_buffer (
         .a(div2_raw_clk), .y(div2_clk)

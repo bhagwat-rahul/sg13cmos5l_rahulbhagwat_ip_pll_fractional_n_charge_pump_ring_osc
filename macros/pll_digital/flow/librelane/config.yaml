@@ -1,0 +1,62 @@
+# Exploratory standard-cell implementation, including a complementary-DFF /2.
+# Qualify this front end at the full VCO rate before choosing it over TSPC.
+meta:
+  version: 3
+  flow: Classic
+
+DESIGN_NAME: pll_digital
+VERILOG_FILES:
+  - dir::../../rtl/pfd.v
+  - dir::../../rtl/fractional_divider.v
+  - dir::../../rtl/clock_output_divider.v
+  - dir::../../rtl/pll_digital.v
+
+STD_CELL_LIBRARY: sg13cmos5l_stdcell
+DEFAULT_CORNER: nom_slow_1p08V_125C
+STA_CORNERS:
+  - nom_typ_1p20V_25C
+  - nom_fast_1p32V_m40C
+  - nom_slow_1p08V_125C
+TIMING_VIOLATION_CORNERS: ["*"]
+
+SYNTH_STRATEGY: DELAY 2
+SYNTH_HIERARCHY_MODE: deferred_flatten
+SYNTH_EXTRA_MAPPING_FILE: dir::standardcell_div2_map.v
+# After removing fractional arithmetic from the live path, stronger FFs improve
+# routed setup. Exclude weak variants in synthesis and timing repair alike.
+# Weak inverters on the countdown-control path consume slow-corner margin.
+EXTRA_EXCLUDED_CELLS:
+  - sg13cmos5l_dfrbpq_1
+  - sg13cmos5l_dfrbp_1
+  - sg13cmos5l_sdfrbpq_1
+  - sg13cmos5l_sdfrbp_1
+  - sg13cmos5l_sdfbbp_1
+  - sg13cmos5l_inv_1
+CLOCK_PORT: [vco_clk, ref_clk]
+CLOCK_PERIOD: 0.5
+CLOCK_UNCERTAINTY_CONSTRAINT: 0.025
+CLOCK_TRANSITION_CONSTRAINT: 0.02
+PNR_SDC_FILE: dir::pll.sdc
+SIGNOFF_SDC_FILE: dir::pll.sdc
+STA_EXTRA_CORNER_TCL_FILE: dir::clock_limits.tcl
+
+# Initial area budget, not a final MPW floorplan.
+FP_SIZING: absolute
+DIE_AREA: [0, 0, 160, 140]
+PL_TARGET_DENSITY_PCT: 40
+IO_PIN_ORDER_CFG: dir::pin_order.cfg
+PDN_MULTILAYER: false
+VDD_NETS: [VDD]
+GND_NETS: [VSS]
+# Remove early buffering so CTS can build the generated half-rate tree.
+# Output-port buffers otherwise make CTS skip that whole high-fanout net.
+DESIGN_REPAIR_REMOVE_BUFFERS: true
+DESIGN_REPAIR_BUFFER_OUTPUT_PORTS: false
+RUN_CTS: true
+CTS_ROOT_BUFFER: sg13cmos5l_buf_16
+# Short trunks otherwise drive sixteen leaf buffers directly (library limit 8).
+CTS_DISTANCE_BETWEEN_BUFFERS: 25
+# Preserve only the intentional full-rate input-conditioning buffer.
+RSZ_DONT_TOUCH_RX: 'vco_input_buffer$'
+RUN_MAGIC_DRC: true
+RUN_KLAYOUT_DRC: true
