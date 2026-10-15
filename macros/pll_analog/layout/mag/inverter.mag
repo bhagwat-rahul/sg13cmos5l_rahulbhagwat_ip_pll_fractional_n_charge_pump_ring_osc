@@ -1,0 +1,44 @@
+magic
+tech ihp-sg13cmos5l
+magscale 1 2
+timestamp 1792033183
+<< checkpaint >>
+rect -2000 328 2200 2200
+rect -2000 -4000 3712 328
+<< metal1 >>
+rect 0 0 200 200
+rect 0 -400 200 -200
+rect 0 -800 200 -600
+rect 0 -1200 200 -1000
+rect 0 -1600 200 -1400
+rect 0 -2000 200 -1800
+use sg13_lv_pmos_PZ95C4  XM1
+timestamp 1792033183
+transform 1 0 347 0 1 -1836
+box -347 -164 347 164
+use sg13_lv_pmos_FLJ7N5  XM2
+timestamp 1792033183
+transform 1 0 837 0 1 -1836
+box -143 -164 143 164
+use sg13_lv_nmos_9TLPX9  XM3
+timestamp 1792033183
+transform 1 0 1061 0 1 -1836
+box -81 -164 81 164
+use sg13_lv_nmos_BDB694  XM4
+timestamp 1792033183
+transform 1 0 1427 0 1 -1836
+box -285 -164 285 164
+<< labels >>
+flabel metal1 0 0 200 200 0 FreeSans 1600 0 0 0 VIN
+port 0 nsew
+flabel metal1 0 -400 200 -200 0 FreeSans 1600 0 0 0 VOUT
+port 1 nsew
+flabel metal1 0 -800 200 -600 0 FreeSans 1600 0 0 0 VBP
+port 2 nsew
+flabel metal1 0 -1200 200 -1000 0 FreeSans 1600 0 0 0 VDD
+port 3 nsew
+flabel metal1 0 -1600 200 -1400 0 FreeSans 1600 0 0 0 VBN
+port 4 nsew
+flabel metal1 0 -2000 200 -1800 0 FreeSans 1600 0 0 0 VSS
+port 5 nsew
+<< end >>

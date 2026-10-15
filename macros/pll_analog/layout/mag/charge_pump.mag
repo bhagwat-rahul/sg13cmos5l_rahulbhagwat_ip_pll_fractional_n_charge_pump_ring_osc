@@ -1,0 +1,65 @@
+magic
+tech ihp-sg13cmos5l
+magscale 1 2
+timestamp 1792033184
+<< checkpaint >>
+rect -2000 348 2200 2200
+rect 3458 348 7620 448
+rect -2000 -4000 8384 348
+<< metal1 >>
+rect 0 0 200 200
+rect 0 -400 200 -200
+rect 0 -800 200 -600
+rect 0 -1200 200 -1000
+rect 0 -1600 200 -1400
+rect 0 -2000 200 -1800
+use sg13_lv_nmos_KCDJVM  XM_DOWN_SINK
+timestamp 1792033184
+transform 1 0 6002 0 1 -1826
+box -382 -174 382 174
+use sg13_lv_nmos_2HHA5V  XM_DOWN_SWITCH
+timestamp 1792033184
+transform 1 0 5539 0 1 -1776
+box -81 -224 81 224
+use sg13_lv_nmos_KCDJVM  XM_IREF
+timestamp 1792033184
+transform 1 0 842 0 1 -1826
+box -382 -174 382 174
+use sg13_lv_pmos_T5S2JK  XM_PBIAS
+timestamp 1792033184
+transform 1 0 2020 0 1 -1826
+box -796 -174 796 174
+use sg13_lv_nmos_KCDJVM  XM_PBIAS_SINK
+timestamp 1792033184
+transform 1 0 3198 0 1 -1826
+box -382 -174 382 174
+use sg13_lv_nmos_EDLQHT  XM_UP_INV_N
+timestamp 1792033184
+transform 1 0 373 0 1 -1896
+box -87 -104 87 104
+use sg13_lv_pmos_WVLXFL  XM_UP_INV_P
+timestamp 1792033184
+transform 1 0 143 0 1 -1896
+box -143 -104 143 104
+use sg13_lv_pmos_6CR76B  XM_UP_SOURCE
+timestamp 1792033184
+transform 1 0 4376 0 1 -1838
+box -796 -162 796 162
+use sg13_lv_pmos_69H9CU  XM_UP_SWITCH
+timestamp 1792033184
+transform 1 0 5315 0 1 -1826
+box -143 -174 143 174
+<< labels >>
+flabel metal1 0 0 200 200 0 FreeSans 1600 0 0 0 UP
+port 0 nsew
+flabel metal1 0 -400 200 -200 0 FreeSans 1600 0 0 0 DOWN
+port 1 nsew
+flabel metal1 0 -800 200 -600 0 FreeSans 1600 0 0 0 IREF
+port 2 nsew
+flabel metal1 0 -1200 200 -1000 0 FreeSans 1600 0 0 0 VCTRL
+port 3 nsew
+flabel metal1 0 -1600 200 -1400 0 FreeSans 1600 0 0 0 VDD
+port 4 nsew
+flabel metal1 0 -2000 200 -1800 0 FreeSans 1600 0 0 0 VSS
+port 5 nsew
+<< end >>

@@ -1,0 +1,41 @@
+magic
+tech ihp-sg13cmos5l
+timestamp 1792033184
+<< checkpaint >>
+rect -1000 1100 3568 1500
+rect -1000 -1600 4480 1100
+<< metal1 >>
+rect 0 0 100 100
+rect 0 -200 100 -100
+rect 0 -400 100 -300
+rect 0 -600 100 -500
+use inverter  x1
+timestamp 1792033183
+transform 1 0 0 0 1 400
+box 0 -1000 856 100
+use inverter  x2
+timestamp 1792033183
+transform 1 0 856 0 1 400
+box 0 -1000 856 100
+use inverter  x3
+timestamp 1792033183
+transform 1 0 1712 0 1 400
+box 0 -1000 856 100
+use vco_bias  x_bias
+timestamp 1792033184
+transform 1 0 2568 0 1 0
+box 0 -600 236 100
+use vco_buffer  x_buffer
+timestamp 1792033184
+transform 1 0 2804 0 1 0
+box 0 -600 676 100
+<< labels >>
+flabel metal1 0 0 100 100 0 FreeSans 800 0 0 0 VCTRL
+port 0 nsew
+flabel metal1 0 -200 100 -100 0 FreeSans 800 0 0 0 VCO_OUT
+port 1 nsew
+flabel metal1 0 -400 100 -300 0 FreeSans 800 0 0 0 VDD
+port 2 nsew
+flabel metal1 0 -600 100 -500 0 FreeSans 800 0 0 0 VSS
+port 3 nsew
+<< end >>

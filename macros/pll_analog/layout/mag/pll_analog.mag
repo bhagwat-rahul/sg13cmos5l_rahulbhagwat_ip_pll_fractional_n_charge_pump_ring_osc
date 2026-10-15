@@ -1,0 +1,40 @@
+magic
+tech ihp-sg13cmos5l
+magscale 1 2
+timestamp 1792033184
+<< checkpaint >>
+rect 4384 2200 35521 20000
+rect -2000 -4000 42481 2200
+<< metal1 >>
+rect 0 0 200 200
+rect 0 -400 200 -200
+rect 0 -800 200 -600
+rect 0 -1200 200 -1000
+rect 0 -1600 200 -1400
+rect 0 -2000 200 -1800
+use charge_pump  x_charge_pump
+timestamp 1792033184
+transform 1 0 0 0 1 0
+box 0 -2000 6384 200
+use loop_filter  x_loop_filter
+timestamp 1792033184
+transform 1 0 6476 0 1 -1508
+box -92 -492 27045 19508
+use ring_oscillator  x_vco
+timestamp 1792033184
+transform 1 0 33521 0 1 -800
+box 0 -1200 6960 1000
+<< labels >>
+flabel metal1 0 0 200 200 0 FreeSans 1600 0 0 0 UP
+port 0 nsew
+flabel metal1 0 -400 200 -200 0 FreeSans 1600 0 0 0 DOWN
+port 1 nsew
+flabel metal1 0 -800 200 -600 0 FreeSans 1600 0 0 0 IREF
+port 2 nsew
+flabel metal1 0 -1200 200 -1000 0 FreeSans 1600 0 0 0 VCO_CLK
+port 3 nsew
+flabel metal1 0 -1600 200 -1400 0 FreeSans 1600 0 0 0 VDD
+port 4 nsew
+flabel metal1 0 -2000 200 -1800 0 FreeSans 1600 0 0 0 VSS
+port 5 nsew
+<< end >>

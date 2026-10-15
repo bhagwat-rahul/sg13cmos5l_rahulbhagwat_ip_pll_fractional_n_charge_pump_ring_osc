@@ -1,0 +1,29 @@
+magic
+tech ihp-sg13cmos5l
+magscale 1 2
+timestamp 1792033184
+<< checkpaint >>
+rect -1484 8037 22516 21508
+rect -1484 6504 29045 8037
+rect -2092 -2492 29045 6504
+<< metal1 >>
+rect 0 0 200 200
+rect 0 -400 200 -200
+use cap_cmomf_PF9D8G  XC1A
+timestamp 1792033184
+transform 1 0 516 0 1 -492
+box 0 0 20000 20000
+use cap_cmomf_E26UUF  XC2
+timestamp 1792033184
+transform 1 0 20516 0 1 -492
+box 0 0 6529 6529
+use rhigh_GKSLQ4  XR1
+timestamp 1792033184
+transform 1 0 212 0 1 2006
+box -304 -2498 304 2498
+<< labels >>
+flabel metal1 0 0 200 200 0 FreeSans 1600 0 0 0 VCTRL
+port 0 nsew
+flabel metal1 0 -400 200 -200 0 FreeSans 1600 0 0 0 VSS
+port 1 nsew
+<< end >>

@@ -2,7 +2,8 @@
 
 Generated from the PLL-only repository's Xschem schematics on 2026-10-12.
 These are **layout-import inputs**, not simulation decks or LVS references.
-No old layout was used, and no generated layout is delivered here.
+No old layout was used. Initial generated Magic cells are now available in
+`../../layout/mag/`; see `../../layout/README.md` before editing or reimporting.
 
 Files: `inverter.spice`, `vco_bias.spice`, `vco_buffer.spice`,
 `charge_pump.spice`, `loop_filter.spice`, `ring_oscillator.spice`,
