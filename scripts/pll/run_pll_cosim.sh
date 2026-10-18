@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Optional extracted analog: ANALOG_SPICE, ANALOG_SUBCKT (pll_analog_pex),
+# ANALOG_VCTRL_NODE and ANALOG_STARTUP_NODE (relative to x_analog).
+# RECEIVER_SPICE adds the frozen transistor receiver as a physical load/witness;
+# RECEIVER_FEEDBACK=1 clocks RTL from its register-branch buffer and bypasses RTL /2.
+# PFD_SPICE replaces ideal RTL UP/DOWN with the frozen transistor PFD and RC.
+# Feedback dividers remain functional RTL, not extracted digital timing signoff.
+# KEEP_WORK=1 retains decks, compilation and simulation logs for inspection.
+# COSIM_WAVEFORM optionally writes the saved transient vectors as binary SPICE.
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PROJECT_ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
 PLL_DIR="$PROJECT_ROOT/macros/pll_analog/schematic/xschem"
@@ -15,6 +23,12 @@ CORNER=${CORNER:-tt}
 TEMP_C=${TEMP_C:-27}
 TOOLS_BIN=${TOOLS_BIN:-/foss/tools/bin}
 REAL_VERILATOR=${REAL_VERILATOR:-$TOOLS_BIN/verilator}
+export RECEIVER_FEEDBACK=${RECEIVER_FEEDBACK:-0}
+if [[ $RECEIVER_FEEDBACK != 0 && $RECEIVER_FEEDBACK != 1 ]] ||
+   [[ $RECEIVER_FEEDBACK == 1 && -z ${RECEIVER_SPICE:-} ]]; then
+  echo "RECEIVER_FEEDBACK must be 0 or 1, and 1 requires RECEIVER_SPICE" >&2
+  exit 1
+fi
 
 python3 - "$DIV_RATIO" "$TEST_DIV" "$FREF_HZ" "$SIM_TIME_S" "$CORNER" "$TEMP_C" <<'PY'
 import sys
@@ -52,7 +66,7 @@ mkdir -p "$WORK/bin"
 
 # ngspice-46's vlnggen helper lowercases case-sensitive Verilator options and
 # does not parse Verilator-5 port declarations. This temporary wrapper fixes
-# those compatibility issues and supplies the known pll_digital port table.
+# those compatibility issues and reconstructs the actual generated port table.
 cat >"$WORK/bin/verilator" <<'EOF'
 #!/usr/bin/env bash
 args=()
@@ -75,22 +89,17 @@ for argument in "$@"; do
 done
 
 if [[ " ${args[*]} " == *" --build "* && -n "$mdir" ]]; then
-  cat >"$mdir/inputs.h" <<'HEAD'
-VL_DATA(8, ref_clk, 0, 0)
-VL_DATA(8, vco_clk, 0, 0)
-VL_DATA(8, reset_n, 0, 0)
-VL_DATA(8, enable, 0, 0)
-VL_DATA(8, test_div_select, 1, 0)
-VL_DATA(16, div_ratio, 9, 0)
-HEAD
-  cat >"$mdir/outputs.h" <<'HEAD'
-VL_DATA(8, feedback_clk, 0, 0)
-VL_DATA(8, up, 0, 0)
-VL_DATA(8, down, 0, 0)
-VL_DATA(8, pll_clk, 0, 0)
-VL_DATA(8, test_clk, 0, 0)
-HEAD
-  : >"$mdir/inouts.h"
+  python3 - "$mdir" <<'PY'
+from pathlib import Path
+import re
+import sys
+directory = Path(sys.argv[1])
+header = (directory / 'Vlng.h').read_text()
+for direction, filename in (('IN', 'inputs.h'), ('OUT', 'outputs.h'), ('INOUT', 'inouts.h')):
+    ports = re.findall(r'VL_' + direction + r'(8|16|32|64)\(&([\w]+),(\d+),(\d+)\)', header)
+    (directory / filename).write_text(''.join(
+        f'VL_DATA({size},{name},{msb},{lsb})\n' for size, name, msb, lsb in ports))
+PY
 fi
 
 "$REAL_VERILATOR" "${args[@]}"
@@ -112,18 +121,38 @@ export PDK=${PLL_PDK:-ihp-sg13cmos5l}
 export PDKPATH=${PLL_PDKPATH:-$PDK_ROOT/$PDK}
 export SPICE_USERINIT_DIR=$PDKPATH/libs.tech/ngspice
 
+clock_source="$RTL_DIR/clock_output_divider.v"
+if [[ $RECEIVER_FEEDBACK == 1 ]]; then
+  clock_source="$WORK/clock_output_divider.v"
+  python3 - "$RTL_DIR/clock_output_divider.v" "$clock_source" <<'PY'
+from pathlib import Path
+import re
+import sys
+text = Path(sys.argv[1]).read_text()
+text, count = re.subn(r'(module high_speed_div2\b.*?\n\);)\n.*?\nendmodule',
+    lambda m: m[1].replace('output reg', 'output wire')
+        + "\n    assign q = reset_b ? clk : 1'b0;\nendmodule",
+    text, flags=re.S)
+if count != 1:
+    raise SystemExit('expected exactly one portable high_speed_div2 model')
+Path(sys.argv[2]).write_text('// SIMULATION ONLY: physical receiver already divides by two.\n' + text)
+PY
+fi
 (
   cd "$WORK"
   ngspice vlnggen \
     "$RTL_DIR/pll_digital.v" \
     "$RTL_DIR/pfd.v" \
     "$RTL_DIR/fractional_divider.v" \
-    "$RTL_DIR/clock_output_divider.v" >build.log 2>&1
+    "$clock_source" >build.log 2>&1
   mv pll_digital.so pll_digital_cosim.so
 )
 
 expected_inputs='ref_clk vco_clk reset_n enable test_div_select div_ratio'
 expected_outputs='feedback_clk up down pll_clk test_clk'
+if [[ $RECEIVER_FEEDBACK == 1 ]]; then
+  expected_outputs='feedback_clk pll_clk up down test_clk'
+fi
 actual_inputs=$(sed -n 's/^VL_DATA([^,]*,\([^,]*\),.*/\1/p' "$WORK/pll_digital_obj_dir/inputs.h" | paste -sd' ' -)
 actual_outputs=$(sed -n 's/^VL_DATA([^,]*,\([^,]*\),.*/\1/p' "$WORK/pll_digital_obj_dir/outputs.h" | paste -sd' ' -)
 if [[ $actual_inputs != "$expected_inputs" || $actual_outputs != "$expected_outputs" ]]; then
@@ -139,8 +168,11 @@ fi
 )
 
 export DIV_RATIO TEST_DIV FREF_HZ SIM_TIME_S MAX_STEP_S VDD CORNER TEMP_C
-python3 - "$WORK/pll_cosim.spice" <<'PY'
+python3 - "$WORK/pll_cosim.spice" "$PROJECT_ROOT/macros/pll_digital/frozen/v1/spef/nom/pll_digital.nom.spef" <<'PY'
+import hashlib
+import json
 import os
+from pathlib import Path
 import re
 import sys
 
@@ -168,6 +200,103 @@ text = text.replace("PULSE(0 1.2 2n", f"PULSE(0 {vdd} 2n")
 text = text.replace("mos_tt", f"mos_{corner}")
 text = text.replace(".options temp=27", f".options temp={temp}")
 text = text.replace("v(x_pll.x_analog.x_vco.net1)=1.2", f"v(x_pll.x_analog.x_vco.net1)={vdd}")
+vctrl_node = "x_pll.x_analog.VCTRL"
+analog = os.environ.get("ANALOG_SPICE")
+if analog:
+    # Explicit experimental replacement; never infer extracted pin order.
+    analog_path = Path(analog).resolve(strict=True)
+    analog_text = analog_path.read_text()
+    name = os.environ.get("ANALOG_SUBCKT", "pll_analog_pex")
+    flattened = re.sub(r"\n\s*\+", " ", analog_text)
+    declaration = re.search(r"^\.subckt\s+" + re.escape(name) + r"\s+([^\n]+)",
+                            flattened, re.I | re.M)
+    expected = {"VDD", "VSS", "UP", "DOWN", "IREF", "VCO_CLK"}
+    ports = declaration[1].split() if declaration else []
+    if len(ports) != len(expected) or set(ports) != expected:
+        raise SystemExit(f"unexpected analog interface: {name} {ports}")
+    text, count = re.subn(r"^x_analog[^\n]+pll_analog\s*$",
+                         "x_analog " + " ".join(ports) + " " + name,
+                         text, count=1, flags=re.M)
+    if count != 1:
+        raise SystemExit("expected exactly one pll_analog instance")
+    # Remove the unused analog hierarchy, including its scoped passive-model
+    # parameters. Keeping it can collide with identically named extracted
+    # subcircuits in ngspice's parameter expansion even when it is uninstantiated.
+    for cell in ("pll_analog", "charge_pump", "loop_filter", "ring_oscillator",
+                 "inverter", "vco_bias", "vco_buffer"):
+        text = re.sub(r"^\.subckt\s+" + cell + r"\s[^\n]*\n.*?^\.ends\b[^\n]*\n",
+                      "", text, flags=re.M | re.S | re.I)
+    text = text.replace(".end\n", f'.include "{analog_path}"\n.end\n')
+    vctrl = os.environ["ANALOG_VCTRL_NODE"]
+    startup = os.environ["ANALOG_STARTUP_NODE"]
+    if any(not re.fullmatch(r"[\w.$#]+", node) for node in (vctrl, startup)):
+        raise SystemExit("invalid analog probe/startup node")
+    vctrl_node = "x_pll.x_analog." + vctrl
+    # The source hierarchy no longer exists. Use a reviewed physical alias
+    # and a small startup-current kick, rather than fictitious .ic nodes.
+    text = re.sub(r"^\.ic[^\n]*\n", "", text, flags=re.M)
+    kick = ("ISEED 0 x_pll.x_analog." + startup
+            + " PWL(0 0 .5n 0 .51n 1u .6n 1u .61n 0)\n")
+    text = text.replace(".end\n", kick + ".end\n")
+    Path(path).with_name("analog_input.json").write_text(json.dumps({
+        "path": str(analog_path), "sha256": hashlib.sha256(analog_path.read_bytes()).hexdigest(),
+        "subcircuit": name, "ports": ports, "vctrl_node": vctrl_node,
+        "startup_node": startup,
+        "limitations": "RTL d_cosim is functional, not routed digital timing or noise signoff",
+    }, indent=2) + "\n")
+receiver = os.environ.get("RECEIVER_SPICE")
+receiver_feedback = os.environ["RECEIVER_FEEDBACK"] == "1"
+pfd = os.environ.get("PFD_SPICE")
+if receiver or pfd:
+    library = Path(os.environ["PDKPATH"]) / "libs.ref/sg13cmos5l_stdcell/spice/sg13cmos5l_stdcell.spice"
+    text = text.replace(".end\n", f'.include "{library}"\n.end\n')
+if receiver:
+    receiver = Path(receiver).resolve(strict=True)
+    # Physical receiver load/witness; RTL still performs its own functional /2.
+    physical = (f'.include "{receiver}"\n'
+                '.subckt cosim_receiver_witness IN RESET VDD VSS\n'
+                'Xreceiver IN CLK DIV2 RESET VDD VSS frozen_receiver\n'
+                '.ends cosim_receiver_witness\n')
+    text = text.replace(".end\n", physical + ".end\n")
+    text = text.replace("x_analog ", "x_receiver VCO_CLK RESET_N VDD VSS cosim_receiver_witness\nx_analog ", 1)
+    if receiver_feedback:
+        # Follow the real register-clock branch, not an ADC on weak raw Q.
+        # extract_receiver names each physical buffer output by its SPEF ID.
+        spef = Path(sys.argv[2]).read_text()
+        binding = re.search(r'^\*(\d+) clkbuf_regs_0_half$', spef, re.M)
+        if not binding:
+            raise SystemExit('frozen register-clock buffer mapping missing')
+        buffer_node = f'load_{binding[1]}_out'
+        if not re.search(r'^X\S+ ' + buffer_node + r' .* sg13cmos5l_buf_16$',
+                         receiver.read_text(), re.M):
+            raise SystemExit('receiver does not contain the frozen register-clock buffer')
+        receiver_clock = f'x_receiver.xreceiver.{buffer_node}'
+        # Match the production receiver's reset_n && enable reset control.
+        # Preserve the analog reset ramp while ENABLE is asserted.
+        text = text.replace("x_receiver VCO_CLK RESET_N ",
+                            f"Breceiver_reset RECEIVER_RESET VSS V=V(ENABLE,VSS)>{vdd / 2} ? V(RESET_N,VSS) : 0\n"
+                            "x_receiver VCO_CLK RECEIVER_RESET ", 1)
+        text, count = re.subn(r'\[ REF_CLK VCO_CLK RESET_N ENABLE',
+                             f'[ REF_CLK {receiver_clock} RESET_N ENABLE', text)
+        if count != 1:
+            raise SystemExit('expected exactly one RTL clock-input bundle')
+if pfd:
+    pfd = Path(pfd).resolve(strict=True)
+    text = text.replace(".end\n", f'.include "{pfd}"\n.end\n')
+    text, count = re.subn(r"\[ FB_CLK UP DOWN PLL_CLK TEST_CLK \]",
+                         "[ FB_CLK UP_RTL DOWN_RTL PLL_CLK TEST_CLK ]", text)
+    if count != 1:
+        raise SystemExit("unexpected RTL output bundle for physical PFD substitution")
+    physical = (f"Bpfd_enable PFD_ENABLE VSS V=V(ENABLE,VSS)>{vdd / 2} && V(RESET_N,VSS)>{vdd / 2} ? {vdd} : 0\n"
+                "Xphysical_pfd REF_CLK FB_CLK PFD_ENABLE UP DOWN VDD VSS pfd_driver\n")
+    text = text.replace("x_analog ", physical + "x_analog ", 1)
+if receiver_feedback:
+    # The bypass changes Verilator's generated output declaration order.
+    # The preceding header check guards this explicit co-simulation mapping.
+    text = text.replace('[ FB_CLK UP_RTL DOWN_RTL PLL_CLK TEST_CLK ]',
+                        '[ FB_CLK PLL_CLK UP_RTL DOWN_RTL TEST_CLK ]') if pfd else text.replace(
+                        '[ FB_CLK UP DOWN PLL_CLK TEST_CLK ]',
+                        '[ FB_CLK PLL_CLK UP DOWN TEST_CLK ]')
 for prefix, width, value in (
     ("DIV_RATIO", 10, ratio),
     ("TEST_DIV", 2, test_div),
@@ -182,12 +311,20 @@ for prefix, width, value in (
             flags=re.MULTILINE,
         )
 
+save_vectors = (f"v(TEST_CLK) v({vctrl_node}) i(VDD_SRC) v(x_pll.UP) v(x_pll.DOWN)"
+                " v(x_pll.VCO_CLK) v(x_pll.FB_CLK) v(REF_CLK)")
+if receiver:
+    save_vectors += " v(x_pll.x_receiver.DIV2)"
+if receiver_feedback:
+    save_vectors += f" v(x_pll.{receiver_clock})"
+adc_low, adc_high = (.1 * vdd, .9 * vdd) if receiver_feedback else (.3, .9)
 commands = [
     ".control",
+    "set num_threads=1",
     "set numdgt=15",
-    'pre_set auto_bridge_d_in = ( ".model auto_adc adc_bridge(in_low=0.3 in_high=0.9 rise_delay=5p fall_delay=5p)" "auto_bridge%d [ %s ] [ %s ] auto_adc" )',
+    f'pre_set auto_bridge_d_in = ( ".model auto_adc adc_bridge(in_low={adc_low} in_high={adc_high} rise_delay=5p fall_delay=5p)" "auto_bridge%d [ %s ] [ %s ] auto_adc" )',
     f'pre_set auto_bridge_d_out = ( ".model auto_dac dac_bridge(out_low=0 out_high={vdd} t_rise=20p t_fall=20p)" "auto_bridge%d [ %s ] [ %s ] auto_dac" )',
-    "save v(TEST_CLK) v(x_pll.x_analog.VCTRL)",
+    f"save {save_vectors}",
     f"tran {max_step:.12g} {sim_time:.12g} uic",
 ]
 for edge in range(1, 102):
@@ -195,8 +332,29 @@ for edge in range(1, 102):
         f"meas tran cosim_edge_{edge} when v(TEST_CLK)={vdd / 2} rise={edge} TD={settled_start:.12g}"
     )
 commands.append(
-    f"meas tran vctrl_avg avg v(x_pll.x_analog.VCTRL) from={settled_start:.12g} to={sim_time:.12g}"
+    f"meas tran vctrl_avg avg v({vctrl_node}) from={settled_start:.12g} to={sim_time:.12g}"
 )
+for name, operation, vector in (("vctrl_ripple", "pp", f"v({vctrl_node})"),
+                                ("idd_avg", "avg", "i(VDD_SRC)"),
+                                ("up_avg", "avg", "v(x_pll.UP)"),
+                                ("down_avg", "avg", "v(x_pll.DOWN)")):
+    commands.append(f"meas tran {name} {operation} {vector} from={settled_start:.12g} to={sim_time:.12g}")
+if receiver:
+    for name, operation in (("receiver_q_max", "max"), ("receiver_q_min", "min")):
+        commands.append(f"meas tran {name} {operation} v(x_pll.x_receiver.DIV2) from={settled_start:.12g} to={sim_time:.12g}")
+    for suffix, edge in (("a", 1), ("b", 201)):
+        commands.append(f"meas tran receiver_{suffix} when v(x_pll.x_receiver.DIV2)={vdd / 2} rise={edge} TD={settled_start:.12g}")
+start = .5e-6
+while start <= sim_time - .5e-6 + 1e-15:
+    index = round((start - .5e-6) / .25e-6)
+    for suffix, edge in (("a", 1), ("b", 101)):
+        commands.append(f"meas tran lock_{index}_{suffix} when v(TEST_CLK)={vdd / 2} rise={edge} TD={start:.12g}")
+    start += .25e-6
+if os.environ.get("COSIM_WAVEFORM"):
+    waveform = Path(os.environ["COSIM_WAVEFORM"]).resolve()
+    if any(c.isspace() for c in str(waveform)):
+        raise SystemExit("ngspice write requires a waveform path without whitespace")
+    commands.extend(("set filetype=binary", f"write {waveform} {save_vectors}"))
 commands.append(".endc")
 text = re.sub(r"\.control\n.*?\.endc", "\n".join(commands), text, count=1, flags=re.DOTALL)
 open(path, "w").write(text)
@@ -204,8 +362,12 @@ PY
 
 (
   cd "$WORK"
-  ngspice -b pll_cosim.spice >simulation.log 2>&1
+  ngspice -b pll_cosim.spice >simulation.log 2>&1 || { tail -40 simulation.log >&2; exit 1; }
 )
+if [[ -n ${COSIM_WAVEFORM:-} && ! -s $COSIM_WAVEFORM ]]; then
+  echo "ngspice did not write the requested waveform: $COSIM_WAVEFORM" >&2
+  exit 1
+fi
 
 python3 - "$WORK/simulation.log" <<'PY'
 import json
@@ -238,6 +400,27 @@ target = fref * divide / 2 ** (test_div + 1)
 measured = 1.0 / mean_period
 if abs(measured / target - 1.0) > 0.01:
     raise SystemExit(f"co-simulation frequency error exceeds 1%: target={target} measured={measured}")
+windows = []
+start = .5e-6
+while start <= float(os.environ["SIM_TIME_S"]) - .5e-6 + 1e-15:
+    index = len(windows)
+    first, last = value(f"lock_{index}_a"), value(f"lock_{index}_b")
+    frequency = None if first is None or last is None else 100 / (last - first)
+    windows.append((start, frequency))
+    start += .25e-6
+lock_time = next((start for index, (start, _) in enumerate(windows)
+                  if all(f is not None and abs(f / target - 1) <= .01
+                         for _, f in windows[index:])), None)
+receiver_frequency = None
+if os.environ.get("RECEIVER_SPICE"):
+    a, b = value("receiver_a"), value("receiver_b")
+    if a is None or b is None:
+        raise SystemExit("physical receiver did not produce 201 settled edges")
+    receiver_frequency = 200 / (b - a)
+    if abs(receiver_frequency / (fref * divide / 2) - 1) > .01:
+        raise SystemExit("physical receiver divide-by-two frequency error exceeds 1%")
+    if value("receiver_q_max") < .9 * float(os.environ["VDD"]) or value("receiver_q_min") > .1 * float(os.environ["VDD"]):
+        raise SystemExit("physical receiver fails settled Q swing screen")
 print(json.dumps({
     "corner": os.environ["CORNER"],
     "divide": divide,
@@ -250,5 +433,17 @@ print(json.dumps({
     "rms_period_jitter_s": rms_jitter,
     "peak_to_peak_period_jitter_s": max(periods) - min(periods),
     "vctrl_v": value("vctrl_avg"),
+    "vctrl_ripple_pp_v": value("vctrl_ripple"),
+    "modeled_supply_power_w": -value("idd_avg") * float(os.environ["VDD"]),
+    "lock_time_s_1pct_sampled": lock_time,
+    "up_duty": value("up_avg") / float(os.environ["VDD"]),
+    "down_duty": value("down_avg") / float(os.environ["VDD"]),
+    "analog_source": os.environ.get("ANALOG_SPICE", "schematic"),
+    "physical_receiver_load": bool(os.environ.get("RECEIVER_SPICE")),
+    "physical_receiver_feedback": os.environ.get("RECEIVER_FEEDBACK") == "1",
+    "physical_receiver_div2_hz": receiver_frequency,
+    "physical_receiver_q_max_v": value("receiver_q_max"),
+    "physical_receiver_q_min_v": value("receiver_q_min"),
+    "physical_pfd": bool(os.environ.get("PFD_SPICE")),
 }, indent=2, sort_keys=True))
 PY
