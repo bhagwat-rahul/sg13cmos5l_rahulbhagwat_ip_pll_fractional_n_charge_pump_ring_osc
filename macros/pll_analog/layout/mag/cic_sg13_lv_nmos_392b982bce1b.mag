@@ -1,0 +1,92 @@
+magic
+tech ihp-sg13cmos5l
+magscale 1 2
+timestamp 1792048316
+<< pwell >>
+rect -579 -596 579 596
+<< nmos >>
+rect -13 -15 13 15
+<< ndiff >>
+rect -87 16 -27 30
+rect -87 -16 -73 16
+rect -41 15 -27 16
+rect 27 16 87 30
+rect 27 15 41 16
+rect -41 -15 -13 15
+rect 13 -15 41 15
+rect -41 -16 -27 -15
+rect -87 -30 -27 -16
+rect 27 -16 41 -15
+rect 73 -16 87 16
+rect 27 -30 87 -16
+<< ndiffc >>
+rect -73 -16 -41 16
+rect 41 -16 73 16
+<< psubdiff >>
+rect -517 520 517 534
+rect -517 488 -425 520
+rect 425 488 517 520
+rect -517 474 517 488
+rect -517 442 -457 474
+rect -517 -442 -503 442
+rect -471 -442 -457 442
+rect 457 442 517 474
+rect -517 -474 -457 -442
+rect 457 -442 471 442
+rect 503 -442 517 442
+rect 457 -474 517 -442
+rect -517 -488 517 -474
+rect -517 -520 -425 -488
+rect 425 -520 517 -488
+rect -517 -534 517 -520
+<< psubdiffcont >>
+rect -425 488 425 520
+rect -503 -442 -471 442
+rect 471 -442 503 442
+rect -425 -520 425 -488
+<< poly >>
+rect -30 90 30 104
+rect -30 58 -16 90
+rect 16 58 30 90
+rect -30 44 30 58
+rect -13 15 13 44
+rect -13 -44 13 -15
+rect -30 -58 30 -44
+rect -30 -90 -16 -58
+rect 16 -90 30 -58
+rect -30 -104 30 -90
+<< polycont >>
+rect -16 58 16 90
+rect -16 -90 16 -58
+<< metal1 >>
+rect -503 488 -425 520
+rect 425 488 503 520
+rect -503 442 -471 488
+rect 471 442 503 488
+rect -57 58 -16 90
+rect 16 58 57 90
+rect -83 -16 -73 16
+rect -41 -16 -31 16
+rect 31 -16 41 16
+rect 73 -16 83 16
+rect -57 -90 -16 -58
+rect 16 -90 57 -58
+rect -503 -488 -471 -442
+rect 471 -488 503 -442
+rect -503 -520 -425 -488
+rect 425 -520 503 -488
+<< labels >>
+rlabel psubdiffcont 0 -504 0 -504 0 B
+port 1 nsew
+rlabel ndiffc -57 0 -57 0 0 D
+port 2 nsew
+rlabel ndiffc 57 0 57 0 0 S
+port 3 nsew
+rlabel polycont 0 74 0 74 0 G
+port 4 nsew
+<< properties >>
+string FIXED_BBOX -487 -504 487 504
+string gencell sg13_lv_nmos
+string library sg13cmos5l
+string parameters w 0.15 l 0.13 m 1 ng 1 diffcov 100 polycov 100 guard 1 glc 1 grc 1 gtc 1 gbc 1 tbcov 100 rlcov 100 topc 1 botc 1 poverlap 0 doverlap 1 lmin 0.13 wmin 0.15 class mosfet compatible {sg13_lv_nmos sg13_hv_nmos} full_metal 1 conn_gates 1 gate_ring 0 doports 1 viasrc 0 viadrn 0 viagate 0 ccols 1 viagb 0 viagr 0 viagl 0 viagt 0 set_x_to_guard 2.0 set_y_to_guard 2.0
+<< end >>

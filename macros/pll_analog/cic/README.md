@@ -1,10 +1,13 @@
 # SG13CMOS5L CIC experiments
 
-**Experimental, not integration-ready.** Bias, charge pump, current-starved
-inverter and output buffer have directed placement/routing and both-engine
-LVS closure. Electrical qualification is in progress. The manual `../layout/mag/` library and frozen digital
-macro are untouched. See `../../../docs/cic_analog_experiments.md` for
-measured results, isolation/PDN intent, and the outstanding ESD gate.
+**Provisional integration baseline, not signoff-ready.** The routed,
+non-density-filled `cic-analog-pulse-031` hierarchy is now promoted into
+`../layout/mag/`, with matching maintained schematic sizes. See the
+[layout README](../layout/README.md) for opening/instantiating it and its
+remaining check failures. Further experiments stay separate in `build/`;
+the frozen digital macro is untouched. See
+`../../../docs/cic_analog_experiments.md` for measured results,
+isolation/PDN intent, and the outstanding ESD gate.
 
 Run from the repository root **inside IIC-OSIC-TOOLS**:
 
@@ -19,9 +22,9 @@ python3 macros/pll_analog/layout/run_checks.py all vco_bias \
 Choose a new, empty output directory for each candidate. The generator
 restricts outputs to the ignored `layout/build/` subtree. The checker
 snapshots the candidate library into a new timestamped report directory;
-it does not overwrite the candidate or manual sources. It returns failure
+it does not overwrite the candidate or maintained sources. It returns failure
 when any check fails, including global density. Existing `make check CELL`
-commands still check the manual library by default.
+commands check the promoted maintained library by default.
 
 For the current charge-pump recipe:
 

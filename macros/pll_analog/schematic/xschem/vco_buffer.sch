@@ -6,7 +6,7 @@ S {}
 F {}
 E {}
 T {Two-stage tapered CMOS buffer for isolating the VCO core.
-Stage 1: WP/WN=0.30/0.15 um. Stage 2: WP/WN=0.90/0.45 um.} -230 -290 0 0 0.3 0.3 {}
+Stage 1: WP/WN=2.40/1.80 um. Stage 2: WP/WN=1.80/0.90 um.} -230 -290 0 0 0.3 0.3 {}
 N -220 0 -160 0 {lab=VIN}
 N -160 -60 -120 -60 {lab=VIN}
 N -160 0 -160 60 {lab=VIN}
@@ -42,7 +42,7 @@ N -80 -120 -20 -120 {lab=VDD}
 N -80 120 -20 120 {lab=VSS}
 C {sg13cmos5l_pr/sg13_lv_pmos.sym} -100 -60 0 0 {name=M1
 l=0.13u
-w=0.30u
+w=2.40u
 ng=1
 m=1
 mm_ok=1
@@ -51,7 +51,7 @@ spiceprefix=X
 }
 C {sg13cmos5l_pr/sg13_lv_nmos.sym} -100 60 0 0 {name=M2
 l=0.13u
-w=0.15u
+w=1.80u
 ng=1
 m=1
 mm_ok=1
@@ -60,7 +60,7 @@ spiceprefix=X
 }
 C {sg13cmos5l_pr/sg13_lv_pmos.sym} 60 -60 0 0 {name=M3
 l=0.13u
-w=0.90u
+w=1.80u
 ng=3
 m=1
 mm_ok=1
@@ -69,7 +69,7 @@ spiceprefix=X
 }
 C {sg13cmos5l_pr/sg13_lv_nmos.sym} 60 60 0 0 {name=M4
 l=0.13u
-w=0.45u
+w=0.90u
 ng=3
 m=1
 mm_ok=1

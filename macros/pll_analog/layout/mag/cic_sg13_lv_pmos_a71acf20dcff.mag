@@ -1,0 +1,81 @@
+magic
+tech ihp-sg13cmos5l
+magscale 1 2
+timestamp 1792226511
+<< nwell >>
+rect -573 -907 573 907
+<< pmos >>
+rect -13 -379 13 341
+<< pdiff >>
+rect -81 327 -13 341
+rect -81 -365 -67 327
+rect -35 -365 -13 327
+rect -81 -379 -13 -365
+rect 13 327 81 341
+rect 13 -365 35 327
+rect 67 -365 81 327
+rect 13 -379 81 -365
+<< pdiffc >>
+rect -67 -365 -35 327
+rect 35 -365 67 327
+<< nsubdiff >>
+rect -511 831 511 845
+rect -511 799 -419 831
+rect 419 799 511 831
+rect -511 785 511 799
+rect -511 753 -451 785
+rect -511 -753 -497 753
+rect -465 -753 -451 753
+rect 451 753 511 785
+rect -511 -785 -451 -753
+rect 451 -753 465 753
+rect 497 -753 511 753
+rect 451 -785 511 -753
+rect -511 -799 511 -785
+rect -511 -831 -419 -799
+rect 419 -831 511 -799
+rect -511 -845 511 -831
+<< nsubdiffcont >>
+rect -419 799 419 831
+rect -497 -753 -465 753
+rect 465 -753 497 753
+rect -419 -831 419 -799
+<< poly >>
+rect -30 401 30 415
+rect -30 369 -16 401
+rect 16 369 30 401
+rect -30 355 30 369
+rect -13 341 13 355
+rect -13 -415 13 -379
+<< polycont >>
+rect -16 369 16 401
+<< metal1 >>
+rect -497 799 -419 831
+rect 419 799 497 831
+rect -497 753 -465 799
+rect 465 753 497 799
+rect -51 369 -16 401
+rect 16 369 51 401
+rect -77 -365 -67 327
+rect -35 -365 -25 327
+rect 25 -365 35 327
+rect 67 -365 77 327
+rect -497 -799 -465 -753
+rect 465 -799 497 -753
+rect -497 -831 -419 -799
+rect 419 -831 497 -799
+<< labels >>
+rlabel nsubdiffcont 0 -815 0 -815 0 B
+port 1 nsew
+rlabel pdiffc -51 -19 -51 -19 0 D
+port 2 nsew
+rlabel pdiffc 51 -19 51 -19 0 S
+port 3 nsew
+rlabel polycont 0 385 0 385 0 G
+port 4 nsew
+<< properties >>
+string FIXED_BBOX -481 -815 481 815
+string gencell sg13_lv_pmos
+string library sg13cmos5l
+string parameters w 3.6 l 0.13 m 1 ng 1 diffcov 100 polycov 100 guard 1 glc 1 grc 1 gtc 1 gbc 1 tbcov 100 rlcov 100 topc 1 botc 0 poverlap 0 doverlap 1 lmin 0.13 wmin 0.15 class mosfet compatible {sg13_lv_pmos sg13_hv_pmos} full_metal 1 conn_gates 1 gate_ring 0 ccols 1 viasrc 0 viadrn 0 viagate 0 viagb 0 viagr 0 viagl 0 viagt 0 doports 1 set_x_to_guard 2.0 set_y_to_guard 2.0
+<< end >>

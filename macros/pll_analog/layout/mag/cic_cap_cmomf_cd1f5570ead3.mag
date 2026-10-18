@@ -1,9 +1,7 @@
 magic
 tech ihp-sg13cmos5l
 magscale 1 2
-timestamp 1792033184
-<< checkpaint >>
-rect -2000 -2000 8529 8529
+timestamp 1792136815
 << metal2 >>
 rect 0 6401 45 6529
 rect 87 6489 127 6529

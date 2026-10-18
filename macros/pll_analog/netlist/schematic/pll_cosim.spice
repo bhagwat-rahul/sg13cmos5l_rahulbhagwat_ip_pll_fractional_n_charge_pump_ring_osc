@@ -25,9 +25,9 @@ x_analog VDD UP VCO_CLK DOWN IREF VSS pll_analog
 *.opin VCO_CLK
 *.iopin VDD
 *.iopin VSS
-x_charge_pump VDD UP DOWN IREF net1 VSS charge_pump
-x_loop_filter net1 VSS loop_filter
-x_vco VDD VCO_CLK net1 VSS ring_oscillator
+x_charge_pump VDD UP DOWN IREF VCTRL VSS charge_pump
+x_loop_filter VCTRL VSS loop_filter
+x_vco VDD VCO_CLK VCTRL VSS ring_oscillator
 .ends
 
 
@@ -41,15 +41,15 @@ x_vco VDD VCO_CLK net1 VSS ring_oscillator
 *.opin VCTRL
 *.iopin VDD
 *.iopin VSS
-*  M_UP_INV_P -  sg13_lv_pmos  IS MISSING !!!!
-*  M_UP_INV_N -  sg13_lv_nmos  IS MISSING !!!!
-*  M_IREF -  sg13_lv_nmos  IS MISSING !!!!
-*  M_PBIAS -  sg13_lv_pmos  IS MISSING !!!!
-*  M_PBIAS_SINK -  sg13_lv_nmos  IS MISSING !!!!
-*  M_UP_SOURCE -  sg13_lv_pmos  IS MISSING !!!!
-*  M_UP_SWITCH -  sg13_lv_pmos  IS MISSING !!!!
-*  M_DOWN_SWITCH -  sg13_lv_nmos  IS MISSING !!!!
-*  M_DOWN_SINK -  sg13_lv_nmos  IS MISSING !!!!
+XM_UP_INV_P UP_B UP VDD VDD sg13_lv_pmos w=0.30u l=0.13u ng=1 m=1 mm_ok=1
+XM_UP_INV_N UP_B UP VSS VSS sg13_lv_nmos w=0.15u l=0.13u ng=1 m=1 mm_ok=1
+XM_IREF IREF IREF VSS VSS sg13_lv_nmos w=4.0u l=0.50u ng=4 m=1 mm_ok=1
+XM_PBIAS PBIAS PBIAS VDD VDD sg13_lv_pmos w=8.0u l=0.50u ng=8 m=1 mm_ok=1
+XM_PBIAS_SINK PBIAS IREF VSS VSS sg13_lv_nmos w=4.0u l=0.50u ng=4 m=1 mm_ok=1
+XM_UP_SOURCE P_UP PBIAS VDD VDD sg13_lv_pmos w=7.0u l=0.50u ng=8 m=1 mm_ok=1
+XM_UP_SWITCH VCTRL UP_B P_UP VDD sg13_lv_pmos w=1.0u l=0.13u ng=1 m=1 mm_ok=1
+XM_DOWN_SWITCH VCTRL DOWN N_DOWN VSS sg13_lv_nmos w=1.5u l=0.13u ng=1 m=1 mm_ok=1
+XM_DOWN_SINK N_DOWN IREF VSS VSS sg13_lv_nmos w=4.0u l=0.50u ng=4 m=1 mm_ok=1
 .ends
 
 
@@ -59,9 +59,9 @@ x_vco VDD VCO_CLK net1 VSS ring_oscillator
 .subckt loop_filter VCTRL VSS
 *.iopin VCTRL
 *.iopin VSS
-*  R1 -  rhigh  IS MISSING !!!!
-*  C1A -  cap_cmomf  IS MISSING !!!!
-*  C2 -  cap_cmomf  IS MISSING !!!!
+XR1 VCTRL FILTER_ZERO VSS rhigh w=1.0u l=22.08u m=1 b=0 mm_ok=1
+XC1A FILTER_ZERO VSS cap_cmomf w=100u l=100u mmin=2 mmax=4 subblock=0 m=1 mm_ok=1
+XC2 VCTRL VSS cap_cmomf w=32.6431u l=32.6431u mmin=2 mmax=4 subblock=0 m=1 mm_ok=1
 **** begin user architecture code
 
 
@@ -100,10 +100,10 @@ x_buffer VDD VCO_CORE VCO_OUT VSS vco_buffer
 *.opin VOUT
 *.iopin VDD
 *.iopin VSS
-*  M1 -  sg13_lv_pmos  IS MISSING !!!!
-*  M2 -  sg13_lv_pmos  IS MISSING !!!!
-*  M3 -  sg13_lv_nmos  IS MISSING !!!!
-*  M4 -  sg13_lv_nmos  IS MISSING !!!!
+XM1 net1 VBP VDD VDD sg13_lv_pmos w=18.0u l=0.13u ng=5 m=1 mm_ok=1
+XM2 VOUT VIN net1 VDD sg13_lv_pmos w=3.6u l=0.13u ng=1 m=1 mm_ok=1
+XM3 VOUT VIN net2 VSS sg13_lv_nmos w=3.6u l=0.13u ng=1 m=1 mm_ok=1
+XM4 net2 VBN VSS VSS sg13_lv_nmos w=18.0u l=0.13u ng=5 m=1 mm_ok=1
 .ends
 
 
@@ -115,8 +115,8 @@ x_buffer VDD VCO_CORE VCO_OUT VSS vco_buffer
 *.opin VBP
 *.iopin VDD
 *.iopin VSS
-*  M1 -  sg13_lv_pmos  IS MISSING !!!!
-*  M2 -  sg13_lv_nmos  IS MISSING !!!!
+XM1 VBP VBP VDD VDD sg13_lv_pmos w=0.15u l=0.13u ng=1 m=1 mm_ok=1
+XM2 VBP VCTRL VSS VSS sg13_lv_nmos w=0.15u l=0.13u ng=1 m=1 mm_ok=1
 .ends
 
 
@@ -128,10 +128,10 @@ x_buffer VDD VCO_CORE VCO_OUT VSS vco_buffer
 *.opin VOUT
 *.iopin VDD
 *.iopin VSS
-*  M1 -  sg13_lv_pmos  IS MISSING !!!!
-*  M2 -  sg13_lv_nmos  IS MISSING !!!!
-*  M3 -  sg13_lv_pmos  IS MISSING !!!!
-*  M4 -  sg13_lv_nmos  IS MISSING !!!!
+XM1 net1 VIN VDD VDD sg13_lv_pmos w=2.40u l=0.13u ng=1 m=1 mm_ok=1
+XM2 net1 VIN VSS VSS sg13_lv_nmos w=1.80u l=0.13u ng=1 m=1 mm_ok=1
+XM3 VOUT net1 VDD VDD sg13_lv_pmos w=1.80u l=0.13u ng=3 m=1 mm_ok=1
+XM4 VOUT net1 VSS VSS sg13_lv_nmos w=0.90u l=0.13u ng=3 m=1 mm_ok=1
 .ends
 
 **** begin user architecture code

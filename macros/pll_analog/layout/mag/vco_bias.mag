@@ -1,30 +1,85 @@
 magic
 tech ihp-sg13cmos5l
 magscale 1 2
-timestamp 1792033184
+timestamp 1792015200
 << checkpaint >>
-rect -2000 1008 2200 2200
-rect -2000 -3200 2472 1008
+rect 0 -400 3556 1532
 << metal1 >>
-rect 0 0 200 200
-rect 0 -400 200 -200
-rect 0 -800 200 -600
-rect 0 -1200 200 -1000
-use sg13_lv_pmos_G9WTGS  XM1
-timestamp 1792033183
-transform 1 0 149 0 1 -1096
-box -149 -104 149 104
-use sg13_lv_nmos_EDLQHT  XM2
-timestamp 1792033184
-transform 1 0 385 0 1 -1096
-box -87 -104 87 104
+rect 363 580 538 612
+rect 347 564 411 628
+rect 620 580 795 612
+rect 747 564 811 628
+rect 563 654 595 732
+rect 547 684 611 748
+rect 503 60 567 124
+rect 591 60 655 124
+rect 503 60 655 124
+rect 2521 580 2696 612
+rect 2505 564 2569 628
+rect 2778 580 2953 612
+rect 2905 564 2969 628
+rect 2721 654 2753 732
+rect 2705 684 2769 748
+rect 2661 60 2725 124
+rect 2749 60 2813 124
+rect 2661 60 2813 124
+<< via1 >>
+rect 359 576 399 616
+rect 759 576 799 616
+rect 559 696 599 736
+rect 515 72 555 112
+rect 603 72 643 112
+rect 2517 576 2557 616
+rect 2917 576 2957 616
+rect 2717 696 2757 736
+rect 2673 72 2713 112
+rect 2761 72 2801 112
+<< metal2 >>
+rect 339 556 419 636
+rect 739 556 819 636
+rect 539 676 619 756
+rect 495 52 575 132
+rect 583 52 663 132
+rect 495 52 663 132
+rect 539 -240 619 132
+rect 739 -240 819 636
+rect 539 -240 819 -160
+rect 499 -400 899 -160
+rect 499 -400 899 -240
+rect 2497 556 2577 636
+rect 2897 556 2977 636
+rect 2697 676 2777 756
+rect 2653 52 2733 132
+rect 2741 52 2821 132
+rect 2653 52 2821 132
+rect 2697 -240 2777 132
+rect 2897 -240 2977 636
+rect 2697 -240 2977 -160
+rect 2657 -400 3057 -160
+rect 2657 -400 3057 -240
+rect 2697 676 2777 1352
+rect 2697 1272 3556 1352
+rect 2737 1272 2817 1352
+rect 339 556 419 1532
+rect 539 676 619 1532
+rect 2497 556 2577 1532
+rect 339 1452 2577 1532
+rect 379 1452 459 1532
+use cic_sg13_lv_pmos_b1cfe2bc0290 XM1 
+transform 1 0 579 0 1 596
+box 579 596 1737 1788
+use cic_sg13_lv_nmos_392b982bce1b XM2 
+transform 1 0 2737 0 1 596
+box 2737 596 3895 1788
 << labels >>
-flabel metal1 0 0 200 200 0 FreeSans 1600 0 0 0 VCTRL
-port 0 nsew
-flabel metal1 0 -400 200 -200 0 FreeSans 1600 0 0 0 VBP
-port 1 nsew
-flabel metal1 0 -800 200 -600 0 FreeSans 1600 0 0 0 VDD
-port 2 nsew
-flabel metal1 0 -1200 200 -1000 0 FreeSans 1600 0 0 0 VSS
-port 3 nsew
+flabel metal2 s 499 -400 899 -240 0 FreeSans 400 0 0 0 VDD
+port 1 nsew power bidirectional
+flabel metal2 s 2657 -400 3057 -240 0 FreeSans 400 0 0 0 VSS
+port 4 nsew ground bidirectional
+flabel metal2 s 2737 1272 2817 1352 0 FreeSans 400 0 0 0 VCTRL
+port 3 nsew signal bidirectional
+flabel metal2 s 379 1452 459 1532 0 FreeSans 400 0 0 0 VBP
+port 2 nsew signal bidirectional
+<< properties >>
+string FIXED_BBOX 0 -400 3556 1532
 << end >>

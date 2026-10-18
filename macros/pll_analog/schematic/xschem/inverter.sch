@@ -29,7 +29,7 @@ N -20 0 -20 60 {lab=#net1}
 N -20 -60 -20 0 {lab=#net1}
 C {sg13cmos5l_pr/sg13_lv_pmos.sym} 0 -120 0 0 {name=M1
 l=0.13u
-w=4.5u
+w=18.0u
 ng=5
 m=1
 mm_ok=1
@@ -38,7 +38,7 @@ spiceprefix=X
 }
 C {sg13cmos5l_pr/sg13_lv_pmos.sym} 0 -60 0 0 {name=M2
 l=0.13u
-w=0.9u
+w=3.6u
 ng=1
 m=1
 mm_ok=1
@@ -47,7 +47,7 @@ spiceprefix=X
 }
 C {sg13cmos5l_pr/sg13_lv_nmos.sym} 0 60 0 0 {name=M3
 l=0.13u
-w=0.9u
+w=3.6u
 ng=1
 m=1
 mm_ok=1
@@ -56,7 +56,7 @@ spiceprefix=X
 }
 C {sg13cmos5l_pr/sg13_lv_nmos.sym} 0 120 0 0 {name=M4
 l=0.13u
-w=4.5u
+w=18.0u
 ng=5
 m=1
 mm_ok=1

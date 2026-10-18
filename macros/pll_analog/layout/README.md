@@ -1,10 +1,26 @@
-# Analog layout starting cells
+# Analog Magic integration baseline — no density fill
 
-`mag/` contains the initial SG13CMOS5L Magic device geometry and circuit
-hierarchy generated from `../netlist/magic-import/*.spice` using Magic
-8.3.681 and the installed `ihp-sg13cmos5l` device generators. No old analog
-layout was reused. This is an **unrouted starting point**, not an LVS/DRC-clean
-analog macro.
+`mag/` is the maintained **routed, non-density-filled** `ihp-sg13cmos5l`
+analog hierarchy, promoted from CIC candidate `build/cic-analog-pulse-031`.
+It is a **provisional integration baseline, not a signoff freeze**. Place
+`pll_analog` beside the frozen digital/prescaler macro, complete top routing
+and power planning, then generate context-aware density fill and requalify.
+
+All 27 Magic files are copied unchanged from that non-filled candidate.
+Functional device guards, well/substrate contacts, signal routing, supplies
+and pin access are retained. The separate density-only
+`cic_analog_metal_fill` cell/reference is absent. This promotion does not
+compact the floorplan, redesign the PDN or include the digital macro.
+
+The matching maintained Xschem sizes are inverter M1–M4 W =
+18.0/3.6/3.6/18.0 µm and buffer M1–M4 W = 2.40/1.80/1.80/0.90 µm;
+lengths and finger counts are unchanged. The affected ordinary schematic
+SPICE exports are regenerated. Use these maintained schematics for fresh
+LVS; the old `netlist/magic-import/` decks describe the initial import only.
+
+The filled experiment remains separate at `build/cic-analog-pulse-feol-031`.
+Its electrical results are not automatically qualification of the non-filled
+or integrated layout. See `../cic/README.md` for recipe history and limitations.
 
 ## Open in the tools container
 
@@ -19,6 +35,24 @@ magic -rcfile "$PDKPATH/libs.tech/magic/ihp-sg13cmos5l.magicrc" pll_analog.mag
 Expand the hierarchy with `select top cell` followed by `expand` in the Magic
 console. Individual circuit cells can also be opened directly.
 
+To instantiate it from a different Magic working directory, add the complete
+library to Magic's search path and then place the top cell:
+
+```tcl
+# Substitute the absolute container path to this repository.
+path search +/foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/macros/pll_analog/layout/mag
+# Set the box lower-left to the desired placement point (example: origin).
+box values 0 0 0 0
+getcell pll_analog
+```
+
+Use the same technology startup file for the integration layout. Keep all
+child cells available; copying only `pll_analog.mag` does not copy its devices.
+The ports are VDD, VSS, UP, DOWN, IREF and VCO_CLK; connect by name. Guard
+rings are functional structures, not density fill or qualified ESD clamps.
+This workflow was tested from a separate working directory: the exported
+scratch wrapper contains `pll_analog` and all 27 maintained hierarchy cells.
+
 | Circuit cell | Direct instances |
 | --- | ---: |
 | `inverter` | 4 |
@@ -29,7 +63,7 @@ console. Individual circuit cells can also be opened directly.
 | `ring_oscillator` | 5 |
 | `pll_analog` | 3 |
 
-There are 24 `.mag` files: seven circuit cells and 17 generated primitive
+There are 27 `.mag` files: seven circuit cells and 20 generated primitive
 cells. Keep the primitive files with the circuit files; they contain the
 actual transistor, resistor, and capacitor geometry. Identical devices can
 share a generated cell, so editing shared geometry affects every instance
@@ -38,27 +72,24 @@ of that cell. The three oscillator stages also intentionally share the
 
 ## What still needs doing
 
-- Device placement, matching, orientation, and any required guard structures.
-- All inter-device wiring, including multifinger gate connections: the MOS
-  generators currently have `conn_gates=0`.
-- Well/substrate ties and supply routing appropriate to the final placement.
-- Replace/move the importer's placeholder metal1 circuit ports and connect
-  them to the actual nets. Their present positions are not a pin plan.
-- DRC, schematic LVS, and PEX followed by post-layout simulation.
+- Analog/digital placement and inter-macro signal/supply routing, including
+  supply-entry planning, isolation clearances and pad/ESD compatibility.
+- PDN IR-drop/current-density/dynamic-noise qualification; current straps
+  and guards are not a power-integrity signoff claim.
+- Final context-aware fill and integrated DRC/LVS/antenna/density closure.
+- Native CMOM recognition and full RC extraction/model closure, followed by
+  integrated electrical/PVT/acquisition/noise qualification.
 
-The import files use their own internally consistent subcircuit port order;
-newer Xschem exports may list those ports in a different order. Match nets by
-name, and use a fresh schematic export for LVS, not these import-only decks.
+Promotion check `build/pll_analog/20261018-234516-896361` uses the default
+maintained layout and schematic paths: Magic full DRC and antenna pass,
+independent GDS LVS passes, and physical/recognition round-trip XOR is empty.
+Full KLayout DRC reports exactly seven density categories: AFil.g, GFil.g,
+M1.j, M2.j, M3.j, M4.j and TM1.c. Native Magic CMOM LVS and rhigh-body PEX
+still fail. Thus `make check pll_analog` returns nonzero; no rule is waived.
 
-The initial save emitted out-of-date timestamp and unnamed-cell warnings.
-A separate fresh Magic session successfully loaded and expanded the complete
-saved hierarchy without missing-child or timestamp errors. Direct instance
-counts match the table above; device parameters retain the requested finger
-counts and the capacitors use metal2 through metal4. This is a file/hierarchy
-check only, not physical sign-off.
-
-Do not rerun SPICE import over these files once manual layout starts. Use a
-new directory if another initial import is needed.
+Do not rerun SPICE import or CIC generation over maintained Magic edits.
+Generate experiments in new build directories and promote reviewed changes
+explicitly. `.mag` remains the editable layout source; GDS is an export.
 
 ## One-command checks
 

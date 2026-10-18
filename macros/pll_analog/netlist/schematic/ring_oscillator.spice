@@ -21,10 +21,10 @@ x_buffer VDD VCO_CORE VCO_OUT VSS vco_buffer
 *.opin VOUT
 *.iopin VDD
 *.iopin VSS
-XM1 net1 VBP VDD VDD sg13_lv_pmos w=4.5u l=0.13u ng=5 m=1 mm_ok=1
-XM2 VOUT VIN net1 VDD sg13_lv_pmos w=0.9u l=0.13u ng=1 m=1 mm_ok=1
-XM3 VOUT VIN net2 VSS sg13_lv_nmos w=0.9u l=0.13u ng=1 m=1 mm_ok=1
-XM4 net2 VBN VSS VSS sg13_lv_nmos w=4.5u l=0.13u ng=5 m=1 mm_ok=1
+XM1 net1 VBP VDD VDD sg13_lv_pmos w=18.0u l=0.13u ng=5 m=1 mm_ok=1
+XM2 VOUT VIN net1 VDD sg13_lv_pmos w=3.6u l=0.13u ng=1 m=1 mm_ok=1
+XM3 VOUT VIN net2 VSS sg13_lv_nmos w=3.6u l=0.13u ng=1 m=1 mm_ok=1
+XM4 net2 VBN VSS VSS sg13_lv_nmos w=18.0u l=0.13u ng=5 m=1 mm_ok=1
 .ends
 
 
@@ -49,10 +49,10 @@ XM2 VBP VCTRL VSS VSS sg13_lv_nmos w=0.15u l=0.13u ng=1 m=1 mm_ok=1
 *.opin VOUT
 *.iopin VDD
 *.iopin VSS
-XM1 net1 VIN VDD VDD sg13_lv_pmos w=0.30u l=0.13u ng=1 m=1 mm_ok=1
-XM2 net1 VIN VSS VSS sg13_lv_nmos w=0.15u l=0.13u ng=1 m=1 mm_ok=1
-XM3 VOUT net1 VDD VDD sg13_lv_pmos w=0.90u l=0.13u ng=3 m=1 mm_ok=1
-XM4 VOUT net1 VSS VSS sg13_lv_nmos w=0.45u l=0.13u ng=3 m=1 mm_ok=1
+XM1 net1 VIN VDD VDD sg13_lv_pmos w=2.40u l=0.13u ng=1 m=1 mm_ok=1
+XM2 net1 VIN VSS VSS sg13_lv_nmos w=1.80u l=0.13u ng=1 m=1 mm_ok=1
+XM3 VOUT net1 VDD VDD sg13_lv_pmos w=1.80u l=0.13u ng=3 m=1 mm_ok=1
+XM4 VOUT net1 VSS VSS sg13_lv_nmos w=0.90u l=0.13u ng=3 m=1 mm_ok=1
 .ends
 
 .end

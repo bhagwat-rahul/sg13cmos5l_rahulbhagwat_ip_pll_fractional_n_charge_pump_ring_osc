@@ -1,0 +1,161 @@
+magic
+tech ihp-sg13cmos5l
+magscale 1 2
+timestamp 1792226511
+<< pwell >>
+rect -777 -907 777 907
+<< nmos >>
+rect -217 -379 -191 341
+rect -115 -379 -89 341
+rect -13 -379 13 341
+rect 89 -379 115 341
+rect 191 -379 217 341
+<< ndiff >>
+rect -285 327 -217 341
+rect -285 -365 -271 327
+rect -239 -365 -217 327
+rect -285 -379 -217 -365
+rect -191 327 -115 341
+rect -191 -365 -169 327
+rect -137 -365 -115 327
+rect -191 -379 -115 -365
+rect -89 327 -13 341
+rect -89 -365 -67 327
+rect -35 -365 -13 327
+rect -89 -379 -13 -365
+rect 13 327 89 341
+rect 13 -365 35 327
+rect 67 -365 89 327
+rect 13 -379 89 -365
+rect 115 327 191 341
+rect 115 -365 137 327
+rect 169 -365 191 327
+rect 115 -379 191 -365
+rect 217 327 285 341
+rect 217 -365 239 327
+rect 271 -365 285 327
+rect 217 -379 285 -365
+<< ndiffc >>
+rect -271 -365 -239 327
+rect -169 -365 -137 327
+rect -67 -365 -35 327
+rect 35 -365 67 327
+rect 137 -365 169 327
+rect 239 -365 271 327
+<< psubdiff >>
+rect -715 831 715 845
+rect -715 799 -623 831
+rect 623 799 715 831
+rect -715 785 715 799
+rect -715 753 -655 785
+rect -715 -753 -701 753
+rect -669 -753 -655 753
+rect 655 753 715 785
+rect -715 -785 -655 -753
+rect 655 -753 669 753
+rect 701 -753 715 753
+rect 655 -785 715 -753
+rect -715 -799 715 -785
+rect -715 -831 -623 -799
+rect 623 -831 715 -799
+rect -715 -845 715 -831
+<< psubdiffcont >>
+rect -623 799 623 831
+rect -701 -753 -669 753
+rect 669 -753 701 753
+rect -623 -831 623 -799
+<< poly >>
+rect -234 401 -174 415
+rect -234 369 -220 401
+rect -188 369 -174 401
+rect -234 355 -174 369
+rect -132 401 -72 415
+rect -132 369 -118 401
+rect -86 369 -72 401
+rect -132 355 -72 369
+rect -30 401 30 415
+rect -30 369 -16 401
+rect 16 369 30 401
+rect -30 355 30 369
+rect 72 401 132 415
+rect 72 369 86 401
+rect 118 369 132 401
+rect 72 355 132 369
+rect 174 401 234 415
+rect 174 369 188 401
+rect 220 369 234 401
+rect 174 355 234 369
+rect -217 341 -191 355
+rect -115 341 -89 355
+rect -13 341 13 355
+rect 89 341 115 355
+rect 191 341 217 355
+rect -217 -415 -191 -379
+rect -115 -415 -89 -379
+rect -13 -415 13 -379
+rect 89 -415 115 -379
+rect 191 -415 217 -379
+<< polycont >>
+rect -220 369 -188 401
+rect -118 369 -86 401
+rect -16 369 16 401
+rect 86 369 118 401
+rect 188 369 220 401
+<< metal1 >>
+rect -701 799 -623 831
+rect 623 799 701 831
+rect -701 753 -669 799
+rect 669 753 701 799
+rect -255 369 -220 401
+rect -188 369 -118 401
+rect -86 369 -16 401
+rect 16 369 86 401
+rect 118 369 188 401
+rect 220 369 255 401
+rect -281 -365 -271 327
+rect -239 -365 -229 327
+rect -179 -365 -169 327
+rect -137 -365 -127 327
+rect -77 -365 -67 327
+rect -35 -365 -25 327
+rect 25 -365 35 327
+rect 67 -365 77 327
+rect 127 -365 137 327
+rect 169 -365 179 327
+rect 229 -365 239 327
+rect 271 -365 281 327
+rect -701 -799 -669 -753
+rect 669 -799 701 -753
+rect -701 -831 -623 -799
+rect 623 -831 701 -799
+<< labels >>
+rlabel psubdiffcont 0 -815 0 -815 0 B
+port 1 nsew
+rlabel ndiffc -255 -19 -255 -19 0 D0
+port 2 nsew
+rlabel polycont -204 385 -204 385 0 G
+port 3 nsew
+rlabel ndiffc -153 -19 -153 -19 0 S1
+port 4 nsew
+rlabel polycont -102 385 -102 385 0 G
+port 3 nsew
+rlabel ndiffc -51 -19 -51 -19 0 D2
+port 5 nsew
+rlabel polycont 0 385 0 385 0 G
+port 3 nsew
+rlabel ndiffc 51 -19 51 -19 0 S3
+port 6 nsew
+rlabel polycont 102 385 102 385 0 G
+port 3 nsew
+rlabel ndiffc 153 -19 153 -19 0 D4
+port 7 nsew
+rlabel ndiffc 255 -19 255 -19 0 S4
+port 8 nsew
+rlabel polycont 204 385 204 385 0 G
+port 3 nsew
+<< properties >>
+string FIXED_BBOX -685 -815 685 815
+string gencell sg13_lv_nmos
+string library sg13cmos5l
+string parameters w 3.6 l 0.13 m 1 ng 5 diffcov 100 polycov 100 guard 1 glc 1 grc 1 gtc 1 gbc 1 tbcov 100 rlcov 100 topc 1 botc 0 poverlap 0 doverlap 1 lmin 0.13 wmin 0.15 class mosfet compatible {sg13_lv_nmos sg13_hv_nmos} full_metal 1 conn_gates 1 gate_ring 0 doports 1 viasrc 0 viadrn 0 viagate 0 ccols 1 viagb 0 viagr 0 viagl 0 viagt 0 set_x_to_guard 2.0 set_y_to_guard 2.0
+<< end >>

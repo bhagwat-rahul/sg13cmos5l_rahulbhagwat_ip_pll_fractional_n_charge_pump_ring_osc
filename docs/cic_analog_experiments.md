@@ -1,5 +1,22 @@
 # CIC analog-layout experiment plan
 
+## Maintained Magic promotion checkpoint (2026-10-18)
+
+At the user's request, the routed, non-density-filled `cic-analog-pulse-031`
+hierarchy is promoted into `macros/pll_analog/layout/mag/` for provisional
+analog/digital integration. Matching inverter/buffer schematic sizes and
+ordinary SPICE exports are updated. Functional guards and supplies remain;
+the separate density-only fill cell is not included. The filled experiment
+remains separate. This is not a freeze, complete top integration, or PDN/ESD
+qualification. Default-path checks pass Magic DRC/antenna and independent
+GDS LVS/round-trip geometry; seven density categories, native CMOM LVS and
+rhigh-body full-RC extraction remain unresolved. See the
+[layout README](../macros/pll_analog/layout/README.md) for usage and reports.
+
+The sections below record the experiment plan and historical checkpoints.
+Future experiments must still use isolated build directories rather than
+overwrite the maintained Magic library.
+
 ## Goal and boundaries
 
 Build reproducible **analog layout recipes**, starting with `vco_bias` and
