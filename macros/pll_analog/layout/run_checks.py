@@ -367,21 +367,76 @@ close $report''')
         # mm_ok controls simulator mismatch modelling, not physical geometry.
         # Netgen cannot match it to extracted devices. Keep all W/L/M/NG
         # properties and reject actual property errors in the report below.
-        raw = re.sub(r'(?m)^X\S+[^\n]*\bsg13_lv_[np]mos\b[^\n]*',
+        raw = re.sub(r'(?m)^X\S+[^\n]*\b(?:sg13_lv_[np]mos|rhigh|cap_cmomf)\b[^\n]*',
                      lambda m: re.sub(r'[ \t]+mm_ok=\S+', '', m[0]), raw)
         reference.write_text(re.sub(
             r'(?im)^\.(?:lib[ \t]+cornerRES\.lib[ \t]+\S+|include[ \t]+cap_cmomf\.lib)[ \t]*$',
             '* Simulator model supplied by the PDK LVS setup', raw))
         if layout is None:
             layout = self.export() if klayout else self.inputs / f'{self.cell}.mag'
-        self.command(name, ['sak-lvs.sh', '-d', '-k' if klayout else '-m',
-                           '-w', directory, '-s', reference, '-l', layout, '-c', self.cell])
-        if not klayout:
-            report = directory / f'{self.cell}.magic.lvs' / f'{self.cell}.lvs.out'
+        if klayout:
+            self.command(name, ['sak-lvs.sh', '-d', '-k', '-w', directory,
+                               '-s', reference, '-l', layout, '-c', self.cell])
+            import klayout.db as db
+            database = directory / f'{self.cell}.klayout.lvs' / f'{Path(layout).stem}.lvsdb'
+            comparison = db.LayoutVsSchematic()
+            comparison.read(str(database))
+            xref = comparison.xref()
+            pairs = list(xref.each_circuit_pair())
+            if not pairs or any(p.status() != db.NetlistCrossReference.Match for p in pairs):
+                raise RuntimeError(f'KLayout circuit comparison did not match; see {database}')
+            dimensions = []
+            for pair in pairs:
+                for devices in xref.each_device_pair(pair.first()):
+                    actual, expected = devices.first(), devices.second()
+                    if actual is None or expected is None or devices.status() != db.NetlistCrossReference.Match:
+                        raise RuntimeError(f'KLayout device comparison did not match; see {database}')
+                    if actual.device_class().name.lower() != 'cap_cmomf':
+                        continue
+                    # The installed MOM class deliberately compares topology
+                    # only (W/L are non-primary). Audit its measured dimensions
+                    # too; a process exit or topology match is insufficient.
+                    values = {n: dict(layout=actual.parameter(n), schematic=expected.parameter(n))
+                              for n in ('w', 'l', 'm')}
+                    dimensions.append(dict(circuit=pair.first().name,
+                                           device=actual.expanded_name(), parameters=values))
+            (directory / 'cmom_dimensions.json').write_text(json.dumps(dimensions, indent=2) + '\n')
+            if re.search(r'\bcap_cmomf\b', raw) and not dimensions:
+                raise RuntimeError('KLayout comparison contains no matched CMOM devices')
+            if any(abs(v['layout'] - v['schematic']) > (0.0051 if n in ('w', 'l') else 1e-9)
+                   for device in dimensions for n, v in device['parameters'].items()):
+                raise RuntimeError('KLayout CMOM dimensions/multiplicity mismatch; see lvs-klayout/cmom_dimensions.json')
+        else:
+            # SAK's Magic wrapper flattens geometry before extraction, losing
+            # PCell device properties. Extract hierarchy first; Netgen can
+            # flatten the resulting circuit without discarding its devices.
+            self.magic(name, '''extract path .
+extract no capacitance
+extract no coupling
+extract no resistance
+extract all
+ext2spice lvs
+ext2spice hierarchy on
+ext2spice -o layout.spice''')
+            setup = directory / 'setup.tcl'
+            setup.write_text(f'source {{{PDK / "libs.tech/netgen/ihp-sg13cmos5l_setup.tcl"}}}\n')
+            if re.search(r'\bcap_cmomf\b', raw):
+                # Native PCell metadata rounds dimensions to 0.001 um.
+                # 10 ppm permits its 0.0001-um roundoff here, not a changed
+                # stack or a meaningful size discrepancy. Independent GDS
+                # LVS is still required: this is a PCell model-view check.
+                with setup.open('a') as stream:
+                    for circuit in ('-circuit1', '-circuit2'):
+                        stream.write(f'property "{circuit} cap_cmomf" tolerance {{w 0.00001}} {{l 0.00001}}\n')
+            report = directory / f'{self.cell}.lvs.out'
+            self.command(name + '-netgen', ['netgen', '-batch', 'lvs',
+                         f'{directory / "layout.spice"} {self.cell}',
+                         f'{reference} {self.cell}', setup, report])
             result = report.read_text()
             if 'Final result: Circuits match uniquely.' not in result or re.search(r'property errors', result, re.I):
                 raise RuntimeError(f'Netgen topology/property mismatch; see {report}')
-        return 'schematic and layout match'
+        return ('schematic and GDS match; CMOM dimensions audited' if klayout else
+                'schematic and hierarchical Magic device/model view match')
 
     def pex(self):
         directory, log = self.magic('pex', f'''flatten {self.cell}_pex

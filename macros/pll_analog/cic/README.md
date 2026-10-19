@@ -2229,3 +2229,143 @@ not by adding a supported midpoint to the unchanged compact model. This
 is not an exact translation or an accepted automatic repair. Native CMOM
 recognition, full RC, PVT/acquisition coverage, noise/EM/ESD and final numeric
 performance budgets remain open. No candidate is tapeout-ready.
+
+### Passive model-view closure and native-RC retry (083–091)
+
+The maintained CMOM cells now replace their native ideal `devcap None`
+properties with `csubckt cap_cmomf` properties. Dimensions and
+`mmin=2 mmax=4 subblock=0` come from the saved physical PCell metadata;
+the polygons, labels and ports are unchanged. CIC generation applies the
+same translation: replay `cic-cmom-modelview-replay-088` reproduces both
+maintained CMOM files apart from timestamps. These annotations retain one
+full foundry model per capacitor, not an additional ideal intrinsic C.
+
+The previous SAK Magic LVS wrapper flattened layout before extracting it,
+discarding those cell properties. The local checker now extracts hierarchy
+first, then lets Netgen flatten the circuit. Simulator-only `mm_ok` is
+omitted from LVS references for MOS, rhigh and CMOM; actual size, stack and
+multiplicity parameters remain. A project-local Netgen setup adds a 10-ppm
+CMOM W/L tolerance for the native metadata's 0.0001-µm rounding difference;
+no shared PDK files are changed. All seven maintained circuit cells pass
+Magic/Netgen model-view LVS and independent GDS LVS (088/090).
+
+This does **not** introduce native geometric MOM recognition. Source LVS
+uses PCell annotations; freshly imported GDS lacks those annotations, and
+its native Magic LVS remains a failing gate. Independent GDS checks remain
+essential. A further negative control found that the installed KLayout
+MOM class deliberately matches topology only: W/L are non-primary. The
+checker now inspects the actual LVS database and audits each matched CMOM's
+measured W/L within 5.1 nm, plus multiplicity, rather than trusting that
+topology result. The kept real-tool regression accepts the true filter and
+rejects a 120-µm-versus-100-µm reference in **both** engines and an incorrect
+metal-stack reference in the model-view check (090). KLayout alone still
+does not verify the SPICE metal-stack parameters.
+
+The rhigh body-C failure was reproduced unchanged with `make pex
+loop_filter` (089). Do not split the resistor, move its body capacitance,
+or delete that capacitance to make Magic's gate pass. A separate full native
+KPEX retry uses the maintained **non-filled** geometry:
+
+```sh
+b=macros/pll_analog; d=$b/layout/build
+env -u PYTHONPATH $d/cic-kpex-env-034/bin/python -m klayout_pex extract \
+  --pdk ihp-sg13cmos5l --2.5D --mode RC --blackbox True --threads 1 \
+  --gds $d/cic-native-rc-closure-084/pll_analog_flat.gds --cell pll_analog \
+  --schematic $d/pll_analog/20261018-234516-896361/lvs-klayout/pll_analog.cdl \
+  --out-dir $d/cic-native-rc-replay/extraction \
+  --out-netlist $d/cic-native-rc-replay/analog_rc.spice
+```
+
+Its extraction-only GDS removes child text before flattening, retains the
+six real top labels and every polygon, and has an empty all-layer non-text
+XOR against the source export (`084/input_audit.json`). Use a new directory
+when replaying. KPEX 0.3.15 on the default PATH is unsuitable (083 reproduces
+its missing-rule-deck failure); use the pinned 0.6.10 environment described
+above, with `PYTHONPATH` unset. The native run is memory-intensive; run it
+alone. Do not start a second RC extractor while it is active.
+
+The PEX-specific unsimplified comparison reports 80 layout devices versus
+22 schematic instances because it does not combine physical MOS fingers.
+It is **not a passing schematic LVS result**. Independent installed-PDK LVS
+with normal device combination passes separately. RC acceptance still needs
+device/parameter/connectivity accounting against the unsimplified layout
+netlist, native RC consistency checks, physical CMOM stack restoration,
+and electrical comparison/simulation. Nwell and rhigh-substrate terminals
+are ideal on their nets: this backend does not extract their distributed
+resistance or qualify substrate noise. It is an alternative interconnect-RC
+experiment, not an exact fix to Magic's body-node interface or a foundry
+signoff claim. The existing Magic PEX and round-trip gates remain enabled.
+
+The corrected standalone filter RC replay (`cic-filter-stack-rc-093`)
+retains the full rhigh model, restores the physical Metal2–4 CMOM stack,
+and contains 6,405 wire resistors and 2,509 parasitic capacitors. Against
+the canonical schematic, its maximum complex input-admittance difference
+over the 1-kHz-starting sweep is **0.467% through 10 MHz**, **2.303% through
+100 MHz**, and **22.033% through 1 GHz**. Replay its `ac.spice` with ngspice;
+`report.json` records input hashes and limits. These are comparison
+diagnostics, not acceptance limits or qualification of the full macro.
+
+Round-trip replay094 confirms empty physical/recognition polygon XOR and
+passing independent GDS LVS including the CMOM dimension audit. Imported
+Magic DRC/antenna also pass, but imported native Magic LVS and the rhigh
+body-endpoint RC gate still fail. A successful source model-view comparison
+does not waive either failure.
+
+### Full native RC exported; closed-loop qualification pending (095–098)
+
+`cic-native-rc-closure-084/analog_rc.spice` now exists: **8,957 wire R,
+9,888 parasitic C, 37 NMOS fingers, 40 PMOS fingers, one full rhigh and
+two CMOM models**. `independent_rc_audit.json` checks every modeled device
+and its required geometry parameters against the unsimplified extraction
+database, and verifies terminal/port connectivity after collapsing wire R.
+Wrong width, asymmetric MOS D/S reversal, an UP–DOWN short and a dangling
+external port are all rejected (`audit_negative_controls.json`). This is
+an export/connectivity audit, not another schematic LVS or a C-accuracy
+qualification. The long extractor's final process exit/built-in consistency
+result was not recovered; do not infer that result from an existing file.
+
+The audit reads **named device terminals from `pll_analog.lvsdb.gz`**.
+KPEX 0.6.10's diagnostic raw `.cir` writer emits MOS internal S/G/D/B order
+behind an `M` prefix, whereas its native modeled-device `X` printer correctly
+emits D/G/S/B. Do not swap the native X terminals or AS/AD to compensate for
+that raw-writer artifact. Source/drain geometry stays associated with its
+named database terminal throughout the audit.
+
+`analog_rc_stack.spice` restores the physical CMOM stack with the maintained
+`restore_cap_stack.py`. `analog_rc_probes.spice` only renames two existing
+nodes bijectively: the real rhigh VCTRL endpoint to `VCTRL`, and one ring
+output/buffer-input endpoint to `STARTUP`. No nodes are shorted, no resistors
+are bypassed and no capacitors are deleted. `cosim_interface_audit.json`
+records hashes and proves that element tokens differ only by those node
+aliases. `analog_rc_cosim.spice` wraps the six external ports in their
+reviewed order. Use the existing `scripts/pll/run_pll_cosim.sh` with:
+
+```sh
+d="$PWD/macros/pll_analog/layout/build"
+ANALOG_SPICE="$d/cic-native-rc-closure-084/analog_rc_cosim.spice" \
+ANALOG_SUBCKT=pll_analog_rc ANALOG_VCTRL_NODE=xdie.VCTRL \
+ANALOG_STARTUP_NODE=xdie.STARTUP \
+RECEIVER_SPICE="$d/cic-ring-pulse-contract-031/frozen_receiver.spice" \
+PFD_SPICE="$d/cic-cp-pfd-001/pfd_driver.spice" \
+RECEIVER_FEEDBACK=1 KEEP_WORK=1 CORNER=tt TEMP_C=27 VDD=1.2 \
+SIM_TIME_S=4e-6 COSIM_WAVEFORM="$d/cic-native-rc-closure-084/tt_rc_4us.raw" \
+bash scripts/pll/run_pll_cosim.sh
+```
+
+The four-microsecond TT closed-loop run095 is **pending**. Its automatic
+post-run report destination is `.amp/in/artifacts/cic-native-rc-closed-loop-095`;
+reporter invocation must include `--vctrl-node x_pll.x_analog.xdie.VCTRL`.
+The physical receiver and PFD are included, but remaining digital dividers
+are functional RTL, not extracted full-digital timing/noise simulation.
+
+Bounded replay097 completed with full native RC and KLU at TT, 1.2 V,
+VCTRL clamped to the previous CC run's 0.5943476973-V mean. In its final
+40 ns, VCO is **1.762209 GHz**, and receiver Q/register buffer are
+**881.104/881.105 MHz**. Each of 34 complete receiver cycles contains two
+VCO rises and reaches the 0.7/0.3-rail logic thresholds. See
+`clamped_100ns_klu.report.json`. This is a receiver/functionality screen,
+**not** lock or acceptance at the 2-GHz target: the closed loop must find
+its new operating point. Startup-only replay096 also completes with finite
+data, but has not begun oscillating at 100 ns. Neither short run substitutes
+for the pending acquisition/ripple measurement. Regression098 reruns the
+kept real-tool capacitor LVS positive/negative controls and passes.

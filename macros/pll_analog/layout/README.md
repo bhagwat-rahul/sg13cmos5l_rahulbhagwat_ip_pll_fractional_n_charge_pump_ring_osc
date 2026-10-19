@@ -6,7 +6,10 @@ It is a **provisional integration baseline, not a signoff freeze**. Place
 `pll_analog` beside the frozen digital/prescaler macro, complete top routing
 and power planning, then generate context-aware density fill and requalify.
 
-All 27 Magic files are copied unchanged from that non-filled candidate.
+The 27 Magic files retain that non-filled candidate's geometry. The two
+CMOM cells now have explicit `cap_cmomf` model-view device properties instead
+of the native generator's ideal-capacitor properties; dimensions and stack
+come from their saved PCell metadata. No mask geometry or ports changed.
 Functional device guards, well/substrate contacts, signal routing, supplies
 and pin access are retained. The separate density-only
 `cic_analog_metal_fill` cell/reference is absent. This promotion does not
@@ -77,7 +80,7 @@ of that cell. The three oscillator stages also intentionally share the
 - PDN IR-drop/current-density/dynamic-noise qualification; current straps
   and guards are not a power-integrity signoff claim.
 - Final context-aware fill and integrated DRC/LVS/antenna/density closure.
-- Native CMOM recognition and full RC extraction/model closure, followed by
+- Full RC extraction/model closure and GDS-import passive-model handling, followed by
   integrated electrical/PVT/acquisition/noise qualification.
 
 Promotion check `build/pll_analog/20261018-234516-896361` uses the default
@@ -86,6 +89,34 @@ independent GDS LVS passes, and physical/recognition round-trip XOR is empty.
 Full KLayout DRC reports exactly seven density categories: AFil.g, GFil.g,
 M1.j, M2.j, M3.j, M4.j and TM1.c. Native Magic CMOM LVS and rhigh-body PEX
 still fail. Thus `make check pll_analog` returns nonzero; no rule is waived.
+
+The subsequent capacitor model-view correction makes maintained-source
+Magic/Netgen LVS pass for all seven circuit cells, alongside independent
+GDS LVS. Magic now extracts hierarchy before Netgen flattens the circuit,
+preserving PCell model properties. This is **model-view LVS**, not new native
+geometric CMOM recognition. The GDS-reimported Magic library still lacks
+these properties, so that native round-trip LVS gate remains unresolved.
+
+The installed KLayout MOM class compares topology, not W/L. The checker now
+also reads the actual LVS database and audits matched CMOM W/L within one
+5-nm grid step, and multiplicity. `lvs-klayout/cmom_dimensions.json` records
+the measurements. Model-view Netgen additionally compares explicit metal
+stack parameters; its W/L tolerance is 10 ppm for native metadata rounding.
+The regression below accepts the real filter and rejects changed capacitor
+width and stack references; it also exposed and closed the previous
+topology-only width-check gap:
+
+```sh
+python3 -m unittest discover -s macros/pll_analog/layout -p test_lvs.py -v
+```
+
+Magic full-RC still rejects the unexposed rhigh body-coupling endpoint; its
+failure gate is unchanged. A separate pinned KPEX 0.6.10 native-RC experiment
+is in `build/cic-native-rc-closure-084`, using a geometry-identical flattened
+extraction copy with child text removed. It is not an accepted replacement
+until its device/port/parameter and electrical checks complete. Well and
+substrate resistance are not covered by that backend. See the CIC README
+for replay details and limitations.
 
 Do not rerun SPICE import or CIC generation over maintained Magic edits.
 Generate experiments in new build directories and promote reviewed changes

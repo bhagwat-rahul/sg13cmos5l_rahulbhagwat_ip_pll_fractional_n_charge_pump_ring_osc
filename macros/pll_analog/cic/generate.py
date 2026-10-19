@@ -6,19 +6,20 @@ manual layout library. This local MOS/passive adapter is not a complete PDK port
 """
 
 import argparse
-from fractions import Fraction
 import hashlib
 import json
 import os
-from pathlib import Path
 import re
+import shlex
 import shutil
 import subprocess
 import tempfile
+from fractions import Fraction
+from pathlib import Path
 
-import cicpy as cic
 import analog
 import charge_pump
+import cicpy as cic
 import inverter
 import loop_filter
 import ring
@@ -154,6 +155,26 @@ quit -noprompt
             result.check_returncode()
             child = re.search(r'^use (\S+)', (work / 'staging.mag').read_text(), re.M)[1]
             target.write_bytes((work / f'{child}.mag').read_bytes())
+        if name == "cap_cmomf":
+            # The native PCell tags an ideal devcap, not the foundry model.
+            # Preserve its physical geometry/ports, but use its saved physical
+            # dimensions and stack for a hierarchical model-view X call.
+            text = target.read_text()
+            words = shlex.split(re.search(r"^string parameters (.*)$", text, re.M)[1])
+            native = dict(zip(words[::2], words[1::2]))
+            record = (
+                "string device csubckt cap_cmomf 0 0 1 1 "
+                f"w={native['w']}u l={native['l']}u "
+                f"mmin={native['mmin'].removeprefix('metal')} "
+                f"mmax={native['mmax'].removeprefix('metal')} "
+                f"subblock={native['subblock']} c1 0 0 c2 0 0"
+            )
+            text, count = re.subn(r"^string device .*$", record, text, flags=re.M)
+            if count != 1:
+                raise ValueError(
+                    f"{target}: expected one native capacitor device property"
+                )
+            target.write_text(text)
         if passive:
             bounds, pins, layers = loop_filter.read_device(target, name)
         else:
