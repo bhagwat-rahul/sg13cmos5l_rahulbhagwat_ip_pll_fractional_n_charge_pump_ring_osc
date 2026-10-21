@@ -215,13 +215,29 @@ Build outputs/provenance are under `build/pll-klayout-fix-015`, with a separate
 `build/pll-kpex-env-015` environment; `pip check` passes there. Wheel SHA256:
 `cd7f97de832a22e8ca6a5582771ef1846b716f9c9f74e8230bf476b1ef15ae4d`.
 The unchanged-009 CC retry is `build/pll-core-native-cc-015`; its ordinary
-PDK flattened-input LVS passes, but extraction acceptance is still pending.
+PDK flattened-input LVS and completed export/stack audits pass. The engine
+completed in about 58 minutes with 181748 parasitic capacitors. Postprocessing
+initially selected both output and cache databases; selecting the explicit
+output database fixes that wrapper error. Audits were replayed on the existing
+export without rerunning extraction. This remains **CC only**, not full RC.
 `--kpex-python PATH` selects an isolated
 KPEX interpreter and records its KLayout version, module path and wheel
 provenance in `input_audit.json`. The patched source still reports 0.30.12;
 the version string alone cannot identify it. Require the same
 LVS/export/stack gates for the patched-runtime output.
 Neither a successful wheel build nor a reduced leak is extraction acceptance.
+
+Next full-RC attempt, inside the tools container at the repository root
+(use a new output directory for each attempt; do not run extractors concurrently):
+
+```sh
+unset PYTHONPATH
+python3 scripts/pll/native_rc.py \
+  layout/build/pll-core-008/checks/pll_core/20261021-051216-069582 \
+  --mode RC --memory-gib 8 \
+  --kpex-python layout/build/pll-kpex-env-015/bin/python \
+  --output layout/build/pll-core-native-rc-016
+```
 
 The installed `cap_cmomf` simulation model explicitly states that it is a
 low-frequency engineering estimate, not silicon-validated. It has no

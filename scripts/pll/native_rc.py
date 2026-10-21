@@ -224,7 +224,8 @@ print(json.dumps(dict(python=sys.executable, kpex_version=version("klayout-pex")
     (output / 'result.json').write_text(json.dumps(status, indent=2) + '\n')
     if result.returncode:
         return 1
-    database, = (output / 'extraction').rglob('pll_core.lvsdb.gz')
+    # Select the output database, not the duplicate under .kpex_cache.
+    database = output / 'extraction' / f'{flat.stem}__pll_core' / 'pll_core.lvsdb.gz'
     checked = audit(netlist, database, require_resistance=args.mode == 'RC')
     (output / 'export_audit.json').write_text(json.dumps(checked, indent=2) + '\n')
     subprocess.run([sys.executable, ROOT / 'macros/pll_analog/cic/restore_cap_stack.py',
