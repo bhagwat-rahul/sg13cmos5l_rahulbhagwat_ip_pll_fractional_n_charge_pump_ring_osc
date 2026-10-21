@@ -20,10 +20,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--report', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--cell', choices=('pll_analog', 'pll_core'), default='pll_analog')
     parser.add_argument('--feol', action='store_true', help='also screen active/poly fill with unchanged keepouts')
     args = parser.parse_args()
     report, output = args.report.resolve(), args.output.resolve()
-    build = Path(__file__).resolve().parents[1] / 'layout/build'
+    macro = Path(__file__).resolve().parents[1]
+    build = (macro if args.cell == 'pll_analog' else macro.parents[1]) / 'layout/build'
     if not output.is_relative_to(build.resolve()):
         parser.error('output must be below layout/build')
     if output.exists():
@@ -34,17 +36,20 @@ def main():
         if hashlib.sha256(data).hexdigest() != hashes[name]:
             raise ValueError(f'snapshot changed: {name}')
     layout = db.Layout()
-    stream = report / 'pll_analog.gds'
+    stream = report / f'{args.cell}.gds'
     stream_hash = hashlib.sha256(stream.read_bytes()).hexdigest()
     if stream_hash != json.loads((report / 'cmom_annotations.json').read_text())['annotated_sha256']:
         raise ValueError('exported GDS changed after checker annotation audit')
     layout.read(str(stream))
-    top = layout.cell('pll_analog')
+    top = layout.cell(args.cell)
     instances = list(top.each_inst())
-    if {i.cell.name for i in instances} != {'charge_pump', 'loop_filter', 'ring_oscillator'} or len(instances) != 3:
+    expected = ({'charge_pump', 'loop_filter', 'ring_oscillator'} if args.cell == 'pll_analog'
+                else {'pll_analog', 'pll_digital'})
+    if {i.cell.name for i in instances} != expected or len(instances) != len(expected):
         raise ValueError('review fill keepouts for changed analog hierarchy')
-    text = sources['pll_analog.mag'].decode()
-    if re.search(r'^use cic_analog_metal_fill ', text, re.M):
+    text = sources[f'{args.cell}.mag'].decode()
+    fill_name = 'cic_analog_metal_fill' if args.cell == 'pll_analog' else 'cic_core_metal_fill'
+    if re.search(rf'^use {fill_name} ', text, re.M):
         raise ValueError('input already contains this fill')
     scale = re.search(r'^magscale (\d+) (\d+)$', text, re.M)
     if scale.groups() != ('1', '2'):
@@ -68,11 +73,18 @@ def main():
     domain = db.Region(db.Box(*[unit(v * .005) for v in bounds]))
     protected = db.Region()
     for instance in instances:
-        protected.insert(instance.bbox().enlarged(unit(10)))
+        if args.cell == 'pll_core' and instance.cell.name == 'pll_analog':
+            children = list(instance.cell.each_inst())
+            if {i.cell.name for i in children} != {'charge_pump', 'loop_filter', 'ring_oscillator'}:
+                raise ValueError('review analog sub-block keepouts')
+            for child in children:
+                protected.insert(child.bbox().transformed(instance.trans).enlarged(unit(10)))
+        else:
+            protected.insert(instance.bbox().enlarged(unit(10)))
     metals = (8, 10, 30, 50, 126)
     for number in metals:
         physical = db.Region(top.begin_shapes_rec(layout.layer(number, 0)))
-        protected += physical.sized(unit(2))
+        protected += physical.sized(unit(3.05 if number == 126 else 2))
     available = domain - protected
     sections, counts = [], {}
     for index, number in enumerate(metals, 1):
@@ -138,19 +150,29 @@ def main():
             counts[layer] = region.count()
     output.mkdir(parents=True)
     for name, data in sources.items():
+        if name.endswith('.mag'):
+            saved = data.decode()
+            for backing in set(re.findall(r'^string GDS_FILE (.+)$', saved, re.M)):
+                filename = Path(backing).name
+                if filename not in sources:
+                    raise ValueError(f'unsnapshotted readonly GDS: {backing}')
+                saved = saved.replace(f'string GDS_FILE {backing}\n',
+                                      f'string GDS_FILE {output / filename}\n')
+            data = saved.encode()
         (output / name).write_bytes(data)
-    (output / 'cic_analog_metal_fill.mag').write_text('\n'.join([
+    (output / f'{fill_name}.mag').write_text('\n'.join([
         'magic', 'tech ihp-sg13cmos5l', 'magscale 1 2', 'timestamp 0',
         *sections, '<< end >>', '']))
-    use = ('use cic_analog_metal_fill fill_screen\n'
+    use = (f'use {fill_name} fill_screen\n'
            'transform 1 0 0 0 1 0\nbox ' + ' '.join(map(str, bounds)) + '\n')
-    (output / 'pll_analog.mag').write_text(text.replace('<< labels >>', use + '<< labels >>', 1))
+    (output / f'{args.cell}.mag').write_text(text.replace('<< labels >>', use + '<< labels >>', 1))
     (output / 'fill_manifest.json').write_text(json.dumps({
         'stage': 'experimental floating fill; NOT signoff',
         'input_report': str(report), 'source_mag_sha256': hashes,
         'source_gds_sha256': stream_hash,
         'recipe_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         'block_keepout_um': 10, 'physical_routing_keepout_um': 2,
+        'topmetal1_routing_keepout_um': 3.05,
         'counts': counts, 'active_poly_fill': args.feol,
         'limitations': 'No substrate/EM/ESD or post-fill electrical qualification',
     }, indent=2) + '\n')

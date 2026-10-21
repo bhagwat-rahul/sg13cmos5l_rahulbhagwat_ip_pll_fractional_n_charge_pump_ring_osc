@@ -35,3 +35,6 @@ sim_build/
 /macros/pll_analog/cace/templates/simulations/
 /macros/pll_digital/schematic/xschem/simulations/
 /macros/pll_digital/testbenches/xschem/simulations/
+
+# Reproducible provisional analog/digital integration outputs.
+/layout/build/

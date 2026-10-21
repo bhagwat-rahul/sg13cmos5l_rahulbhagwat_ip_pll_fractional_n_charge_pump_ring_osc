@@ -25,9 +25,10 @@ RC = PDK / 'libs.tech/magic/ihp-sg13cmos5l.magicrc'
 
 
 class Checks:
-    def __init__(self, cell, library, schematic=SCHEM):
+    def __init__(self, cell, library, schematic=SCHEM, work_root=None):
         self.cell = cell
-        self.work = ROOT / 'build' / cell / datetime.now().strftime('%Y%m%d-%H%M%S-%f')
+        self.work_root = work_root or ROOT / 'build'
+        self.work = self.work_root / cell / datetime.now().strftime('%Y%m%d-%H%M%S-%f')
         self.work.mkdir(parents=True)
         self.inputs = self.work / 'mag'
         self.inputs.mkdir()
@@ -35,9 +36,20 @@ class Checks:
         self.exported = False
         # Snapshot all cells so a running check never writes into the layout library.
         for source in library.glob('*.mag'):
-            shutil.copy2(source, self.inputs / source.name)
+            text = source.read_text()
+            for name in set(re.findall(r'^string GDS_FILE (.+)$', text, re.M)):
+                backing = Path(os.path.expandvars(name)).expanduser()
+                if not backing.is_absolute():
+                    backing = library / backing
+                digest = hashlib.sha256(backing.read_bytes()).hexdigest()
+                target = self.inputs / f'{digest}.gds'
+                if not target.exists():
+                    shutil.copy2(backing, target)
+                text = text.replace(f'string GDS_FILE {name}\n',
+                                    f'string GDS_FILE {target.resolve()}\n')
+            (self.inputs / source.name).write_text(text)
         hashes = {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
-                  for p in self.inputs.glob('*.mag')}
+                  for p in self.inputs.iterdir()}
         (self.work / 'inputs.json').write_text(json.dumps(hashes, indent=2) + '\n')
         self.schematic = self.work / 'schematic'
         self.schematic.mkdir()
@@ -195,7 +207,9 @@ quit -noprompt
         script = directory / 'read.tcl'
         script.write_text(f'''crashbackups stop
 drc off
-gds readonly false
+gds readonly true
+gds flatten false
+gds flatglob none
 gds rescale false
 gds read {{{physical_stream}}}
 load {self.cell}
@@ -264,9 +278,9 @@ quit -noprompt
                      restored_sha256=hashlib.sha256(restored.read_bytes()).hexdigest(),
                      restored_physical_differences={}, restored_recognition_differences={})
         (directory / 'physical_xor.json').write_text(json.dumps(audit, indent=2) + '\n')
-        self.run('gds-physical-roundtrip', lambda: 'empty physical and restored-recognition polygon XOR; '
-                 'lossless recognition sidecar retained; does not qualify native CMOM extraction')
-        child = Checks(self.cell, directory, self.schematic)
+        self.run('gds-physical-roundtrip', lambda: 'empty readonly-GDS passthrough and restored-recognition '
+                 'polygon XOR; not an interpreted-paint regeneration or native CMOM extraction check')
+        child = type(self)(self.cell, directory, self.schematic, work_root=self.work_root)
         (child.work / 'gds_source.json').write_text(json.dumps({
             'stream': str(stream), 'sha256': hashlib.sha256(stream.read_bytes()).hexdigest(),
             'physical_import': str(physical_stream), 'recognition_restored': str(restored),
@@ -343,10 +357,8 @@ close $report''')
             raise RuntimeError(f'{count} Magic antenna markers; see antenna/antenna.feedback.tcl')
         return '0 Magic antenna markers'
 
-    def lvs(self, klayout=False, layout=None):
+    def reference(self, directory, klayout):
         name = 'lvs-klayout' if klayout else 'lvs-magic'
-        directory = self.work / name
-        directory.mkdir()
         suffix = 'cdl' if klayout else 'spice'
         reference = directory / f'{self.cell}.{suffix}'
         command = (f'set spiceprefix 1; set lvs_netlist {int(klayout)}; '
@@ -359,11 +371,18 @@ close $report''')
         if not reference.is_file() or not re.search(
                 rf'^\.subckt\s+{self.cell}\s', reference.read_text(), re.M | re.I):
             raise RuntimeError('Xschem did not produce a top-level subcircuit')
+        return reference
+
+    def lvs(self, klayout=False, layout=None):
+        name = 'lvs-klayout' if klayout else 'lvs-magic'
+        directory = self.work / name
+        directory.mkdir()
+        reference = self.reference(directory, klayout)
         # These two loop-filter directives load simulator device models, not
         # circuit hierarchy. LVS uses the PDK's own device definitions instead.
         # Preserve the raw export; never strip arbitrary circuit includes.
         raw = reference.read_text()
-        reference.with_suffix('.raw.' + suffix).write_text(raw)
+        reference.with_suffix('.raw' + reference.suffix).write_text(raw)
         # mm_ok controls simulator mismatch modelling, not physical geometry.
         # Netgen cannot match it to extracted devices. Keep all W/L/M/NG
         # properties and reject actual property errors in the report below.
@@ -510,8 +529,8 @@ ext2spice -o {self.cell}_pex.spice''')
             'affected_capacitors': [cap for cap in caps if missing.intersection(cap.split()[1:3])],
         }, indent=2) + '\n')
         if missing:
-            raise RuntimeError('C-only endpoints absent from resistance network: '
-                               + ', '.join(sorted(missing))
+            raise RuntimeError(f'{len(missing)} C-only endpoints absent from resistance network; examples: '
+                               + ', '.join(sorted(missing)[:8])
                                + '; see pex/capacitance_endpoint_audit.json')
         if len({root(node) for node in endpoints}) != len(endpoints):
             raise RuntimeError('resistance network shorts distinct C-only endpoints')

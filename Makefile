@@ -112,6 +112,16 @@ pll-cace: ## Characterize the schematic VCO with CACE (IIC-OSIC-TOOLS)
 	cd macros/pll_analog/cace && python3 gen_template.py && cace ring_oscillator.yaml -s schematic
 .PHONY: pll-cace
 
+pll-core: ## Generate a NEW CIC core candidate: make pll-core CANDIDATE=layout/build/NAME
+	@test -n "$(CANDIDATE)" || { echo 'Set CANDIDATE=layout/build/NEW-NAME'; exit 2; }
+	/opt/ciccreator/.venv/bin/python scripts/pll/integrate.py --output "$(CANDIDATE)"
+.PHONY: pll-core
+
+pll-core-check: ## Check a core candidate; optional MODE=lvs and LIBRARY=post-fill-directory
+	@test -n "$(CANDIDATE)" || { echo 'Set CANDIDATE=layout/build/NAME'; exit 2; }
+	python3 scripts/pll/check_integration.py "$(CANDIDATE)" --mode "$(or $(MODE),all)" $(if $(LIBRARY),--library "$(LIBRARY)")
+.PHONY: pll-core-check
+
 
 # Simulation Targets
 # Testbench for the Xschem simulation targets (default: <CELL>_tb_tran)

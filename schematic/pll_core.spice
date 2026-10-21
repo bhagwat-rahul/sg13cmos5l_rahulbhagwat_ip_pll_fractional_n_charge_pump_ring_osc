@@ -1,0 +1,20 @@
+* Provisional core assembly, not the MPW pad/wrapper or a simulation deck.
+* Child declarations specify pin order only; verification replaces them with
+* fresh analog schematics and the frozen powered digital circuit + PDK models.
+.subckt pll_analog VDD UP VCO_CLK DOWN IREF VSS
+.ends pll_analog
+.subckt pll_digital VDD VSS ref_clk vco_clk reset_n enable
++ div_ratio[0] div_ratio[1] div_ratio[2] div_ratio[3] div_ratio[4]
++ div_ratio[5] div_ratio[6] div_ratio[7] div_ratio[8] div_ratio[9]
++ test_div_select[0] test_div_select[1] feedback_clk pll_clk test_clk up down
+.ends pll_digital
+.subckt pll_core VDD VSS IREF ref_clk reset_n enable
++ div_ratio[0] div_ratio[1] div_ratio[2] div_ratio[3] div_ratio[4]
++ div_ratio[5] div_ratio[6] div_ratio[7] div_ratio[8] div_ratio[9]
++ test_div_select[0] test_div_select[1] clk_out
+Xanalog VDD up vco_clk down IREF VSS pll_analog
+Xdigital VDD VSS ref_clk vco_clk reset_n enable
++ div_ratio[0] div_ratio[1] div_ratio[2] div_ratio[3] div_ratio[4]
++ div_ratio[5] div_ratio[6] div_ratio[7] div_ratio[8] div_ratio[9]
++ test_div_select[0] test_div_select[1] feedback_unused pll_unused clk_out up down pll_digital
+.ends pll_core
