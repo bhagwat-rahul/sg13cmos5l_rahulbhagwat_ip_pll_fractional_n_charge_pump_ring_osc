@@ -25,6 +25,8 @@ RC = PDK / 'libs.tech/magic/ihp-sg13cmos5l.magicrc'
 
 
 class Checks:
+    gds_magic_lvs_required = True
+
     def __init__(self, cell, library, schematic=SCHEM, work_root=None):
         self.cell = cell
         self.work_root = work_root or ROOT / 'build'
@@ -289,16 +291,17 @@ quit -noprompt
         }, indent=2) + '\n')
         child.run('input-hierarchy', lambda: child.validate_hierarchy(self.cell, set()))
         if child.results['input-hierarchy']['status'] == 'PASS':
-            for name, action in [('drc-magic', child.drc), ('antenna-magic', child.antenna),
-                                 ('lvs-magic', child.lvs),
-                                 ('lvs-klayout-roundtrip', lambda: child.lvs(True, restored)),
-                                 ('pex-resistance-lumped-c', child.pex)]:
-                child.run(name, action)
+            child.run('drc-magic', child.drc)
+            child.run('antenna-magic', child.antenna)
+            child.run('lvs-magic', child.lvs, required=self.gds_magic_lvs_required)
+            child.run('lvs-klayout-roundtrip', lambda: child.lvs(True, restored))
+            child.run('pex-resistance-lumped-c', child.pex)
         (child.work / 'summary.json').write_text(json.dumps(child.results, indent=2) + '\n')
-        failed = [name for name, result in child.results.items() if result['status'] != 'PASS']
+        failed = [name for name, result in child.results.items()
+                  if result['status'] != 'PASS' and result.get('required', True)]
         if failed:
             raise RuntimeError(f'GDS round-trip failed {", ".join(failed)}; reports: {child.work}')
-        return f'GDS-reimported hierarchy passes Magic DRC/antenna/LVS and lumped-RC extraction; reports: {child.work}'
+        return f'GDS-reimported hierarchy passes required DRC/antenna/LVS and lumped-RC checks; reports: {child.work}'
 
     def drc(self):
         directory, _ = self.magic('drc', '''drc euclidean on
@@ -550,12 +553,14 @@ ext2spice -o {self.cell}_pex.spice''')
         return (f'extracted {resistors} resistors, {capacitors} original-node lumped capacitors; '
                 'C matrix preserved; port-fragment check passed (LVS still required)')
 
-    def run(self, name, action):
+    def run(self, name, action, required=True):
         try:
             detail = action()
             self.results[name] = {'status': 'PASS', 'detail': detail}
         except (OSError, ValueError, RuntimeError, ET.ParseError, TypeError) as error:
             self.results[name] = {'status': 'FAIL', 'detail': str(error)}
+        if not required:
+            self.results[name]['required'] = False
         print(f"  {name}: {self.results[name]['status']} — {self.results[name]['detail']}", flush=True)
 
 

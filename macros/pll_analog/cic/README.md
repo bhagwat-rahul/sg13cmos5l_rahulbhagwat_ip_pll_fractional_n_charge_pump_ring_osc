@@ -2213,7 +2213,18 @@ Extended SS replay081 uses **7 µs**, without changing the circuit, thresholds
 or constraints. It writes `ss_buffered_7us.raw` and automatically reports at
 `.amp/in/artifacts/cic-closed-loop-ss-buffered-081/`; its final 6–7-µs
 waveform is also checked against the digital timing envelopes in
-`layout/build/cic-loop-wave-sta-082-ss`. This replay is pending, not passing.
+`layout/build/cic-loop-wave-sta-082-ss`. Both reports have completed. Over
+6–7 µs, TEST_CLK is **499.996897 MHz**, VCO is **1.999983067 GHz**, VCTRL
+ripple is **3.122667 mVpp**, and feedback-phase range/drift is **10/−5 ps**.
+All 999 complete receiver cycles pass the unchanged swing and /2 screens;
+the worst raw-Q peak is **1.015187 V**. The sampled 1%-frequency convergence
+diagnostic first remains in band at **4.25 µs**. Measured-envelope STA082
+reports setup/hold/clock-limit slack of **+14.385/+273.020/+17.038 ps**.
+These are filled analog031 **CC** results with physical receiver/PFD and
+functional remaining RTL, not integrated-core009 RC qualification or
+phase-noise/PDN signoff. The shortest observed period, **499.878 ps**, is
+slightly faster than the frozen 2-GHz contract; positive sampled STA does
+not extend that contract.
 Replay with the earlier command using `CORNER=ss TEMP_C=125 VDD=1.08`,
 `SIM_TIME_S=7e-6`, unused waveform/report paths, and reporter `--vdd 1.08`.
 No acquisition-time acceptance deadline was supplied; extending observation

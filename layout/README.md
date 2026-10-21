@@ -90,9 +90,26 @@ The stream to inspect is `pll_core.gds` in that report directory.
 | Frozen digital polygon preservation | PASS, empty XOR on all 38 stream layer/purpose pairs |
 | Readonly GDS passthrough + recognition restoration | PASS, empty XOR; not interpreted-paint regeneration |
 | Independent KLayout LVS on restored round-trip GDS | PASS |
-| Native Magic LVS after GDS reimport | FAIL, CMOM model recognition lost |
+| Native Magic LVS after GDS reimport | Diagnostic FAIL, CMOM model recognition lost; KLayout is authoritative for core GDS LVS |
 | Native Magic resistance + lumped-C PEX | FAIL, original C endpoints missing from R export |
-| Overall `all` | FAIL; neither native failure is waived |
+| Overall `all` | FAIL; RC extraction remains required |
+
+Core GDS device recognition uses the PDK's KLayout LVS backend, including
+the explicit CMOM dimension audit. Fresh-GDS Magic LVS is still executed
+and recorded, but has `required: false` in the round-trip child summary:
+the installed Magic deck cannot reconstruct the MOM device abstraction.
+This policy applies only to the core's GDS-reimport diagnostic. Maintained
+source/model-view Magic LVS, GDS KLayout LVS, geometry preservation, DRC,
+antenna and PEX remain required. A failing KLayout comparison or extraction
+still makes the command return nonzero. The standalone analog checker
+retains its existing strict policy.
+
+Policy replay `build/pll-core-008/checks/pll_core/20261021-075507-422009/`
+rechecks the filled 009 geometry. Its round-trip child
+`20261021-075510-989519` passes KLayout LVS and retains the non-required
+Magic failure. The overall command still fails on required PEX. Controls
+under `build/pll-core-policy-controls/` reject a swapped UP/DOWN reference
+and accept the exact flattened extraction input with CMOM dimensions audited.
 
 Candidate 002 had eight cumulative antenna markers and seven density
 markers. Short local control accesses removed the antenna markers (003).
@@ -127,12 +144,17 @@ backend, not a waiver of Magic's failures:
 python3 scripts/pll/native_rc.py \
   layout/build/pll-core-008/checks/pll_core/20261021-051216-069582 \
   --output layout/build/pll-core-native-rc-next
+# Lower-memory capacitance-only screen, NOT a full-RC substitute:
+python3 scripts/pll/native_rc.py \
+  layout/build/pll-core-008/checks/pll_core/20261021-051216-069582 \
+  --mode CC --output layout/build/pll-core-native-cc-next
 ```
 
 It requires a completed physically passing report and passing frozen-macro
 geometry audit of that exact stream, makes an extraction-only
 flattened copy with child text removed, proves unchanged polygons on every
-layer, runs KPEX 0.6.10 with one thread and an 8-GiB virtual-memory ceiling,
+layer, requires ordinary PDK KLayout LVS on that exact flattened copy,
+runs KPEX 0.6.10 with one thread and an 8-GiB virtual-memory ceiling,
 and records the extractor exit separately. The completed export must pass
 named-device parameter/terminal and R-collapsed connectivity audits, and
 physical CMOM stack restoration. `result.json` is written FAIL before the
@@ -155,3 +177,55 @@ rejects wrong device width, an UP–DOWN short and a dangling external port.
 It does not qualify capacitance accuracy, well/substrate resistance,
 post-fill closed-loop performance, receiver timing/load margins or ESD.
 Those remain integration/signoff requirements even after an RC export passes.
+
+Capacitance-only mode uses KPEX's `CC` mode, which does not retain the extra
+geometry needed to attach capacitance to distributed resistance. It uses
+the same filled input geometry and coupling model, without omitting fill
+or reducing the halo. Output is `core_cc.spice`; the default RC output
+remains `core_rc.spice`. Both must pass modeled-device and DC-connectivity
+checks plus physical capacitor-stack restoration. `result.json` explicitly
+records `extraction_mode`; a passing CC screen always has
+`full_rc_export_passed: false`. It cannot clear the required RC gate.
+The CC replay `build/pll-core-native-cc-012` failed at the same
+sidewall/fringe `Region.complex_op` allocation as full RC under the 8-GiB
+ceiling. Omitting resistance therefore did not resolve the allocation failure.
+KPEX's internal "LVS succeeded" message means a database was produced, not
+that its unsimplified schematic comparison passed. It is not used as the
+acceptance criterion. The ordinary PDK comparison above is required; the
+parasitic export then has its own device/terminal/DC-connectivity audit.
+
+The default ceiling remains 8 GiB; `--memory-gib` records a reproducible
+per-process ceiling up to 10 GiB, without changing Docker/host settings.
+Check headroom and run one extractor at a time. A full-RC replay at 10 GiB
+is `build/pll-core-native-rc-014`, using corrected 009 geometry and its own
+ordinary-PDK flattened-input LVS preflight. At launch Docker reported
+12.7 GiB total RAM, with the VM nearly idle and host memory pressure low.
+It completed **FAIL**, again with `std::bad_alloc` in the sidewall/fringe
+`Region.complex_op`. Increasing the ceiling alone did not resolve it.
+
+An isolated runtime experiment built KLayout at
+[the upstream source checkpoint containing the neighborhood visitor fixes](https://github.com/KLayout/klayout/commit/cf58e69ef3f82a958f89780e20ead00f16b5b97e).
+The installed 0.30.12 runtime retained **59075 kB after 400000 callbacks** in
+the issue2495 reproducer; the patched runtime retained **1 kB** for the
+same callback count. This validates the leak fix locally, but does not
+yet prove it resolves the whole-core allocation failure.
+The optimized (`-O3 -g0`) wheel was built in a disposable tools-image container;
+the primary container's KLayout and original KPEX034 environment are unchanged.
+Build outputs/provenance are under `build/pll-klayout-fix-015`, with a separate
+`build/pll-kpex-env-015` environment; `pip check` passes there. Wheel SHA256:
+`cd7f97de832a22e8ca6a5582771ef1846b716f9c9f74e8230bf476b1ef15ae4d`.
+The unchanged-009 CC retry is `build/pll-core-native-cc-015`; its ordinary
+PDK flattened-input LVS passes, but extraction acceptance is still pending.
+`--kpex-python PATH` selects an isolated
+KPEX interpreter and records its KLayout version, module path and wheel
+provenance in `input_audit.json`. The patched source still reports 0.30.12;
+the version string alone cannot identify it. Require the same
+LVS/export/stack gates for the patched-runtime output.
+Neither a successful wheel build nor a reduced leak is extraction acceptance.
+
+The installed `cap_cmomf` simulation model explicitly states that it is a
+low-frequency engineering estimate, not silicon-validated. It has no
+series resistance/inductance, substrate coupling or process/mismatch spread.
+Passing LVS does not validate these electrical properties. Do not combine
+a modeled MOM capacitance and an explicitly extracted finger capacitance
+without checking device-region exclusion to prevent double-counting.

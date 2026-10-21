@@ -25,6 +25,11 @@ FROZEN = ROOT / 'macros/pll_digital/frozen/v1'
 
 
 class CoreChecks(Checks):
+    # The PDK recognizes GDS MOM devices in KLayout, not in Magic's fresh
+    # geometric import. Keep that Magic result visible as a diagnostic;
+    # source/model-view Magic LVS and all PEX gates remain required.
+    gds_magic_lvs_required = False
+
     def __init__(self, cell, library, schematic=SCHEM, work_root=None):
         super().__init__(cell, library, schematic, work_root)
         for name in ('reference.spice', 'reference.cdl'):

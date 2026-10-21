@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Alternative core RC experiment; does not waive native Magic failures.
+"""Alternative core C/RC experiment; does not waive unresolved RC failures.
 
 Uses the pinned KPEX 0.6.10 environment already used for analog. Run alone
-inside IIC-OSIC-TOOLS. Limits the extractor's virtual memory to 8 GiB and
-uses one thread. This is interconnect RC, not substrate/EM/ESD signoff.
+inside IIC-OSIC-TOOLS. Limits virtual memory to 8 GiB by default (10 maximum) and
+uses one thread. C-only is a separate screening mode, never full-RC closure.
+Neither mode is substrate/EM/ESD signoff.
 """
 
 import argparse
@@ -29,7 +30,7 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def audit(netlist, database):
+def audit(netlist, database, require_resistance=True):
     """Compare named device terminals and R-collapsed nets, not raw M order."""
     problems = check(netlist)
     if problems:
@@ -112,7 +113,8 @@ def audit(netlist, database):
         if len(candidates) != 1:
             raise ValueError(f'missing/ambiguous external pin: {pin.name()}')
         bind(candidates[0], pin.name())
-    if any(len(roots) != 1 for roots in groups.values()) or not resistors or not capacitors:
+    if (any(len(roots) != 1 for roots in groups.values()) or not capacitors
+            or (require_resistance and not resistors)):
         raise ValueError('split logical nets or missing R/C elements')
     return dict(models=dict(collections.Counter(model for model, _, _ in actual.values())),
                 resistors=len(resistors), capacitors=len(capacitors), ports=ports,
@@ -126,7 +128,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('report', type=Path, help='completed core checker report directory')
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--mode', choices=('CC', 'RC'), default='RC',
+                        help='C-only screens loading/coupling; it cannot qualify full RC')
+    parser.add_argument('--memory-gib', type=int, default=8,
+                        help='virtual-memory ceiling, 1..10 GiB; check VM/host headroom first')
+    parser.add_argument('--kpex-python', type=Path,
+                        default=ROOT / 'macros/pll_analog/layout/build/cic-kpex-env-034/bin/python',
+                        help='isolated KPEX 0.6.10 interpreter; runtime/wheel provenance is recorded')
     args = parser.parse_args()
+    if not 1 <= args.memory_gib <= 10:
+        parser.error('memory ceiling must be 1..10 GiB')
     report, output = args.report.resolve(), args.output.resolve()
     if not output.is_relative_to(ROOT / 'layout/build') or output.exists():
         parser.error('output must be a new directory under layout/build/')
@@ -164,39 +175,63 @@ def main():
         after = db.Region(actual.cell('pll_core').begin_shapes_rec(actual.layer(info))).merged()
         if not (before ^ after).is_empty():
             raise ValueError(f'extraction preparation changed physical/recognition layer {info}')
+    # KPEX's "LVS succeeded" means its subprocess produced a database, not
+    # that schematic comparison matched. Require the ordinary PDK LVS flow
+    # on this exact extraction copy before starting the parasitic engine.
+    from check_integration import CoreChecks, PDK
+    os.environ.update(PDK_ROOT=str(PDK.parent), PDK=PDK.name, PDKPATH=str(PDK),
+                      STD_CELL_LIBRARY='sg13cmos5l_stdcell')
+    verification = CoreChecks('pll_core', report / 'mag', report / 'schematic',
+                              work_root=output / 'verification')
+    verification.run('lvs-klayout', lambda: verification.lvs(True, flat))
+    (verification.work / 'summary.json').write_text(json.dumps(verification.results, indent=2) + '\n')
+    if verification.results['lvs-klayout']['status'] != 'PASS':
+        raise ValueError(f'extraction-input LVS failed; see {verification.work}')
     schematic = report / 'lvs-klayout/pll_core.cdl'
-    python = ROOT / 'macros/pll_analog/layout/build/cic-kpex-env-034/bin/python'
+    python = args.kpex_python.absolute()
     env = dict(os.environ, OPENBLAS_NUM_THREADS='1', OMP_NUM_THREADS='1')
     env.pop('PYTHONPATH', None)
-    version = subprocess.check_output([python, '-c',
-        'from importlib.metadata import version; print(version("klayout-pex"))'], env=env, text=True).strip()
+    runtime = json.loads(subprocess.check_output([python, '-c', '''
+import json, sys, klayout.db as db
+from importlib.metadata import distribution, version
+print(json.dumps(dict(python=sys.executable, kpex_version=version("klayout-pex"),
+    klayout_version=version("klayout"), klayout_module=db.__file__,
+    klayout_wheel=json.loads(distribution("klayout").read_text("direct_url.json") or "null"))))
+'''], env=env, text=True))
+    version = runtime['kpex_version']
     if version != '0.6.10':
         raise ValueError(f'unreviewed KPEX version: {version}')
+    netlist = output / f'core_{args.mode.lower()}.spice'
     command = list(map(str, [python, '-m', 'klayout_pex', 'extract', '--pdk', 'ihp-sg13cmos5l',
-        '--2.5D', '--mode', 'RC', '--blackbox', 'True', '--threads', '1', '--gds', flat,
+        '--2.5D', '--mode', args.mode, '--blackbox', 'True', '--threads', '1', '--gds', flat,
         '--cell', 'pll_core', '--schematic', schematic, '--out-dir', output / 'extraction',
-        '--out-netlist', output / 'core_rc.spice']))
+        '--out-netlist', netlist]))
     (output / 'input_audit.json').write_text(json.dumps(dict(source_sha256=sha(source),
         flat_sha256=sha(flat), schematic_sha256=sha(schematic), all_polygon_xor='empty',
         change='flatten extraction copy; remove child text only', kpex_version=version,
-        command=command), indent=2) + '\n')
-    print('Running native RC; log:', output / 'extract.log', flush=True)
+        independent_flat_lvs_report=str(verification.work),
+        command=command, extraction_mode=args.mode,
+        virtual_memory_limit_gib=args.memory_gib, runtime=runtime), indent=2) + '\n')
+    print(f'Running native {args.mode}; log:', output / 'extract.log', flush=True)
     def limit_memory():
-        resource.setrlimit(resource.RLIMIT_AS, (8 * 1024**3, 8 * 1024**3))
+        ceiling = args.memory_gib * 1024**3
+        resource.setrlimit(resource.RLIMIT_AS, (ceiling, ceiling))
     with (output / 'extract.log').open('w') as log:
         result = subprocess.run(command, env=env, stdout=log, stderr=subprocess.STDOUT,
                                 preexec_fn=limit_memory)
-    status = dict(extractor_exit_code=result.returncode, status='FAIL')
+    status = dict(extractor_exit_code=result.returncode, status='FAIL',
+                  extraction_mode=args.mode, full_rc_export_passed=False)
     (output / 'result.json').write_text(json.dumps(status, indent=2) + '\n')
     if result.returncode:
         return 1
     database, = (output / 'extraction').rglob('pll_core.lvsdb.gz')
-    checked = audit(output / 'core_rc.spice', database)
+    checked = audit(netlist, database, require_resistance=args.mode == 'RC')
     (output / 'export_audit.json').write_text(json.dumps(checked, indent=2) + '\n')
     subprocess.run([sys.executable, ROOT / 'macros/pll_analog/cic/restore_cap_stack.py',
-                    output / 'core_rc.spice', '--magic-dir', report / 'mag',
-                    '--output', output / 'core_rc_stack.spice'], check=True)
-    status.update(status='PASS', limitations='RC export/stack checks only; not electrical/tapeout qualification')
+                    netlist, '--magic-dir', report / 'mag',
+                    '--output', netlist.with_stem(netlist.stem + '_stack')], check=True)
+    status.update(status='PASS', full_rc_export_passed=args.mode == 'RC',
+                  limitations=f'{args.mode} export/stack checks only; not electrical/tapeout qualification')
     (output / 'result.json').write_text(json.dumps(status, indent=2) + '\n')
     print(json.dumps(checked, indent=2), flush=True)
     return 0
