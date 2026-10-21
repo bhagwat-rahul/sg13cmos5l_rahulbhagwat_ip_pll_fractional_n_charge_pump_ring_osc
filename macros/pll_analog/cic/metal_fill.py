@@ -22,6 +22,8 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--cell', choices=('pll_analog', 'pll_core'), default='pll_analog')
     parser.add_argument('--feol', action='store_true', help='also screen active/poly fill with unchanged keepouts')
+    parser.add_argument('--bounds-um', type=float, nargs=4, metavar=('X1', 'Y1', 'X2', 'Y2'),
+                        help='allocated fill boundary; must enclose the existing core boundary')
     args = parser.parse_args()
     report, output = args.report.resolve(), args.output.resolve()
     macro = Path(__file__).resolve().parents[1]
@@ -43,9 +45,11 @@ def main():
     layout.read(str(stream))
     top = layout.cell(args.cell)
     instances = list(top.each_inst())
-    expected = ({'charge_pump', 'loop_filter', 'ring_oscillator'} if args.cell == 'pll_analog'
-                else {'pll_analog', 'pll_digital'})
-    if {i.cell.name for i in instances} != expected or len(instances) != len(expected):
+    analog_blocks = {'charge_pump', 'loop_filter', 'ring_oscillator'}
+    expected = ([analog_blocks] if args.cell == 'pll_analog' else
+                [{'pll_analog', 'pll_digital'}, analog_blocks | {'pll_digital'}])
+    if not any({i.cell.name for i in instances} == names and len(instances) == len(names)
+               for names in expected):
         raise ValueError('review fill keepouts for changed analog hierarchy')
     text = sources[f'{args.cell}.mag'].decode()
     fill_name = 'cic_analog_metal_fill' if args.cell == 'pll_analog' else 'cic_core_metal_fill'
@@ -55,6 +59,16 @@ def main():
     if scale.groups() != ('1', '2'):
         raise ValueError('review native fill coordinate conversion for changed magscale')
     bounds = [int(v) for v in re.search(r'^string FIXED_BBOX (.*)$', text, re.M)[1].split()]
+    if args.bounds_um:
+        expanded = [round(v / .005) for v in args.bounds_um]
+        if any(abs(v * .005 - um) > 1e-9 for v, um in zip(expanded, args.bounds_um)):
+            raise ValueError('fill boundary is off the native grid')
+        if not (expanded[0] <= bounds[0] < bounds[2] <= expanded[2]
+                and expanded[1] <= bounds[1] < bounds[3] <= expanded[3]):
+            raise ValueError('fill boundary must enclose the existing core boundary')
+        bounds = expanded
+        text = re.sub(r'^string FIXED_BBOX .*$',
+                      'string FIXED_BBOX ' + ' '.join(map(str, bounds)), text, flags=re.M)
     # Native magscale 1/2 uses 5-nm coordinates. Geometry arithmetic below
     # uses KLayout integer DBU and snaps filler to the same 5-nm grid.
     def unit(um):
@@ -171,6 +185,7 @@ def main():
         'input_report': str(report), 'source_mag_sha256': hashes,
         'source_gds_sha256': stream_hash,
         'recipe_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        'fill_bounds_um': [v * .005 for v in bounds],
         'block_keepout_um': 10, 'physical_routing_keepout_um': 2,
         'topmetal1_routing_keepout_um': 3.05,
         'counts': counts, 'active_poly_fill': args.feol,

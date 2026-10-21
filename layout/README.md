@@ -19,6 +19,115 @@ the promoted stream has an empty polygon XOR against unfilled008 on all 31
 layer/purpose pairs. Core-level density fill remains a separate generated child.
 This checkpoint is not the filled009 extraction input or a final pad wrapper.
 
+## Slot13 compact candidate
+
+`scripts/pll/fit_slot13.py` packs the existing guarded charge pump, loop
+filter and oscillator directly alongside frozen digital (including /2),
+without keeping the mostly empty analog enclosing rectangle. It changes
+placement and inter-block routing, not device sizing or macro interiors.
+The older maintained checkpoint above is deliberately retained for comparison.
+
+Run from the repository root inside IIC-OSIC-TOOLS, with the sibling harness
+checkout present (its `magic/slot13_wrapper.mag` supplies the actual boundary):
+
+```sh
+unset PYTHONPATH
+/opt/ciccreator/.venv/bin/python scripts/pll/fit_slot13.py \
+  --output layout/build/pll-slot13-next
+python3 scripts/pll/check_integration.py layout/build/pll-slot13-next --mode lvs
+python3 scripts/pll/check_integration.py layout/build/pll-slot13-next --mode drc-all
+python3 scripts/pll/check_integration.py layout/build/pll-slot13-next --mode antenna
+```
+
+Use a new output directory. The generator verifies the frozen package and
+records source hashes, group placements and the envelope in `manifest.json`.
+It rejects an envelope outside the verified 537.15 × 273 µm slot boundary
+or exceeding 70% of that boundary's area.
+
+Candidate `build/pll-slot13-020/mag/pll_core.mag` has a streamed envelope
+of **483.2 × 210 µm**, from (7, 15) to (490.2, 225) µm: **69.197% of
+slot area**, including inter-block routing and supply rails, not a cell
+utilization figure. It retains 10-µm TopMetal1 VDD/VSS rails, separate macro
+branches and all three digital straps per supply. Existing local guards and
+taps remain intact; there is no new core-level density fill.
+
+Fresh Netgen source/model-view LVS and independent GDS/KLayout LVS with
+CMOM dimension checks both pass (`checks/pll_core/20261021-125234-672255`).
+Magic DRC passes with zero error areas. Full KLayout DRC **fails only on
+seven density markers**, AFil.g, GFil.g, M1.j, M2.j, M3.j, M4.j and TM1.c
+(`checks/pll_core/20261021-125243-252862`); it is not a full-DRC-clean result.
+Magic and GDS/KLayout antenna checks both pass with zero markers
+(`checks/pll_core/20261021-125554-352860`).
+Independent polygon XOR confirms that all four protected macro geometries
+are unchanged, and a 5-µm planning halo around existing wrapper metal has
+no overlap. This is not a substitute for actual wrapper routing and DRC.
+
+This is a packing candidate, not a final `slot_13` wrapper or electrical
+freeze. Pad routes, dedicated clock input/output pads, final density,
+PDN current capacity/IR/EM, ESD paths and post-route electrical qualification
+remain. Full-core KPEX and electrical qualification remain deferred; the
+Magic PEX screen below was rerun, not waived.
+
+### Complete checker and fill follow-up
+
+Candidate `build/pll-slot13-021` regenerates the same geometry with promotion-safe
+provenance: its assembled top is an output, not a hashed input. Its GDS has
+empty polygon XOR against 020 on all 31 layer/purpose pairs, and fresh
+Netgen/KLayout LVS pass (`checks/pll_core/20261021-131151-347181`). Only
+`pll_core.mag` differs from the maintained library; analog links, digital
+cells and readonly backing stream remain unchanged.
+
+The full `--mode all` run on unfilled020 is recorded at
+`build/pll-slot13-020/checks/pll_core/20261021-130954-493238`.
+A complete run on compact fill022 is at
+`build/pll-slot13-021/checks/pll_core/20261021-131211-943389`.
+Both pass source/model-view LVS, independent GDS LVS/CMOM dimensions,
+Magic DRC/antenna and readonly-GDS physical/recognition round-trip XOR.
+Freshly reimported GDS also passes KLayout LVS, Magic DRC and Magic antenna.
+Native-Magic reimport LVS loses the two CMOM devices, as in the larger core;
+that diagnostic remains visible, non-required by the existing core policy.
+
+**Neither overall run passes.** Magic PEX rejects 2,797 original capacitance
+endpoints absent from its distributed-resistance output, in both the source
+and GDS-roundtrip views. No capacitance was dropped or nodes shorted to
+clear this gate. This reproduces the earlier extraction limitation, not
+accepted full RC. The roundtrip aggregate fails its required PEX check too.
+
+The original fill recipe now accepts the compact four-block hierarchy while
+retaining 10-µm block, 2-µm routing and 3.05-µm TopMetal1 routing keepouts.
+Fill022 inside the compact envelope still fails all seven global density
+rules. An expanded-slot fill trial023, bounded by (6, 6)–(531.15, 267) µm
+to leave a 6-µm slot-edge margin, passes Magic DRC but still fails only those
+same seven global-density rules. Its report is
+`build/pll-slot13-021/checks/pll_core/20261021-131735-386821`.
+Measured active/poly density is 27.581%/11.823% (minimum 35%/15%),
+Metal1–4 is 26.862%–28.492% (minimum 35%), and TopMetal1 is 23.635%
+(minimum 25%). No isolation keepout was reduced to manufacture a pass.
+This expanded **fill view** is larger than the 69.197% functional-core
+envelope; it is not the new maintained core or a routed slot wrapper.
+
+To reproduce fill023 from the unfilled021 LVS snapshot:
+
+```sh
+python3 macros/pll_analog/cic/metal_fill.py --cell pll_core --feol \
+  --bounds-um 6 6 531.15 267 \
+  --report layout/build/pll-slot13-021/checks/pll_core/20261021-131151-347181 \
+  --output layout/build/pll-slot13-fill-next
+```
+
+The optional fill boundary must enclose the existing core and lie on the
+native grid; clipped/off-grid negative controls reject without writing output.
+Actual wrapper geometry, signal access and final fill exclusions must be
+included before full-chip closure; the 6-µm margin alone is not that check.
+The top/padframe repository owns the external pad cells, with small access
+shapes at the slot edge. Pad-cell bodies do not consume the core's 70% area
+budget; core-to-slot wiring and pad-type compatibility remain necessary.
+
+**Promotion is held:** the compact unfilled core matches the older unfilled
+checkpoint's physical check level, but the compact filled variants do not
+match filled009's zero-marker full KLayout result. The maintained
+`core/mag/pll_core.mag` and harness repository have not been replaced.
+
 ## Generate and check
 
 From the repository root **inside IIC-OSIC-TOOLS**:
@@ -239,9 +348,11 @@ the version string alone cannot identify it. Require the same
 LVS/export/stack gates for the patched-runtime output.
 Neither a successful wheel build nor a reduced leak is extraction acceptance.
 
-Full-RC run016 has been launched with the patched runtime, unchanged filled009
-input and an 8-GiB ceiling. Its ordinary flattened-input PDK LVS passes;
-full extraction/export acceptance remains pending. Launch command, inside the
+Full-RC run016 used the patched runtime, unchanged filled009 input and an
+8-GiB ceiling. Its ordinary flattened-input PDK LVS passes, but extraction
+was **cancelled at the user's request to prioritize slot13 packing**. Its
+exit code -15 is a cancellation, not a completed extraction qualification.
+No RC extractor remains running. Original launch command, inside the
 tools container at the repository root
 (use a new output directory for each attempt; do not run extractors concurrently):
 
