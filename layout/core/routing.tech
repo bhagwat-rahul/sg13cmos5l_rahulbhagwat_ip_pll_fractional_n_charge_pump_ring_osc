@@ -1,0 +1,73 @@
+{
+  "version": 2,
+  "technology": {
+    "gamma": 50,
+    "grid": 5,
+    "techlib": "ihp-sg13cmos5l"
+  },
+  "rules": {
+    "CELL": {
+      "space": 1000
+    }
+  },
+  "layers": {
+    "PR": {
+      "alias": "",
+      "number": 0,
+      "material": "pnr"
+    },
+    "M1": {
+      "alias": "metal1",
+      "number": 1,
+      "material": "metal"
+    },
+    "VIA1": {
+      "alias": "via1",
+      "number": 11,
+      "material": "cut",
+      "previous": "M1",
+      "next": "M2"
+    },
+    "M2": {
+      "alias": "metal2",
+      "number": 2,
+      "material": "metal"
+    },
+    "VIA2": {
+      "alias": "via2",
+      "number": 12,
+      "material": "cut",
+      "previous": "M2",
+      "next": "M3"
+    },
+    "M3": {
+      "alias": "metal3",
+      "number": 3,
+      "material": "metal"
+    },
+    "VIA3": {
+      "alias": "via3",
+      "number": 13,
+      "material": "cut",
+      "previous": "M3",
+      "next": "M4"
+    },
+    "M4": {
+      "alias": "metal4",
+      "number": 4,
+      "material": "metal"
+    },
+    "VIA4": {
+      "alias": "via4",
+      "number": 14,
+      "material": "cut",
+      "previous": "M4",
+      "next": "M5"
+    },
+    "M5": {
+      "alias": "metal5",
+      "number": 5,
+      "material": "metal"
+    }
+  }
+}

@@ -7,6 +7,18 @@ contract is `schematic/pll_core.spice`; its child declarations specify port
 order only. LVS replaces them with full source-derived circuits, not layout
 netlists or macro black boxes.
 
+## Maintained provisional checkpoint
+
+The editable, unfilled core is now `core/mag/pll_core.mag`; see
+[`core/README.md`](core/README.md) for opening, regeneration and check commands.
+Its 27 analog entries link to the maintained macro sources, and the readonly
+digital backing stream links to frozen v1. No analog or digital source geometry
+was changed during promotion. `core/manifest.json` records provenance and hashes.
+Fresh source/model-view Netgen and independent GDS/KLayout LVS both pass, and
+the promoted stream has an empty polygon XOR against unfilled008 on all 31
+layer/purpose pairs. Core-level density fill remains a separate generated child.
+This checkpoint is not the filled009 extraction input or a final pad wrapper.
+
 ## Generate and check
 
 From the repository root **inside IIC-OSIC-TOOLS**:
@@ -227,7 +239,10 @@ the version string alone cannot identify it. Require the same
 LVS/export/stack gates for the patched-runtime output.
 Neither a successful wheel build nor a reduced leak is extraction acceptance.
 
-Next full-RC attempt, inside the tools container at the repository root
+Full-RC run016 has been launched with the patched runtime, unchanged filled009
+input and an 8-GiB ceiling. Its ordinary flattened-input PDK LVS passes;
+full extraction/export acceptance remains pending. Launch command, inside the
+tools container at the repository root
 (use a new output directory for each attempt; do not run extractors concurrently):
 
 ```sh

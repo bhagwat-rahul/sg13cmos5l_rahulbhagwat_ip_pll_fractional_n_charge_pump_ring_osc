@@ -38,3 +38,4 @@ sim_build/
 
 # Reproducible provisional analog/digital integration outputs.
 /layout/build/
+/layout/core/checks/

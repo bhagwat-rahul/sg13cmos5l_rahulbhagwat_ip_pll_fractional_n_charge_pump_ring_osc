@@ -1,0 +1,21 @@
+magic
+tech ihp-sg13cmos5l
+magscale 1 2
+timestamp 1620633696
+<< checkpaint >>
+rect -2070 -2044 2070 2044
+<< metal1 >>
+rect -70 20 70 44
+rect -70 -20 -61 20
+rect 61 -20 70 20
+rect -70 -44 70 -20
+<< via1 >>
+rect -61 -20 61 20
+<< metal2 >>
+rect -61 20 61 29
+rect -61 -29 61 -20
+<< properties >>
+string GDS_END 1346
+string GDS_FILE pll_digital.gds
+string GDS_START 1086
+<< end >>

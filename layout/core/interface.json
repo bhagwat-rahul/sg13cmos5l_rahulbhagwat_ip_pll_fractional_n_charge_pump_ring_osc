@@ -1,0 +1,236 @@
+{
+  "ports": [
+    "VDD",
+    "VSS",
+    "IREF",
+    "ref_clk",
+    "reset_n",
+    "enable",
+    "div_ratio[0]",
+    "div_ratio[1]",
+    "div_ratio[2]",
+    "div_ratio[3]",
+    "div_ratio[4]",
+    "div_ratio[5]",
+    "div_ratio[6]",
+    "div_ratio[7]",
+    "div_ratio[8]",
+    "div_ratio[9]",
+    "test_div_select[0]",
+    "test_div_select[1]",
+    "clk_out"
+  ],
+  "endpoints_um": {
+    "('Xanalog', 'VDD')": [
+      "M4",
+      20.0,
+      293.0
+    ],
+    "('Xanalog', 'UP')": [
+      "M4",
+      142.0,
+      209.19
+    ],
+    "('Xanalog', 'VCO_CLK')": [
+      "M3",
+      415.0,
+      173.565
+    ],
+    "('Xanalog', 'DOWN')": [
+      "M3",
+      45.0,
+      186.0
+    ],
+    "('Xanalog', 'IREF')": [
+      "M3",
+      50.0,
+      176.0
+    ],
+    "('Xanalog', 'VSS')": [
+      "M4",
+      30.0,
+      285.0
+    ],
+    "('Xdigital', 'VDD')": [
+      "M4",
+      570.76,
+      229.93
+    ],
+    "('Xdigital', 'VSS')": [
+      "M4",
+      573.76,
+      229.93
+    ],
+    "('Xdigital', 'ref_clk')": [
+      "M3",
+      455.2,
+      212.5
+    ],
+    "('Xdigital', 'vco_clk')": [
+      "M3",
+      455.2,
+      178.06
+    ],
+    "('Xdigital', 'reset_n')": [
+      "M3",
+      455.2,
+      246.94
+    ],
+    "('Xdigital', 'enable')": [
+      "M3",
+      455.2,
+      281.38
+    ],
+    "('Xdigital', 'div_ratio[0]')": [
+      "M2",
+      466.04,
+      299.8
+    ],
+    "('Xdigital', 'div_ratio[1]')": [
+      "M2",
+      478.52,
+      299.8
+    ],
+    "('Xdigital', 'div_ratio[2]')": [
+      "M2",
+      491.0,
+      299.8
+    ],
+    "('Xdigital', 'div_ratio[3]')": [
+      "M2",
+      503.48,
+      299.8
+    ],
+    "('Xdigital', 'div_ratio[4]')": [
+      "M2",
+      515.96,
+      299.8
+    ],
+    "('Xdigital', 'div_ratio[5]')": [
+      "M2",
+      528.44,
+      299.8
+    ],
+    "('Xdigital', 'div_ratio[6]')": [
+      "M2",
+      540.92,
+      299.8
+    ],
+    "('Xdigital', 'div_ratio[7]')": [
+      "M2",
+      553.4,
+      299.8
+    ],
+    "('Xdigital', 'div_ratio[8]')": [
+      "M2",
+      565.88,
+      299.8
+    ],
+    "('Xdigital', 'div_ratio[9]')": [
+      "M2",
+      578.36,
+      299.8
+    ],
+    "('Xdigital', 'test_div_select[0]')": [
+      "M2",
+      590.84,
+      299.8
+    ],
+    "('Xdigital', 'test_div_select[1]')": [
+      "M2",
+      603.32,
+      299.8
+    ],
+    "('Xdigital', 'feedback_clk')": [
+      "M3",
+      614.8,
+      230.14
+    ],
+    "('Xdigital', 'pll_clk')": [
+      "M3",
+      614.8,
+      257.86
+    ],
+    "('Xdigital', 'test_clk')": [
+      "M3",
+      614.8,
+      285.58
+    ],
+    "('Xdigital', 'up')": [
+      "M3",
+      614.8,
+      174.7
+    ],
+    "('Xdigital', 'down')": [
+      "M3",
+      614.8,
+      202.42
+    ]
+  },
+  "digital_power_shapes_um": {
+    "VDD": [
+      [
+        "M4",
+        [
+          15.26,
+          14.9,
+          16.26,
+          124.96
+        ]
+      ],
+      [
+        "M4",
+        [
+          65.26,
+          14.9,
+          66.26,
+          124.96
+        ]
+      ],
+      [
+        "M4",
+        [
+          115.26,
+          14.9,
+          116.26,
+          124.96
+        ]
+      ]
+    ],
+    "VSS": [
+      [
+        "M4",
+        [
+          18.26,
+          14.9,
+          19.26,
+          124.96
+        ]
+      ],
+      [
+        "M4",
+        [
+          68.26,
+          14.9,
+          69.26,
+          124.96
+        ]
+      ],
+      [
+        "M4",
+        [
+          118.26,
+          14.9,
+          119.26,
+          124.96
+        ]
+      ]
+    ]
+  },
+  "prescaler": "frozen digital includes fixed /2; no extra prescaler",
+  "unrouted_observation_ports": [
+    "pll_clk",
+    "feedback_clk"
+  ],
+  "limitations": "provisional core only; no pads/fill or electrical qualification"
+}
