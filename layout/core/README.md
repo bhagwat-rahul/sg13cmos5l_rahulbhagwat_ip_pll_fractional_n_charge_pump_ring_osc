@@ -54,6 +54,19 @@ candidate009 and its physical reports remain separate experiments described in
 the alternative native KPEX RC export has its own required audits. A passing
 CC export does not constitute full-RC closure.
 
+## Promotion validation
+
+Fresh checks of this packaged library on 2026-10-21 pass source/model-view
+Netgen LVS, independent GDS/KLayout LVS including CMOM dimensions, full Magic
+DRC (zero areas), Magic antenna (zero markers) and KLayout antenna (zero markers).
+The streamed unfilled core matches the tested unfilled008 geometry with an
+empty polygon XOR on all 31 layer/purpose pairs. The separate frozen-digital
+geometry audit also passes. These results do not claim full density closure,
+full RC or electrical performance. Reports are in `checks/pll_core/` with
+timestamps `20261021-122437-639694`, `20261021-122544-103917` and
+`20261021-122736-623448`; geometry comparison evidence is recorded in
+`.amp/in/artifacts/pll-core-checkpoint-017-geometry.json` at the repository root.
+
 ## Freeze still requires
 
 Accepted full RC of the final filled geometry; hardware-faithful integrated
