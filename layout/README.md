@@ -14,10 +14,10 @@ The editable, unfilled core is now `core/mag/pll_core.mag`; see
 Its 27 analog entries link to the maintained macro sources, and the readonly
 digital backing stream links to frozen v1. No analog or digital source geometry
 was changed during promotion. `core/manifest.json` records provenance and hashes.
-Fresh source/model-view Netgen and independent GDS/KLayout LVS both pass, and
-the promoted stream has an empty polygon XOR against unfilled008 on all 31
-layer/purpose pairs. Core-level density fill remains a separate generated child.
-This checkpoint is not the filled009 extraction input or a final pad wrapper.
+The maintained top is now the compact unfilled024 assembly, promoted after
+filled031 matched the older larger009 checkpoint's physical-check level.
+Core-level density fill remains separate. This checkpoint is not the filled009
+extraction input or a final pad wrapper.
 
 ## Slot13 compact candidate
 
@@ -25,7 +25,7 @@ This checkpoint is not the filled009 extraction input or a final pad wrapper.
 filter and oscillator directly alongside frozen digital (including /2),
 without keeping the mostly empty analog enclosing rectangle. It changes
 placement and inter-block routing, not device sizing or macro interiors.
-The older maintained checkpoint above is deliberately retained for comparison.
+The older larger008/009 build directories remain available for comparison.
 
 Run from the repository root inside IIC-OSIC-TOOLS, with the sibling harness
 checkout present (its `magic/slot13_wrapper.mag` supplies the actual boundary):
@@ -123,10 +123,56 @@ The top/padframe repository owns the external pad cells, with small access
 shapes at the slot edge. Pad-cell bodies do not consume the core's 70% area
 budget; core-to-slot wiring and pad-type compatibility remain necessary.
 
-**Promotion is held:** the compact unfilled core matches the older unfilled
-checkpoint's physical check level, but the compact filled variants do not
-match filled009's zero-marker full KLayout result. The maintained
-`core/mag/pll_core.mag` and harness repository have not been replaced.
+### Density closure and compact promotion (024/031)
+
+The trials above are historical. Filled031 fixes all seven density failures
+without changing the functional core's **483.2 × 210 µm / 69.197%** envelope,
+macro interiors or signal routing. The opt-in routing-aware fill recipe audits
+top metal against the CIC manifest before allowing cross-layer fill beneath
+supply routing. CP, oscillator and digital keep their full 10-µm block halos;
+the filter protects each passive device by 10 µm and its wiring across layers.
+Non-supply routes retain cross-layer exclusions. Smaller residual metal tiles
+and legal TopMetal1 rectangle growth recover otherwise unusable whitespace.
+Same-layer clearances remain 2 µm, or 3.05 µm for TopMetal1.
+
+```sh
+python3 macros/pll_analog/cic/metal_fill.py --cell pll_core --feol \
+  --routing-manifest layout/build/pll-slot13-024/manifest.json \
+  --bounds-um 6 6 531.15 267 \
+  --report layout/build/pll-slot13-024/checks/pll_core/20261021-134203-443870 \
+  --output layout/build/pll-slot13-fill-next
+python3 scripts/pll/check_integration.py layout/build/pll-slot13-024 \
+  --library layout/build/pll-slot13-fill-next --mode all
+```
+
+The allocated **fill** envelope occupies about 93.5% of slot13, not 69.197%:
+it uses existing slot whitespace without growing the functional layout.
+Active/poly density is 35.167%/15.649%; Metal1–4 is 35.871%–37.501%;
+TopMetal1 is 26.635%. Active-density margin is thin; assembled-die density
+must be checked again, not inferred from this isolated-core result.
+
+Complete report: `build/pll-slot13-024/checks/pll_core/20261021-135108-071462/`.
+Full installed KLayout DRC (density/extra/antenna included) passes with zero
+markers. Source Netgen and independent GDS KLayout LVS/CMOM dimensions,
+Magic DRC/antenna, frozen-digital preservation and GDS round-trip geometry
+checks pass. Independent all-layer XOR verifies all four macros are unchanged;
+top routing is unchanged, with only the declared fill boundary enlarged.
+Evidence: `.amp/in/artifacts/pll-slot13-fill-031-audit.json`.
+**Overall `all` still fails required Magic PEX** on 2,797 missing original C
+endpoints, including round-trip PEX, as at the larger checkpoint. Native-Magic
+reimport LVS retains the known diagnostic two-CMOM recognition failure.
+
+The compact **unfilled024** top is now applied to `core/mag/pll_core.mag`,
+with updated provenance; `make pll-core` regenerates using `fit_slot13.py`.
+Fill remains separate and the harness repository is unchanged. There is no
+accepted new compact-core full RC or post-fill electrical qualification.
+
+The fill output also contains `fill_keepouts.gds`, using the harness's
+FILLBLOCK (160/0) and DIFFBLOCK (1/23) metadata purposes at core origin.
+Preserve its placement transform when consuming it in harness fill generation;
+it is exclusion metadata, not submission paint. Its actual harness-tech
+Magic import/reexport passed an empty XOR on both purposes. Final wrapper
+routing/access and assembled-die DRC/LVS/density remain required.
 
 ## Generate and check
 
@@ -193,7 +239,7 @@ by 10 µm, routing by 2 µm and TopMetal1 by 3.05 µm. Fill is native Magic
 `*fill` geometry, retained as a separate `cic_core_metal_fill` child. It is
 floating and **requires post-fill extraction/electrical requalification**.
 
-## Current measured checkpoint
+## Earlier larger measured checkpoint (008/009)
 
 Unfilled: `build/pll-core-008/mag/pll_core.mag`.
 Filled: `build/pll-core-fill-009/pll_core.mag`.

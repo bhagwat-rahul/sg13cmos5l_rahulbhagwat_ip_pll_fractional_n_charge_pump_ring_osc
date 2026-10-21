@@ -114,7 +114,7 @@ pll-cace: ## Characterize the schematic VCO with CACE (IIC-OSIC-TOOLS)
 
 pll-core: ## Generate a NEW CIC core candidate: make pll-core CANDIDATE=layout/build/NAME
 	@test -n "$(CANDIDATE)" || { echo 'Set CANDIDATE=layout/build/NEW-NAME'; exit 2; }
-	/opt/ciccreator/.venv/bin/python scripts/pll/integrate.py --output "$(CANDIDATE)"
+	/opt/ciccreator/.venv/bin/python scripts/pll/fit_slot13.py --output "$(CANDIDATE)"
 .PHONY: pll-core
 
 pll-core-check: ## Check a core candidate; optional MODE=lvs and LIBRARY=post-fill-directory

@@ -1,14 +1,14 @@
 # Editable PLL core checkpoint — not a tapeout freeze
 
 `mag/pll_core.mag` is the **unfilled** analog + digital assembly promoted
-from CIC candidate008. It includes top wiring and the frozen digital macro's
+from compact CIC candidate024. It includes top wiring and the frozen digital macro's
 fixed /2 prescaler. It is not the MPW pad wrapper or an electrically qualified
 final design. Do not replace the legacy wrapper GDS with this cell.
 
 ## Sources and ownership
 
 - Edit assembly routing in `mag/pll_core.mag`; its reproducible starting recipe
-  is `scripts/pll/integrate.py` and its interface is `schematic/pll_core.spice`.
+  is `scripts/pll/fit_slot13.py` and its interface is `schematic/pll_core.spice`.
 - The 27 analog `.mag` entries are **relative symlinks** to the maintained
   `macros/pll_analog/layout/mag` library, not independent copies. Editing through
   these links edits the maintained analog sources and invalidates old results.
@@ -48,24 +48,39 @@ that omits the CMOM recognition annotations. Do not edit checker snapshots.
 The checker intentionally rejects stale generation-input hashes: regenerate
 and review provenance after changing the recipe, analog sources or interface.
 
-An unfilled checkpoint is not expected to close full-chip density. The filled
-candidate009 and its physical reports remain separate experiments described in
+An unfilled checkpoint is not expected to close full-chip density. Compact filled
+candidate031 and its physical reports remain separate experiments described in
 `../README.md`. Magic's distributed-R/lumped-C endpoint problem is not waived;
 the alternative native KPEX RC export has its own required audits. A passing
 CC export does not constitute full-RC closure.
 
 ## Promotion validation
 
-Fresh checks of this packaged library on 2026-10-21 pass source/model-view
-Netgen LVS, independent GDS/KLayout LVS including CMOM dimensions, full Magic
-DRC (zero areas), Magic antenna (zero markers) and KLayout antenna (zero markers).
-The streamed unfilled core matches the tested unfilled008 geometry with an
-empty polygon XOR on all 31 layer/purpose pairs. The separate frozen-digital
-geometry audit also passes. These results do not claim full density closure,
-full RC or electrical performance. Reports are in `checks/pll_core/` with
-timestamps `20261021-122437-639694`, `20261021-122544-103917` and
-`20261021-122736-623448`; geometry comparison evidence is recorded in
-`.amp/in/artifacts/pll-core-checkpoint-017-geometry.json` at the repository root.
+The maintained top is byte-identical to unfilled024, with the same analog
+links and frozen digital backing stream. Its envelope is 483.2 × 210 µm,
+69.197% of slot13. Separate filled031 reaches the larger filled009 checkpoint's
+physical-check level: zero-marker full installed KLayout DRC including density
+and antenna, Magic DRC/antenna, source Netgen LVS, independent GDS KLayout LVS
+with CMOM dimensions, frozen-digital preservation and round-trip geometry
+checks all pass. Report:
+`../build/pll-slot13-024/checks/pll_core/20261021-135108-071462/`.
+Independent all-layer macro/routing preservation and fill-clearance evidence:
+`.amp/in/artifacts/pll-slot13-fill-031-audit.json` at the repository root.
+
+Fresh checks of the packaged maintained library also pass Netgen/KLayout LVS,
+Magic DRC and Magic/KLayout antenna. Reports under `checks/pll_core/` are
+`20261021-143021-246540`, `20261021-143030-127207` and
+`20261021-143233-968203`. Its exported GDS matches unfilled024 with empty XOR
+on all 31 layer/purpose pairs; evidence is
+`.amp/in/artifacts/pll-core-compact031-package-xor.json`. Regeneration through
+`make pll-core` reproduces the maintained top byte-for-byte; conservative fill
+without the new routing-manifest option reproduces the earlier fill022 child.
+
+The complete checker still returns FAIL on required Magic PEX: 2,797 original
+capacitance endpoints are absent from its R export. Native-Magic GDS-reimport
+LVS also records the known diagnostic two-CMOM recognition failure; independent
+KLayout LVS passes. Neither limitation is hidden or promoted to electrical
+signoff. See `../README.md` for the fill recipe and remaining requirements.
 
 ## Freeze still requires
 

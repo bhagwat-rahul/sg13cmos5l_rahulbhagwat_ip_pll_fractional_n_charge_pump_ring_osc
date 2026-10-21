@@ -88,7 +88,13 @@ def main():
                                             (dx + (a + c) // 2) / 10000,
                                             (dy + (b + d) // 2) / 10000)
 
+    routing = []
+    current_net = 'VCTRL'
+
     def rect(layer, x1, y1, x2, y2):
+        if layer.startswith('M'):
+            routing.append(dict(net=current_net, layer=layer,
+                                bounds_um=[round(v * 200) / 200 for v in (x1, y1, x2, y2)]))
         return cic.Rect(layer, round(x1 * 10000), round(y1 * 10000),
                         round((x2 - x1) * 10000), round((y2 - y1) * 10000))
 
@@ -134,6 +140,7 @@ def main():
         ys.append(y)
     wire('M4', [(185, min(ys)), (185, max(ys))])
 
+    current_net = 'vco_clk'
     ax, ay = access('Xvco', 'vco_clk', 3)
     dx, dy = access('Xdigital', 'vco_clk', 3)
     wire('M3', [(ax, ay), (305, ay)])
@@ -142,6 +149,7 @@ def main():
     via(3, 305, dy)
     wire('M3', [(305, dy), (dx, dy)])
     for net, rail, escape in [('up', 192, 480), ('down', 196, 485)]:
+        current_net = net
         ax, ay = access('Xcp', net, 5)
         dx, dy = access('Xdigital', net, 3)
         wire('M3', [(dx, dy), (escape, dy)])
@@ -151,6 +159,7 @@ def main():
 
     lef = (FROZEN / 'lef/pll_digital.lef').read_text()
     for net, rail in [('VDD', 206), ('VSS', 220)]:
+        current_net = net
         branches = []
         for instance in ('Xcp', 'Xvco'):
             x, y = access(instance, net, 4)
@@ -178,18 +187,22 @@ def main():
         wire('M5', [(12, rail), (max(x for x, _, _ in branches), rail)], 10.)
         port(net, 'M5', 12, rail, 10.)
 
+    current_net = 'IREF'
     x, y = access('Xcp', 'IREF', 3)
     wire('M3', [(x, y), (10, y)])
     port('IREF', 'M3', 10, y)
     for net, track in [('ref_clk', 300), ('reset_n', 305), ('enable', 310)]:
+        current_net = net
         x, y = access('Xdigital', net, 3)
         wire('M3', [(x, y), (track, y)])
         port(net, 'M3', track, y)
     for net in ports:
         if net.startswith(('div_ratio[', 'test_div_select[')):
+            current_net = net
             x, y = access('Xdigital', net, 4)
             wire('M4', [(x, y), (x, 178)])
             port(net, 'M4', x, 178)
+    current_net = 'clk_out'
     x, y = access('Xdigital', 'clk_out', 3)
     wire('M3', [(x, y), (490, y)])
     port('clk_out', 'M3', 490, y)
@@ -208,6 +221,7 @@ def main():
         stage='slot13 compact routing experiment; NOT signoff', inputs_sha256=inputs,
         slot_wrapper_sha256=sha(wrapper), slot_bounds_um=slot,
         group_bounds_um=bounds, positions_um=positions,
+        routing_rectangles=routing,
         core_bounds_um=envelope, core_envelope_area_um2=area,
         slot_envelope_fraction=fraction,
         limitations='No resized devices or core fill; actual wrapper/pad routing, PDN current capacity, coupling and electrical qualification pending.'), indent=2) + '\n')

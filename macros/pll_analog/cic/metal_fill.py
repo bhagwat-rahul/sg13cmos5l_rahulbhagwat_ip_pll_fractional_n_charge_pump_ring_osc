@@ -24,6 +24,8 @@ def main():
     parser.add_argument('--feol', action='store_true', help='also screen active/poly fill with unchanged keepouts')
     parser.add_argument('--bounds-um', type=float, nargs=4, metavar=('X1', 'Y1', 'X2', 'Y2'),
                         help='allocated fill boundary; must enclose the existing core boundary')
+    parser.add_argument('--routing-manifest', type=Path,
+                        help='compact CIC manifest: audited layer-specific power-routing masks and passive-device keepouts')
     args = parser.parse_args()
     report, output = args.report.resolve(), args.output.resolve()
     macro = Path(__file__).resolve().parents[1]
@@ -85,6 +87,7 @@ def main():
         return 'rect ' + ' '.join(map(str, coords))
 
     domain = db.Region(db.Box(*[unit(v * .005) for v in bounds]))
+    metals = (8, 10, 30, 50, 126)
     protected = db.Region()
     for instance in instances:
         if args.cell == 'pll_core' and instance.cell.name == 'pll_analog':
@@ -93,12 +96,49 @@ def main():
                 raise ValueError('review analog sub-block keepouts')
             for child in children:
                 protected.insert(child.bbox().transformed(instance.trans).enlarged(unit(10)))
+        elif args.routing_manifest and instance.cell.name == 'loop_filter':
+            children = list(instance.cell.each_inst())
+            if (len(children) != 3
+                    or sum(i.cell.name.startswith('cic_cap_cmomf_') for i in children) != 2
+                    or sum(i.cell.name.startswith('cic_rhigh_') for i in children) != 1):
+                raise ValueError('review filter passive-device keepouts for changed hierarchy')
+            for child in children:
+                protected.insert(child.bbox().transformed(instance.trans).enlarged(unit(10)))
+            for number in metals:
+                routes = db.Region(instance.cell.shapes(layout.layer(number, 0)))
+                protected += routes.transformed(instance.trans).sized(unit(2))
         else:
             protected.insert(instance.bbox().enlarged(unit(10)))
-    metals = (8, 10, 30, 50, 126)
+    physical = {number: db.Region(top.begin_shapes_rec(layout.layer(number, 0)))
+                for number in metals}
+    routing_manifest_hash = None
+    if args.routing_manifest:
+        routing_manifest_hash = hashlib.sha256(args.routing_manifest.read_bytes()).hexdigest()
+        routing = json.loads(args.routing_manifest.read_text())
+        declared = {number: db.Region() for number in metals}
+        sensitive = db.Region()
+        if {i.cell.name for i in instances} != analog_blocks | {'pll_digital'}:
+            raise ValueError('routing-aware fill requires the compact four-block hierarchy')
+        for row in routing['routing_rectangles']:
+            number = dict(zip(('M1', 'M2', 'M3', 'M4', 'M5'), metals))[row['layer']]
+            box = db.Box(*[unit(v) for v in row['bounds_um']])
+            declared[number].insert(box)
+            if row['net'] not in ('VDD', 'VSS'):
+                sensitive.insert(box.enlarged(unit(3.05 if number == 126 else 2)))
+        # Do not use a stale or incomplete route annotation to authorize
+        # fill underneath an unrecognized signal. Compare actual stream paint.
+        for number in metals:
+            actual = db.Region(top.shapes(layout.layer(number, 0)))
+            if not (actual ^ declared[number]).is_empty():
+                raise ValueError(f'routing manifest does not match top metal {number}')
+        protected += sensitive
+    else:
+        for number in metals:
+            protected += physical[number].sized(unit(3.05 if number == 126 else 2))
+    available_by_layer = {}
     for number in metals:
-        physical = db.Region(top.begin_shapes_rec(layout.layer(number, 0)))
-        protected += physical.sized(unit(3.05 if number == 126 else 2))
+        mask = physical[number].sized(unit(3.05 if number == 126 else 2))
+        available_by_layer[number] = domain - protected - mask
     available = domain - protected
     sections, counts = [], {}
     for index, number in enumerate(metals, 1):
@@ -108,23 +148,51 @@ def main():
         # margin above the deck's 3-um minimum filler-to-filler spacing.
         patterns = ([(10, 10, 3.05), (10, 5, 3.05), (5, 10, 3.05), (5, 5, 3.05)]
                     if index == 5 else [(4, 4, .6)])
+        if args.routing_manifest and index != 5:
+            patterns += [(4, 2, .6), (2, 4, .6), (2, 2, .6)]
         boxes = []
         bbox = domain.bbox()
-        remaining = available.dup()
+        remaining = available_by_layer[number].dup()
         for width, height, gap in patterns:
             w, h = unit(width), unit(height)
             sx, sy = unit(width + gap), unit(height + gap)
-            placed = db.Region()
-            for y in range(bbox.bottom, bbox.top - h + 1, sy):
-                for x in range(bbox.left, bbox.right - w + 1, sx):
-                    box = db.Box(x, y, x + w, y + h)
-                    if not (db.Region(box) - remaining).is_empty():
-                        continue
-                    boxes.append(native_rect(box))
-                    placed.insert(box)
-            remaining -= placed.sized(unit(gap))
+            phases = [(0, 0)]
+            if args.routing_manifest and index == 5 and width == height == 5:
+                ox, oy = unit((width + gap) / 2), unit((height + gap) / 2)
+                phases += [(ox, 0), (0, oy), (ox, oy)]
+            for ox, oy in phases:
+                placed = db.Region()
+                for y in range(bbox.bottom + oy, bbox.top - h + 1, sy):
+                    for x in range(bbox.left + ox, bbox.right - w + 1, sx):
+                        box = db.Box(x, y, x + w, y + h)
+                        if not (db.Region(box) - remaining).is_empty():
+                            continue
+                        boxes.append(box)
+                        placed.insert(box)
+                remaining -= placed.sized(unit(gap))
+        if args.routing_manifest and index == 5:
+            # Grow existing rectangles into spare edge slivers, without
+            # changing the 5–10 um size limits or 3.05 um fill spacing.
+            occupied = db.Region()
+            for box in boxes:
+                occupied.insert(box)
+            for position, original in enumerate(boxes):
+                others = occupied - db.Region(original)
+                legal = available_by_layer[number] - others.sized(unit(3.05))
+                box = original
+                for edge, direction in ((2, 1), (3, 1), (0, -1), (1, -1)):
+                    while True:
+                        edges = [box.left, box.bottom, box.right, box.top]
+                        edges[edge] += direction * unit(.5)
+                        grown = db.Box(*edges)
+                        if (grown.width() > unit(10) or grown.height() > unit(10)
+                                or not (db.Region(grown) - legal).is_empty()):
+                            break
+                        box = grown
+                occupied = others + db.Region(box)
+                boxes[position] = box
         counts[f'm{index}fill'] = len(boxes)
-        sections.extend([f'<< m{index}fill >>', *boxes])
+        sections.extend([f'<< m{index}fill >>', *map(native_rect, boxes)])
     if args.feol:
         active, poly = db.Region(), db.Region()
         bbox = domain.bbox()
@@ -163,6 +231,16 @@ def main():
                 sections.append(native_rect(polygon.bbox()))
             counts[layer] = region.count()
     output.mkdir(parents=True)
+    if args.routing_manifest:
+        # Sidecar for the harness's GDS-tech fill pass, not submission paint.
+        # Place it with exactly the same transform as pll_core. Its FILLBLOCK
+        # and DIFFBLOCK purposes preserve these analog exclusions at chip level.
+        keepouts = db.Layout()
+        keepouts.dbu = layout.dbu
+        keepout_cell = keepouts.create_cell(f'{args.cell}_fill_keepouts')
+        for layer in ((160, 0), (1, 23)):
+            keepout_cell.shapes(keepouts.layer(*layer)).insert(protected.merged())
+        keepouts.write(str(output / 'fill_keepouts.gds'))
     for name, data in sources.items():
         if name.endswith('.mag'):
             saved = data.decode()
@@ -185,6 +263,14 @@ def main():
         'input_report': str(report), 'source_mag_sha256': hashes,
         'source_gds_sha256': stream_hash,
         'recipe_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        'routing_manifest_sha256': routing_manifest_hash,
+        'top_routing_geometry_xor': 'empty' if args.routing_manifest else 'not requested',
+        'harness_keepout_sidecar': 'fill_keepouts.gds' if args.routing_manifest else None,
+        'routing_mask_policy': ('layer-specific power; all-layer signal protection; 10-um passive-device keepouts'
+                                if args.routing_manifest else 'conservative all-layer routing and macro-box keepouts'),
+        'available_area_um2': {str(n): r.area() * layout.dbu ** 2
+                               for n, r in available_by_layer.items()},
+        'feol_available_area_um2': available.area() * layout.dbu ** 2,
         'fill_bounds_um': [v * .005 for v in bounds],
         'block_keepout_um': 10, 'physical_routing_keepout_um': 2,
         'topmetal1_routing_keepout_um': 3.05,
