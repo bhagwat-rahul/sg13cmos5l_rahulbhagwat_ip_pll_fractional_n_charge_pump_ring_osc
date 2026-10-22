@@ -203,6 +203,7 @@ print(json.dumps(dict(python=sys.executable, kpex_version=version("klayout-pex")
         raise ValueError(f'unreviewed KPEX version: {version}')
     netlist = output / f'core_{args.mode.lower()}.spice'
     command = list(map(str, [python, '-m', 'klayout_pex', 'extract', '--pdk', 'ihp-sg13cmos5l',
+        '--log-level', 'debug', '--lvs-verbose', 'True',
         '--2.5D', '--mode', args.mode, '--blackbox', 'True', '--threads', '1', '--gds', flat,
         '--cell', 'pll_core', '--schematic', schematic, '--out-dir', output / 'extraction',
         '--out-netlist', netlist]))
