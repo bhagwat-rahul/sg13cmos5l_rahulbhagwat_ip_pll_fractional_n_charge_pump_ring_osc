@@ -1,0 +1,38 @@
+{
+  "input-hierarchy": {
+    "status": "PASS",
+    "detail": "complete saved hierarchy, correct technology"
+  },
+  "source-reference": {
+    "status": "PASS",
+    "detail": "independent slot_13 assembly + fresh analog SPICE/CDL + powered digital Yosys export + full PDK cell circuits"
+  },
+  "drc-magic": {
+    "status": "PASS",
+    "detail": "0 Magic DRC error areas"
+  },
+  "lvs-magic": {
+    "status": "PASS",
+    "detail": "schematic and hierarchical Magic device/model view match"
+  },
+  "lvs-klayout": {
+    "status": "PASS",
+    "detail": "schematic and GDS match; CMOM dimensions audited"
+  },
+  "antenna-magic": {
+    "status": "PASS",
+    "detail": "0 Magic antenna markers"
+  },
+  "drc-klayout-full": {
+    "status": "FAIL",
+    "detail": "7 KLayout markers; see drc-klayout/*.lyrdb"
+  },
+  "pex-resistance-lumped-c": {
+    "status": "FAIL",
+    "detail": "2836 C-only endpoints absent from resistance network; examples: Xpll.Xvco.VCO_OUT, a_28244_13290#, a_64184_29130#, a_64190_17386#, a_64190_18898#, a_64192_21570#, a_64192_24508#, a_64284_17386#; see pex/capacitance_endpoint_audit.json"
+  },
+  "gds-export": {
+    "status": "PASS",
+    "detail": "/foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/layout/build/slot13-routed-039/checks/slot_13/20261022-053009-477784/slot_13.gds"
+  }
+}

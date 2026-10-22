@@ -5,6 +5,53 @@ from compact CIC candidate024. It includes top wiring and the frozen digital mac
 fixed /2 prescaler. It is not the MPW pad wrapper or an electrically qualified
 final design. Do not replace the legacy wrapper GDS with this cell.
 
+## Connected slot13 draft
+
+`mag/slot_13.mag` now instantiates this core and routes it to the **unchanged**
+sibling harness's `slot13_wrapper.mag` access metal. Open `slot_13.mag` instead
+of `pll_core.mag` to inspect the complete slot. No harness pad, config, RTL or
+schematic interfaces were changed. The independent assembly reference is
+`schematic/slot_13.spice`:
+
+| Existing access | PLL connection |
+| --- | --- |
+| `s13_an[0]` / `s13_an[1]` | Reference input / clock output |
+| `dig_in[9:0]` | `div_ratio[9:0]` |
+| `dig_in[11:10]` | `test_div_select[1:0]` |
+| `enable` / `reset` | Enable / **active-low** reset |
+| `ibias0` | IREF, requires +2 µA into the PLL |
+| `vdd_1v2` / `vss_1v2` | VDD / VSS |
+
+All other accesses, including the separate `_esd` terminals and 3.3-V supplies,
+remain isolated from the PLL. This does not qualify pads or ESD. The direct
+clock boundary still needs the agreed external voltage, loading and protection.
+The reference uses a short M4 antenna jumper; long M2/M3 wiring stays outside
+the protected macro interiors. Supply access uses 2-µm branches and three
+TopVia1 contacts per ground transition, not an IR/EM-qualified PDN.
+
+Inside the tools container, from the repository root:
+
+```sh
+unset PYTHONPATH
+python3 scripts/pll/route_slot13.py --output layout/build/slot13-routed-next
+python3 scripts/pll/check_slot13.py layout/build/slot13-routed-next --mode all
+# Check the maintained routed cell without regenerating it:
+python3 scripts/pll/check_slot13.py layout/core --mode all
+```
+
+Use a new generator destination. The maintained `slot_13.mag` is byte-identical
+to candidate `layout/build/slot13-routed-039/mag/slot_13.mag`. Its complete run is
+`layout/build/slot13-routed-039/checks/slot_13/20261022-053009-477784/`;
+the annotated `slot_13.gds` there is the draft stream to inspect, not the old
+unconnected placement preview. Magic DRC, Netgen LVS, GDS/KLayout LVS with CMOM
+dimension checks, Magic antenna and frozen-digital polygon preservation pass.
+Full KLayout has exactly seven **density** markers (AFil.g, GFil.g, M1.j,
+M2.j, M3.j, M4.j, TM1.c), with no antenna or other rule markers. Required Magic
+PEX still fails: **2,836** C-only endpoints are absent from its R network.
+The complete checker therefore returns FAIL. No full RC, post-route performance,
+full-chip assembly, final fill, ESD qualification or submission is implied.
+The older core manifest describes `pll_core`, not this additional slot wrapper.
+
 ## Sources and ownership
 
 - Edit assembly routing in `mag/pll_core.mag`; its reproducible starting recipe

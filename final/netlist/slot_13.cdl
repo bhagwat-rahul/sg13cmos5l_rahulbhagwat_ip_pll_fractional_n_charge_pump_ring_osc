@@ -1,0 +1,3213 @@
+* Slot13 assembly contract. Existing harness access points; no pad changes.
+* reset is active LOW for this project; ibias0 supplies +2 uA into IREF.
+* Unused accesses remain isolated. Direct terminals are not the _esd terminals.
+.subckt slot_13 vbias
++ dig_in[23] dig_in[22] dig_in[21] dig_in[20] dig_in[19] dig_in[18]
++ dig_in[17] dig_in[16] dig_in[15] dig_in[14] dig_in[13] dig_in[12]
++ dig_in[11] dig_in[10] dig_in[9] dig_in[8] dig_in[7] dig_in[6]
++ dig_in[5] dig_in[4] dig_in[3] dig_in[2] dig_in[1] dig_in[0]
++ dig_out[11] dig_out[10] dig_out[9] dig_out[8] dig_out[7] dig_out[6]
++ dig_out[5] dig_out[4] dig_out[3] dig_out[2] dig_out[1] dig_out[0]
++ ibias0 ibias1 analog_bus3 analog_bus2 analog_bus1 analog_bus0
++ vss_1v2 vdd_1v2 vss_3v3 vdd_3v3 enable clk reset
++ s13_an_0_esd s13_an[0] s13_an_1_esd s13_an[1]
+Xpll vdd_1v2 vss_1v2 ibias0 s13_an[0] reset enable
++ dig_in[0] dig_in[1] dig_in[2] dig_in[3] dig_in[4]
++ dig_in[5] dig_in[6] dig_in[7] dig_in[8] dig_in[9]
++ dig_in[10] dig_in[11] s13_an[1] pll_core
+.ends slot_13
+
+* Source-derived PLL core LVS reference; no extracted golden cells.
+.subckt pll_core VDD VSS IREF ref_clk reset_n enable div_ratio[0] div_ratio[1] div_ratio[2] div_ratio[3] div_ratio[4] div_ratio[5] div_ratio[6] div_ratio[7] div_ratio[8] div_ratio[9] test_div_select[0] test_div_select[1] clk_out
+Xanalog VDD up vco_clk down IREF VSS pll_analog
+Xdigital VDD VSS ref_clk vco_clk reset_n enable div_ratio[0] div_ratio[1] div_ratio[2] div_ratio[3] div_ratio[4] div_ratio[5] div_ratio[6] div_ratio[7] div_ratio[8] div_ratio[9] test_div_select[0] test_div_select[1] feedback_unused pll_unused clk_out up down pll_digital
+.ends pll_core
+** sch_path: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/layout/core/checks/pll_analog/20261022-053728-417796/schematic/pll_analog.sch
+.subckt pll_analog VDD UP VCO_CLK DOWN IREF VSS
+*.PININFO UP:I DOWN:I IREF:B VCO_CLK:O VDD:B VSS:B
+x_charge_pump VDD UP DOWN IREF VCTRL VSS charge_pump
+x_loop_filter VCTRL VSS loop_filter
+x_vco VDD VCO_CLK VCTRL VSS ring_oscillator
+.ends
+
+* expanding   symbol:  charge_pump.sym # of pins=6
+** sym_path: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/layout/core/checks/pll_analog/20261022-053728-417796/schematic/charge_pump.sym
+** sch_path: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/layout/core/checks/pll_analog/20261022-053728-417796/schematic/charge_pump.sch
+.subckt charge_pump VDD UP DOWN IREF VCTRL VSS
+*.PININFO UP:I DOWN:I IREF:B VCTRL:O VDD:B VSS:B
+MM_UP_INV_P UP_B UP VDD VDD sg13_lv_pmos w=0.30u l=0.13u ng=1
+MM_UP_INV_N UP_B UP VSS VSS sg13_lv_nmos w=0.15u l=0.13u ng=1
+MM_IREF IREF IREF VSS VSS sg13_lv_nmos w=4.0u l=0.50u ng=4
+MM_PBIAS PBIAS PBIAS VDD VDD sg13_lv_pmos w=8.0u l=0.50u ng=8
+MM_PBIAS_SINK PBIAS IREF VSS VSS sg13_lv_nmos w=4.0u l=0.50u ng=4
+MM_UP_SOURCE P_UP PBIAS VDD VDD sg13_lv_pmos w=7.0u l=0.50u ng=8
+MM_UP_SWITCH VCTRL UP_B P_UP VDD sg13_lv_pmos w=1.0u l=0.13u ng=1
+MM_DOWN_SWITCH VCTRL DOWN N_DOWN VSS sg13_lv_nmos w=1.5u l=0.13u ng=1
+MM_DOWN_SINK N_DOWN IREF VSS VSS sg13_lv_nmos w=4.0u l=0.50u ng=4
+.ends
+
+
+* expanding   symbol:  loop_filter.sym # of pins=2
+** sym_path: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/layout/core/checks/pll_analog/20261022-053728-417796/schematic/loop_filter.sym
+** sch_path: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/layout/core/checks/pll_analog/20261022-053728-417796/schematic/loop_filter.sch
+.subckt loop_filter VCTRL VSS
+*.PININFO VCTRL:B VSS:B
+RR1 VCTRL FILTER_ZERO 31.44k $SUB=VSS $[rhigh] w=1.0u l=22.08u b=0
+CC1A FILTER_ZERO VSS cap_cmomf w=100u l=100u
+CC2 VCTRL VSS cap_cmomf w=32.6431u l=32.6431u
+**** begin user architecture code
+
+
+
+* Simulator model supplied by the PDK LVS setup
+* Simulator model supplied by the PDK LVS setup
+
+
+**** end user architecture code
+.ends
+
+
+* expanding   symbol:  ring_oscillator.sym # of pins=4
+** sym_path: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/layout/core/checks/pll_analog/20261022-053728-417796/schematic/ring_oscillator.sym
+** sch_path: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/layout/core/checks/pll_analog/20261022-053728-417796/schematic/ring_oscillator.sch
+.subckt ring_oscillator VDD VCO_OUT VCTRL VSS
+*.PININFO VCTRL:I VDD:B VSS:B VCO_OUT:O
+x1 VDD VBP VCO_CORE net1 VCTRL VSS inverter
+x2 VDD VBP net1 net2 VCTRL VSS inverter
+x3 VDD VBP net2 VCO_CORE VCTRL VSS inverter
+x_bias VDD VBP VCTRL VSS vco_bias
+x_buffer VDD VCO_CORE VCO_OUT VSS vco_buffer
+.ends
+
+
+* expanding   symbol:  inverter.sym # of pins=6
+** sym_path: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/layout/core/checks/pll_analog/20261022-053728-417796/schematic/inverter.sym
+** sch_path: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/layout/core/checks/pll_analog/20261022-053728-417796/schematic/inverter.sch
+.subckt inverter VDD VBP VIN VOUT VBN VSS
+*.PININFO VIN:I VBP:I VBN:I VOUT:O VDD:B VSS:B
+MM1 net1 VBP VDD VDD sg13_lv_pmos w=18.0u l=0.13u ng=5
+MM2 VOUT VIN net1 VDD sg13_lv_pmos w=3.6u l=0.13u ng=1
+MM3 VOUT VIN net2 VSS sg13_lv_nmos w=3.6u l=0.13u ng=1
+MM4 net2 VBN VSS VSS sg13_lv_nmos w=18.0u l=0.13u ng=5
+.ends
+
+
+* expanding   symbol:  vco_bias.sym # of pins=4
+** sym_path: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/layout/core/checks/pll_analog/20261022-053728-417796/schematic/vco_bias.sym
+** sch_path: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/layout/core/checks/pll_analog/20261022-053728-417796/schematic/vco_bias.sch
+.subckt vco_bias VDD VBP VCTRL VSS
+*.PININFO VCTRL:I VBP:O VDD:B VSS:B
+MM1 VBP VBP VDD VDD sg13_lv_pmos w=0.15u l=0.13u ng=1
+MM2 VBP VCTRL VSS VSS sg13_lv_nmos w=0.15u l=0.13u ng=1
+.ends
+
+
+* expanding   symbol:  vco_buffer.sym # of pins=4
+** sym_path: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/layout/core/checks/pll_analog/20261022-053728-417796/schematic/vco_buffer.sym
+** sch_path: /foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/layout/core/checks/pll_analog/20261022-053728-417796/schematic/vco_buffer.sch
+.subckt vco_buffer VDD VIN VOUT VSS
+*.PININFO VIN:I VOUT:O VDD:B VSS:B
+MM1 net1 VIN VDD VDD sg13_lv_pmos w=2.40u l=0.13u ng=1
+MM2 net1 VIN VSS VSS sg13_lv_nmos w=1.80u l=0.13u ng=1
+MM3 VOUT net1 VDD VDD sg13_lv_pmos w=1.80u l=0.13u ng=3
+MM4 VOUT net1 VSS VSS sg13_lv_nmos w=0.90u l=0.13u ng=3
+.ends
+
+
+.subckt pll_digital VDD VSS ref_clk vco_clk reset_n enable div_ratio[0] div_ratio[1] div_ratio[2] div_ratio[3] div_ratio[4] div_ratio[5] div_ratio[6] div_ratio[7] div_ratio[8] div_ratio[9] test_div_select[0] test_div_select[1] feedback_clk pll_clk test_clk up down
+* SPICE netlist generated by Yosys 0.68 (git sha1 38e001a6f, Release, GNU /usr/bin/c++ 13.3.0)
+
+X0 VDD VSS sg13cmos5l_decap_8
+X1 VDD VSS sg13cmos5l_decap_8
+X2 VDD VSS sg13cmos5l_decap_4
+X3 VDD VSS sg13cmos5l_decap_8
+X4 VDD VSS sg13cmos5l_decap_8
+X5 VDD VSS sg13cmos5l_decap_4
+X6 VDD VSS sg13cmos5l_decap_8
+X7 VDD VSS sg13cmos5l_decap_8
+X8 VDD VSS sg13cmos5l_decap_8
+X9 VDD VSS sg13cmos5l_decap_8
+X10 VDD VSS sg13cmos5l_decap_8
+X11 VDD VSS sg13cmos5l_decap_8
+X12 VDD VSS sg13cmos5l_decap_8
+X13 VDD VSS sg13cmos5l_decap_8
+X14 VDD VSS sg13cmos5l_decap_8
+X15 VDD VSS sg13cmos5l_fill_2
+X16 VDD VSS sg13cmos5l_decap_8
+X17 VDD VSS sg13cmos5l_decap_8
+X18 VDD VSS sg13cmos5l_fill_1
+X19 VDD VSS sg13cmos5l_fill_1
+X20 VDD VSS sg13cmos5l_decap_8
+X21 VDD VSS sg13cmos5l_decap_8
+X22 VDD VSS sg13cmos5l_fill_2
+X23 VDD VSS sg13cmos5l_decap_4
+X24 VDD VSS sg13cmos5l_decap_8
+X25 VDD VSS sg13cmos5l_decap_8
+X26 VDD VSS sg13cmos5l_fill_2
+X27 VDD VSS sg13cmos5l_fill_1
+X28 VDD VSS sg13cmos5l_decap_8
+X29 VDD VSS sg13cmos5l_decap_8
+X30 VDD VSS sg13cmos5l_decap_4
+X31 VDD VSS sg13cmos5l_decap_4
+X32 VDD VSS sg13cmos5l_fill_1
+X33 VDD VSS sg13cmos5l_fill_1
+X34 VDD VSS sg13cmos5l_fill_2
+X35 VDD VSS sg13cmos5l_fill_1
+X36 VDD VSS sg13cmos5l_decap_4
+X37 VDD VSS sg13cmos5l_decap_4
+X38 VDD VSS sg13cmos5l_decap_8
+X39 VDD VSS sg13cmos5l_decap_4
+X40 VDD VSS sg13cmos5l_fill_2
+X41 VDD VSS sg13cmos5l_decap_8
+X42 VDD VSS sg13cmos5l_decap_8
+X43 VDD VSS sg13cmos5l_decap_8
+X44 VDD VSS sg13cmos5l_decap_8
+X45 VDD VSS sg13cmos5l_decap_4
+X46 VDD VSS sg13cmos5l_fill_1
+X47 VDD VSS sg13cmos5l_fill_2
+X48 VDD VSS sg13cmos5l_fill_2
+X49 VDD VSS sg13cmos5l_fill_1
+X50 VDD VSS sg13cmos5l_decap_8
+X51 VDD VSS sg13cmos5l_decap_4
+X52 VDD VSS sg13cmos5l_fill_2
+X53 VDD VSS sg13cmos5l_decap_8
+X54 VDD VSS sg13cmos5l_fill_2
+X55 VDD VSS sg13cmos5l_fill_1
+X56 VDD VSS sg13cmos5l_decap_8
+X57 VDD VSS sg13cmos5l_decap_4
+X58 VDD VSS sg13cmos5l_fill_1
+X59 VDD VSS sg13cmos5l_decap_4
+X60 VDD VSS sg13cmos5l_fill_1
+X61 VDD VSS sg13cmos5l_fill_1
+X62 VDD VSS sg13cmos5l_fill_2
+X63 VDD VSS sg13cmos5l_fill_2
+X64 VDD VSS sg13cmos5l_fill_1
+X65 VDD VSS sg13cmos5l_decap_8
+X66 VDD VSS sg13cmos5l_decap_4
+X67 VDD VSS sg13cmos5l_fill_1
+X68 VDD VSS sg13cmos5l_decap_8
+X69 VDD VSS sg13cmos5l_decap_8
+X70 VDD VSS sg13cmos5l_decap_8
+X71 VDD VSS sg13cmos5l_fill_2
+X72 VDD VSS sg13cmos5l_decap_8
+X73 VDD VSS sg13cmos5l_fill_2
+X74 VDD VSS sg13cmos5l_fill_1
+X75 VDD VSS sg13cmos5l_fill_2
+X76 VDD VSS sg13cmos5l_fill_1
+X77 VDD VSS sg13cmos5l_decap_8
+X78 VDD VSS sg13cmos5l_decap_8
+X79 VDD VSS sg13cmos5l_decap_8
+X80 VDD VSS sg13cmos5l_decap_8
+X81 VDD VSS sg13cmos5l_decap_8
+X82 VDD VSS sg13cmos5l_decap_8
+X83 VDD VSS sg13cmos5l_decap_8
+X84 VDD VSS sg13cmos5l_decap_4
+X85 VDD VSS sg13cmos5l_fill_1
+X86 VDD VSS sg13cmos5l_decap_8
+X87 VDD VSS sg13cmos5l_decap_8
+X88 VDD VSS sg13cmos5l_fill_1
+X89 VDD VSS sg13cmos5l_fill_2
+X90 VDD VSS sg13cmos5l_fill_1
+X91 VDD VSS sg13cmos5l_decap_8
+X92 VDD VSS sg13cmos5l_fill_2
+X93 VDD VSS sg13cmos5l_fill_2
+X94 VDD VSS sg13cmos5l_fill_1
+X95 VDD VSS sg13cmos5l_decap_4
+X96 VDD VSS sg13cmos5l_decap_8
+X97 VDD VSS sg13cmos5l_decap_4
+X98 VDD VSS sg13cmos5l_fill_2
+X99 VDD VSS sg13cmos5l_decap_4
+X100 VDD VSS sg13cmos5l_fill_2
+X101 VDD VSS sg13cmos5l_fill_1
+X102 VDD VSS sg13cmos5l_fill_1
+X103 VDD VSS sg13cmos5l_fill_2
+X104 VDD VSS sg13cmos5l_fill_1
+X105 VDD VSS sg13cmos5l_decap_4
+X106 VDD VSS sg13cmos5l_fill_1
+X107 VDD VSS sg13cmos5l_decap_8
+X108 VDD VSS sg13cmos5l_fill_2
+X109 VDD VSS sg13cmos5l_fill_2
+X110 VDD VSS sg13cmos5l_decap_8
+X111 VDD VSS sg13cmos5l_decap_8
+X112 VDD VSS sg13cmos5l_decap_8
+X113 VDD VSS sg13cmos5l_fill_1
+X114 VDD VSS sg13cmos5l_decap_8
+X115 VDD VSS sg13cmos5l_decap_8
+X116 VDD VSS sg13cmos5l_fill_2
+X117 VDD VSS sg13cmos5l_fill_1
+X118 VDD VSS sg13cmos5l_fill_2
+X119 VDD VSS sg13cmos5l_fill_1
+X120 VDD VSS sg13cmos5l_decap_8
+X121 VDD VSS sg13cmos5l_decap_8
+X122 VDD VSS sg13cmos5l_fill_2
+X123 VDD VSS sg13cmos5l_decap_8
+X124 VDD VSS sg13cmos5l_decap_4
+X125 VDD VSS sg13cmos5l_decap_8
+X126 VDD VSS sg13cmos5l_fill_1
+X127 VDD VSS sg13cmos5l_decap_8
+X128 VDD VSS sg13cmos5l_fill_2
+X129 VDD VSS sg13cmos5l_fill_1
+X130 VDD VSS sg13cmos5l_decap_4
+X131 VDD VSS sg13cmos5l_fill_2
+X132 VDD VSS sg13cmos5l_decap_8
+X133 VDD VSS sg13cmos5l_decap_8
+X134 VDD VSS sg13cmos5l_decap_4
+X135 VDD VSS sg13cmos5l_fill_2
+X136 VDD VSS sg13cmos5l_fill_2
+X137 VDD VSS sg13cmos5l_decap_8
+X138 VDD VSS sg13cmos5l_decap_8
+X139 VDD VSS sg13cmos5l_decap_8
+X140 VDD VSS sg13cmos5l_decap_8
+X141 VDD VSS sg13cmos5l_decap_8
+X142 VDD VSS sg13cmos5l_decap_8
+X143 VDD VSS sg13cmos5l_fill_1
+X144 VDD VSS sg13cmos5l_decap_8
+X145 VDD VSS sg13cmos5l_fill_1
+X146 VDD VSS sg13cmos5l_fill_2
+X147 VDD VSS sg13cmos5l_fill_2
+X148 VDD VSS sg13cmos5l_fill_2
+X149 VDD VSS sg13cmos5l_fill_1
+X150 VDD VSS sg13cmos5l_decap_4
+X151 VDD VSS sg13cmos5l_fill_2
+X152 VDD VSS sg13cmos5l_decap_8
+X153 VDD VSS sg13cmos5l_fill_1
+X154 VDD VSS sg13cmos5l_decap_8
+X155 VDD VSS sg13cmos5l_decap_8
+X156 VDD VSS sg13cmos5l_decap_8
+X157 VDD VSS sg13cmos5l_fill_2
+X158 VDD VSS sg13cmos5l_fill_1
+X159 VDD VSS sg13cmos5l_decap_8
+X160 VDD VSS sg13cmos5l_decap_4
+X161 VDD VSS sg13cmos5l_fill_2
+X162 VDD VSS sg13cmos5l_fill_1
+X163 VDD VSS sg13cmos5l_decap_8
+X164 VDD VSS sg13cmos5l_decap_8
+X165 VDD VSS sg13cmos5l_decap_8
+X166 VDD VSS sg13cmos5l_decap_4
+X167 VDD VSS sg13cmos5l_fill_2
+X168 VDD VSS sg13cmos5l_decap_4
+X169 VDD VSS sg13cmos5l_fill_2
+X170 VDD VSS sg13cmos5l_decap_4
+X171 VDD VSS sg13cmos5l_fill_2
+X172 VDD VSS sg13cmos5l_fill_2
+X173 VDD VSS sg13cmos5l_fill_2
+X174 VDD VSS sg13cmos5l_decap_4
+X175 VDD VSS sg13cmos5l_fill_1
+X176 VDD VSS sg13cmos5l_fill_2
+X177 VDD VSS sg13cmos5l_fill_1
+X178 VDD VSS sg13cmos5l_fill_2
+X179 VDD VSS sg13cmos5l_decap_8
+X180 VDD VSS sg13cmos5l_fill_2
+X181 VDD VSS sg13cmos5l_fill_2
+X182 VDD VSS sg13cmos5l_decap_4
+X183 VDD VSS sg13cmos5l_decap_8
+X184 VDD VSS sg13cmos5l_fill_2
+X185 VDD VSS sg13cmos5l_fill_2
+X186 VDD VSS sg13cmos5l_fill_1
+X187 VDD VSS sg13cmos5l_decap_8
+X188 VDD VSS sg13cmos5l_decap_8
+X189 VDD VSS sg13cmos5l_decap_8
+X190 VDD VSS sg13cmos5l_decap_8
+X191 VDD VSS sg13cmos5l_decap_4
+X192 VDD VSS sg13cmos5l_decap_4
+X193 VDD VSS sg13cmos5l_decap_4
+X194 VDD VSS sg13cmos5l_fill_2
+X195 VDD VSS sg13cmos5l_decap_8
+X196 VDD VSS sg13cmos5l_decap_8
+X197 VDD VSS sg13cmos5l_fill_1
+X198 VDD VSS sg13cmos5l_decap_4
+X199 VDD VSS sg13cmos5l_fill_2
+X200 VDD VSS sg13cmos5l_fill_2
+X201 VDD VSS sg13cmos5l_fill_1
+X202 VDD VSS sg13cmos5l_fill_1
+X203 VDD VSS sg13cmos5l_decap_4
+X204 VDD VSS sg13cmos5l_fill_1
+X205 VDD VSS sg13cmos5l_decap_8
+X206 VDD VSS sg13cmos5l_fill_1
+X207 VDD VSS sg13cmos5l_fill_2
+X208 VDD VSS sg13cmos5l_fill_1
+X209 VDD VSS sg13cmos5l_decap_4
+X210 VDD VSS sg13cmos5l_fill_1
+X211 VDD VSS sg13cmos5l_decap_8
+X212 VDD VSS sg13cmos5l_decap_8
+X213 VDD VSS sg13cmos5l_decap_8
+X214 VDD VSS sg13cmos5l_decap_8
+X215 VDD VSS sg13cmos5l_decap_8
+X216 VDD VSS sg13cmos5l_fill_2
+X217 VDD VSS sg13cmos5l_fill_2
+X218 VDD VSS sg13cmos5l_decap_4
+X219 VDD VSS sg13cmos5l_decap_8
+X220 VDD VSS sg13cmos5l_decap_8
+X221 VDD VSS sg13cmos5l_decap_8
+X222 VDD VSS sg13cmos5l_decap_4
+X223 VDD VSS sg13cmos5l_fill_2
+X224 VDD VSS sg13cmos5l_fill_1
+X225 VDD VSS sg13cmos5l_decap_8
+X226 VDD VSS sg13cmos5l_fill_2
+X227 VDD VSS sg13cmos5l_decap_8
+X228 VDD VSS sg13cmos5l_decap_8
+X229 VDD VSS sg13cmos5l_decap_8
+X230 VDD VSS sg13cmos5l_decap_4
+X231 VDD VSS sg13cmos5l_fill_1
+X232 VDD VSS sg13cmos5l_fill_2
+X233 VDD VSS sg13cmos5l_decap_8
+X234 VDD VSS sg13cmos5l_fill_2
+X235 VDD VSS sg13cmos5l_fill_2
+X236 VDD VSS sg13cmos5l_fill_1
+X237 VDD VSS sg13cmos5l_decap_8
+X238 VDD VSS sg13cmos5l_decap_8
+X239 VDD VSS sg13cmos5l_decap_4
+X240 VDD VSS sg13cmos5l_fill_2
+X241 VDD VSS sg13cmos5l_fill_2
+X242 VDD VSS sg13cmos5l_fill_1
+X243 VDD VSS sg13cmos5l_fill_1
+X244 VDD VSS sg13cmos5l_fill_1
+X245 VDD VSS sg13cmos5l_fill_2
+X246 VDD VSS sg13cmos5l_decap_8
+X247 VDD VSS sg13cmos5l_decap_4
+X248 VDD VSS sg13cmos5l_decap_4
+X249 VDD VSS sg13cmos5l_fill_1
+X250 VDD VSS sg13cmos5l_fill_2
+X251 VDD VSS sg13cmos5l_fill_1
+X252 VDD VSS sg13cmos5l_decap_8
+X253 VDD VSS sg13cmos5l_decap_8
+X254 VDD VSS sg13cmos5l_fill_1
+X255 VDD VSS sg13cmos5l_fill_1
+X256 VDD VSS sg13cmos5l_fill_1
+X257 VDD VSS sg13cmos5l_fill_1
+X258 VDD VSS sg13cmos5l_fill_1
+X259 VDD VSS sg13cmos5l_decap_4
+X260 VDD VSS sg13cmos5l_fill_1
+X261 VDD VSS sg13cmos5l_decap_8
+X262 VDD VSS sg13cmos5l_decap_4
+X263 VDD VSS sg13cmos5l_fill_1
+X264 VDD VSS sg13cmos5l_decap_8
+X265 VDD VSS sg13cmos5l_fill_1
+X266 VDD VSS sg13cmos5l_decap_8
+X267 VDD VSS sg13cmos5l_fill_2
+X268 VDD VSS sg13cmos5l_decap_8
+X269 VDD VSS sg13cmos5l_decap_4
+X270 VDD VSS sg13cmos5l_fill_1
+X271 VDD VSS sg13cmos5l_decap_8
+X272 VDD VSS sg13cmos5l_decap_8
+X273 VDD VSS sg13cmos5l_decap_8
+X274 VDD VSS sg13cmos5l_decap_4
+X275 VDD VSS sg13cmos5l_fill_2
+X276 VDD VSS sg13cmos5l_decap_4
+X277 VDD VSS sg13cmos5l_fill_2
+X278 VDD VSS sg13cmos5l_decap_8
+X279 VDD VSS sg13cmos5l_decap_8
+X280 VDD VSS sg13cmos5l_decap_4
+X281 VDD VSS sg13cmos5l_decap_8
+X282 VDD VSS sg13cmos5l_decap_8
+X283 VDD VSS sg13cmos5l_decap_8
+X284 VDD VSS sg13cmos5l_decap_8
+X285 VDD VSS sg13cmos5l_fill_1
+X286 VDD VSS sg13cmos5l_fill_1
+X287 VDD VSS sg13cmos5l_decap_4
+X288 VDD VSS sg13cmos5l_fill_1
+X289 VDD VSS sg13cmos5l_fill_2
+X290 VDD VSS sg13cmos5l_fill_2
+X291 VDD VSS sg13cmos5l_fill_1
+X292 VDD VSS sg13cmos5l_decap_4
+X293 VDD VSS sg13cmos5l_fill_1
+X294 VDD VSS sg13cmos5l_decap_8
+X295 VDD VSS sg13cmos5l_decap_4
+X296 VDD VSS sg13cmos5l_fill_1
+X297 VDD VSS sg13cmos5l_decap_4
+X298 VDD VSS sg13cmos5l_decap_8
+X299 VDD VSS sg13cmos5l_decap_8
+X300 VDD VSS sg13cmos5l_decap_8
+X301 VDD VSS sg13cmos5l_decap_8
+X302 VDD VSS sg13cmos5l_decap_8
+X303 VDD VSS sg13cmos5l_decap_4
+X304 VDD VSS sg13cmos5l_fill_2
+X305 VDD VSS sg13cmos5l_fill_1
+X306 VDD VSS sg13cmos5l_decap_8
+X307 VDD VSS sg13cmos5l_decap_4
+X308 VDD VSS sg13cmos5l_fill_1
+X309 VDD VSS sg13cmos5l_decap_8
+X310 VDD VSS sg13cmos5l_decap_8
+X311 VDD VSS sg13cmos5l_decap_4
+X312 VDD VSS sg13cmos5l_fill_2
+X313 VDD VSS sg13cmos5l_fill_2
+X314 VDD VSS sg13cmos5l_fill_1
+X315 VDD VSS sg13cmos5l_fill_2
+X316 VDD VSS sg13cmos5l_fill_1
+X317 VDD VSS sg13cmos5l_decap_8
+X318 VDD VSS sg13cmos5l_decap_8
+X319 VDD VSS sg13cmos5l_decap_8
+X320 VDD VSS sg13cmos5l_decap_4
+X321 VDD VSS sg13cmos5l_fill_1
+X322 VDD VSS sg13cmos5l_decap_4
+X323 VDD VSS sg13cmos5l_fill_2
+X324 VDD VSS sg13cmos5l_decap_4
+X325 VDD VSS sg13cmos5l_fill_1
+X326 VDD VSS sg13cmos5l_fill_2
+X327 VDD VSS sg13cmos5l_decap_8
+X328 VDD VSS sg13cmos5l_fill_2
+X329 VDD VSS sg13cmos5l_fill_1
+X330 VDD VSS sg13cmos5l_decap_8
+X331 VDD VSS sg13cmos5l_fill_1
+X332 VDD VSS sg13cmos5l_decap_8
+X333 VDD VSS sg13cmos5l_decap_4
+X334 VDD VSS sg13cmos5l_fill_2
+X335 VDD VSS sg13cmos5l_decap_8
+X336 VDD VSS sg13cmos5l_decap_8
+X337 VDD VSS sg13cmos5l_decap_4
+X338 VDD VSS sg13cmos5l_fill_2
+X339 VDD VSS sg13cmos5l_decap_4
+X340 VDD VSS sg13cmos5l_fill_2
+X341 VDD VSS sg13cmos5l_fill_2
+X342 VDD VSS sg13cmos5l_fill_1
+X343 VDD VSS sg13cmos5l_fill_1
+X344 VDD VSS sg13cmos5l_decap_8
+X345 VDD VSS sg13cmos5l_decap_8
+X346 VDD VSS sg13cmos5l_decap_8
+X347 VDD VSS sg13cmos5l_decap_8
+X348 VDD VSS sg13cmos5l_decap_8
+X349 VDD VSS sg13cmos5l_decap_8
+X350 VDD VSS sg13cmos5l_decap_8
+X351 VDD VSS sg13cmos5l_fill_2
+X352 VDD VSS sg13cmos5l_fill_1
+X353 VDD VSS sg13cmos5l_decap_8
+X354 VDD VSS sg13cmos5l_decap_8
+X355 VDD VSS sg13cmos5l_decap_8
+X356 VDD VSS sg13cmos5l_decap_8
+X357 VDD VSS sg13cmos5l_decap_4
+X358 VDD VSS sg13cmos5l_fill_1
+X359 VDD VSS sg13cmos5l_decap_8
+X360 VDD VSS sg13cmos5l_fill_1
+X361 VDD VSS sg13cmos5l_decap_8
+X362 VDD VSS sg13cmos5l_decap_8
+X363 VDD VSS sg13cmos5l_decap_4
+X364 VDD VSS sg13cmos5l_fill_1
+X365 VDD VSS sg13cmos5l_decap_8
+X366 VDD VSS sg13cmos5l_fill_2
+X367 VDD VSS sg13cmos5l_decap_8
+X368 VDD VSS sg13cmos5l_fill_1
+X369 VDD VSS sg13cmos5l_decap_4
+X370 VDD VSS sg13cmos5l_fill_1
+X371 VDD VSS sg13cmos5l_decap_8
+X372 VDD VSS sg13cmos5l_decap_8
+X373 VDD VSS sg13cmos5l_decap_8
+X374 VDD VSS sg13cmos5l_decap_8
+X375 VDD VSS sg13cmos5l_decap_8
+X376 VDD VSS sg13cmos5l_fill_2
+X377 VDD VSS sg13cmos5l_fill_1
+X378 VDD VSS sg13cmos5l_fill_2
+X379 VDD VSS sg13cmos5l_decap_4
+X380 VDD VSS sg13cmos5l_fill_1
+X381 VDD VSS sg13cmos5l_decap_8
+X382 VDD VSS sg13cmos5l_decap_8
+X383 VDD VSS sg13cmos5l_decap_8
+X384 VDD VSS sg13cmos5l_fill_1
+X385 VDD VSS sg13cmos5l_decap_8
+X386 VDD VSS sg13cmos5l_fill_2
+X387 VDD VSS sg13cmos5l_decap_8
+X388 VDD VSS sg13cmos5l_decap_8
+X389 VDD VSS sg13cmos5l_decap_8
+X390 VDD VSS sg13cmos5l_fill_1
+X391 VDD VSS sg13cmos5l_decap_8
+X392 VDD VSS sg13cmos5l_fill_1
+X393 VDD VSS sg13cmos5l_decap_4
+X394 VDD VSS sg13cmos5l_fill_2
+X395 VDD VSS sg13cmos5l_decap_8
+X396 VDD VSS sg13cmos5l_fill_2
+X397 VDD VSS sg13cmos5l_decap_4
+X398 VDD VSS sg13cmos5l_fill_1
+X399 VDD VSS sg13cmos5l_fill_2
+X400 VDD VSS sg13cmos5l_fill_1
+X401 VDD VSS sg13cmos5l_fill_1
+X402 VDD VSS sg13cmos5l_decap_8
+X403 VDD VSS sg13cmos5l_decap_8
+X404 VDD VSS sg13cmos5l_decap_4
+X405 VDD VSS sg13cmos5l_decap_4
+X406 VDD VSS sg13cmos5l_decap_8
+X407 VDD VSS sg13cmos5l_fill_2
+X408 VDD VSS sg13cmos5l_fill_1
+X409 VDD VSS sg13cmos5l_fill_1
+X410 VDD VSS sg13cmos5l_decap_8
+X411 VDD VSS sg13cmos5l_fill_2
+X412 VDD VSS sg13cmos5l_fill_1
+X413 VDD VSS sg13cmos5l_fill_1
+X414 VDD VSS sg13cmos5l_decap_8
+X415 VDD VSS sg13cmos5l_decap_8
+X416 VDD VSS sg13cmos5l_fill_2
+X417 VDD VSS sg13cmos5l_fill_1
+X418 VDD VSS sg13cmos5l_decap_8
+X419 VDD VSS sg13cmos5l_decap_8
+X420 VDD VSS sg13cmos5l_fill_2
+X421 VDD VSS sg13cmos5l_fill_1
+X422 VDD VSS sg13cmos5l_decap_4
+X423 VDD VSS sg13cmos5l_decap_4
+X424 VDD VSS sg13cmos5l_fill_1
+X425 VDD VSS sg13cmos5l_decap_4
+X426 VDD VSS sg13cmos5l_fill_2
+X427 VDD VSS sg13cmos5l_fill_1
+X428 VDD VSS sg13cmos5l_decap_4
+X429 VDD VSS sg13cmos5l_decap_8
+X430 VDD VSS sg13cmos5l_fill_1
+X431 VDD VSS sg13cmos5l_fill_2
+X432 VDD VSS sg13cmos5l_fill_1
+X433 VDD VSS sg13cmos5l_decap_8
+X434 VDD VSS sg13cmos5l_decap_8
+X435 VDD VSS sg13cmos5l_decap_4
+X436 VDD VSS sg13cmos5l_decap_8
+X437 VDD VSS sg13cmos5l_decap_8
+X438 VDD VSS sg13cmos5l_decap_8
+X439 VDD VSS sg13cmos5l_decap_4
+X440 VDD VSS sg13cmos5l_decap_8
+X441 VDD VSS sg13cmos5l_fill_1
+X442 VDD VSS sg13cmos5l_fill_2
+X443 VDD VSS sg13cmos5l_fill_1
+X444 VDD VSS sg13cmos5l_decap_8
+X445 VDD VSS sg13cmos5l_decap_4
+X446 VDD VSS sg13cmos5l_decap_8
+X447 VDD VSS sg13cmos5l_fill_2
+X448 VDD VSS sg13cmos5l_fill_2
+X449 VDD VSS sg13cmos5l_fill_2
+X450 VDD VSS sg13cmos5l_fill_1
+X451 VDD VSS sg13cmos5l_decap_8
+X452 VDD VSS sg13cmos5l_decap_8
+X453 VDD VSS sg13cmos5l_decap_4
+X454 VDD VSS sg13cmos5l_decap_8
+X455 VDD VSS sg13cmos5l_fill_2
+X456 VDD VSS sg13cmos5l_fill_1
+X457 VDD VSS sg13cmos5l_fill_2
+X458 VDD VSS sg13cmos5l_decap_8
+X459 VDD VSS sg13cmos5l_decap_8
+X460 VDD VSS sg13cmos5l_fill_1
+X461 VDD VSS sg13cmos5l_decap_4
+X462 VDD VSS sg13cmos5l_fill_1
+X463 VDD VSS sg13cmos5l_fill_1
+X464 VDD VSS sg13cmos5l_fill_2
+X465 VDD VSS sg13cmos5l_fill_1
+X466 VDD VSS sg13cmos5l_decap_8
+X467 VDD VSS sg13cmos5l_decap_8
+X468 VDD VSS sg13cmos5l_fill_1
+X469 VDD VSS sg13cmos5l_decap_8
+X470 VDD VSS sg13cmos5l_decap_4
+X471 VDD VSS sg13cmos5l_fill_2
+X472 VDD VSS sg13cmos5l_fill_2
+X473 VDD VSS sg13cmos5l_fill_1
+X474 VDD VSS sg13cmos5l_decap_8
+X475 VDD VSS sg13cmos5l_decap_8
+X476 VDD VSS sg13cmos5l_decap_8
+X477 VDD VSS sg13cmos5l_decap_8
+X478 VDD VSS sg13cmos5l_decap_4
+X479 VDD VSS sg13cmos5l_fill_1
+X480 VDD VSS sg13cmos5l_fill_1
+X481 VDD VSS sg13cmos5l_fill_2
+X482 VDD VSS sg13cmos5l_fill_1
+X483 VDD VSS sg13cmos5l_decap_4
+X484 VDD VSS sg13cmos5l_fill_2
+X485 VDD VSS sg13cmos5l_fill_2
+X486 VDD VSS sg13cmos5l_fill_1
+X487 VDD VSS sg13cmos5l_fill_2
+X488 VDD VSS sg13cmos5l_fill_1
+X489 VDD VSS sg13cmos5l_decap_8
+X490 VDD VSS sg13cmos5l_decap_8
+X491 VDD VSS sg13cmos5l_decap_8
+X492 VDD VSS sg13cmos5l_decap_8
+X493 VDD VSS sg13cmos5l_decap_8
+X494 VDD VSS sg13cmos5l_decap_8
+X495 VDD VSS sg13cmos5l_decap_8
+X496 VDD VSS sg13cmos5l_fill_2
+X497 VDD VSS sg13cmos5l_fill_1
+X498 VDD VSS sg13cmos5l_fill_2
+X499 VDD VSS sg13cmos5l_fill_2
+X500 VDD VSS sg13cmos5l_decap_8
+X501 VDD VSS sg13cmos5l_fill_1
+X502 VDD VSS sg13cmos5l_fill_2
+X503 VDD VSS sg13cmos5l_fill_2
+X504 VDD VSS sg13cmos5l_fill_1
+X505 VDD VSS sg13cmos5l_decap_8
+X506 VDD VSS sg13cmos5l_fill_2
+X507 VDD VSS sg13cmos5l_fill_1
+X508 VDD VSS sg13cmos5l_decap_8
+X509 VDD VSS sg13cmos5l_decap_8
+X510 VDD VSS sg13cmos5l_decap_8
+X511 VDD VSS sg13cmos5l_decap_8
+X512 VDD VSS sg13cmos5l_decap_8
+X513 VDD VSS sg13cmos5l_decap_8
+X514 VDD VSS sg13cmos5l_decap_4
+X515 VDD VSS sg13cmos5l_fill_1
+X516 VDD VSS sg13cmos5l_decap_4
+X517 VDD VSS sg13cmos5l_decap_4
+X518 VDD VSS sg13cmos5l_fill_1
+X519 VDD VSS sg13cmos5l_decap_8
+X520 VDD VSS sg13cmos5l_decap_4
+X521 VDD VSS sg13cmos5l_decap_8
+X522 VDD VSS sg13cmos5l_fill_2
+X523 VDD VSS sg13cmos5l_decap_8
+X524 VDD VSS sg13cmos5l_decap_8
+X525 VDD VSS sg13cmos5l_fill_1
+X526 VDD VSS sg13cmos5l_fill_2
+X527 VDD VSS sg13cmos5l_decap_8
+X528 VDD VSS sg13cmos5l_decap_8
+X529 VDD VSS sg13cmos5l_decap_8
+X530 VDD VSS sg13cmos5l_decap_8
+X531 VDD VSS sg13cmos5l_decap_8
+X532 VDD VSS sg13cmos5l_decap_8
+X533 VDD VSS sg13cmos5l_decap_8
+X534 VDD VSS sg13cmos5l_decap_8
+X535 VDD VSS sg13cmos5l_fill_1
+X536 VDD VSS sg13cmos5l_fill_2
+X537 VDD VSS sg13cmos5l_decap_4
+X538 VDD VSS sg13cmos5l_fill_1
+X539 VDD VSS sg13cmos5l_decap_8
+X540 VDD VSS sg13cmos5l_decap_8
+X541 VDD VSS sg13cmos5l_decap_4
+X542 VDD VSS sg13cmos5l_fill_2
+X543 VDD VSS sg13cmos5l_decap_8
+X544 VDD VSS sg13cmos5l_decap_8
+X545 VDD VSS sg13cmos5l_decap_8
+X546 VDD VSS sg13cmos5l_fill_2
+X547 VDD VSS sg13cmos5l_fill_1
+X548 VDD VSS sg13cmos5l_decap_8
+X549 VDD VSS sg13cmos5l_decap_8
+X550 VDD VSS sg13cmos5l_decap_4
+X551 VDD VSS sg13cmos5l_fill_1
+X552 VDD VSS sg13cmos5l_decap_4
+X553 VDD VSS sg13cmos5l_fill_2
+X554 VDD VSS sg13cmos5l_decap_8
+X555 VDD VSS sg13cmos5l_fill_1
+X556 VDD VSS sg13cmos5l_fill_1
+X557 VDD VSS sg13cmos5l_decap_8
+X558 VDD VSS sg13cmos5l_decap_8
+X559 VDD VSS sg13cmos5l_decap_8
+X560 VDD VSS sg13cmos5l_decap_4
+X561 VDD VSS sg13cmos5l_fill_2
+X562 VDD VSS sg13cmos5l_fill_1
+X563 VDD VSS sg13cmos5l_decap_4
+X564 VDD VSS sg13cmos5l_decap_8
+X565 VDD VSS sg13cmos5l_decap_8
+X566 VDD VSS sg13cmos5l_decap_8
+X567 VDD VSS sg13cmos5l_decap_8
+X568 VDD VSS sg13cmos5l_fill_2
+X569 VDD VSS sg13cmos5l_decap_8
+X570 VDD VSS sg13cmos5l_decap_8
+X571 VDD VSS sg13cmos5l_decap_8
+X572 VDD VSS sg13cmos5l_decap_8
+X573 VDD VSS sg13cmos5l_decap_8
+X574 VDD VSS sg13cmos5l_decap_4
+X575 VDD VSS sg13cmos5l_decap_8
+X576 VDD VSS sg13cmos5l_decap_8
+X577 VDD VSS sg13cmos5l_fill_2
+X578 VDD VSS sg13cmos5l_fill_1
+X579 VDD VSS sg13cmos5l_fill_1
+X580 VDD VSS sg13cmos5l_fill_2
+X581 VDD VSS sg13cmos5l_decap_8
+X582 VDD VSS sg13cmos5l_decap_8
+X583 VDD VSS sg13cmos5l_decap_8
+X584 VDD VSS sg13cmos5l_decap_8
+X585 VDD VSS sg13cmos5l_decap_4
+X586 VDD VSS sg13cmos5l_decap_8
+X587 VDD VSS sg13cmos5l_fill_2
+X588 VDD VSS sg13cmos5l_fill_1
+X589 VDD VSS sg13cmos5l_decap_8
+X590 VDD VSS sg13cmos5l_fill_1
+X591 VDD VSS sg13cmos5l_decap_8
+X592 VDD VSS sg13cmos5l_decap_8
+X593 VDD VSS sg13cmos5l_fill_1
+X594 VDD VSS sg13cmos5l_decap_8
+X595 VDD VSS sg13cmos5l_fill_1
+X596 VDD VSS sg13cmos5l_fill_2
+X597 VDD VSS sg13cmos5l_decap_8
+X598 VDD VSS sg13cmos5l_decap_8
+X599 VDD VSS sg13cmos5l_fill_2
+X600 VDD VSS sg13cmos5l_fill_1
+X601 VDD VSS sg13cmos5l_fill_2
+X602 VDD VSS sg13cmos5l_fill_1
+X603 VDD VSS sg13cmos5l_fill_2
+X604 VDD VSS sg13cmos5l_fill_1
+X605 VDD VSS sg13cmos5l_fill_1
+X606 VDD VSS sg13cmos5l_decap_8
+X607 VDD VSS sg13cmos5l_decap_8
+X608 VDD VSS sg13cmos5l_fill_1
+X609 VDD VSS sg13cmos5l_decap_8
+X610 VDD VSS sg13cmos5l_fill_1
+X611 VDD VSS sg13cmos5l_fill_2
+X612 VDD VSS sg13cmos5l_fill_1
+X613 VDD VSS sg13cmos5l_decap_8
+X614 VDD VSS sg13cmos5l_decap_8
+X615 VDD VSS sg13cmos5l_fill_1
+X616 VDD VSS sg13cmos5l_decap_4
+X617 VDD VSS sg13cmos5l_decap_8
+X618 VDD VSS sg13cmos5l_fill_2
+X619 VDD VSS sg13cmos5l_fill_1
+X620 VDD VSS sg13cmos5l_decap_8
+X621 VDD VSS sg13cmos5l_decap_8
+X622 VDD VSS sg13cmos5l_decap_4
+X623 VDD VSS sg13cmos5l_fill_2
+X624 VDD VSS sg13cmos5l_fill_2
+X625 VDD VSS sg13cmos5l_decap_8
+X626 VDD VSS sg13cmos5l_decap_8
+X627 VDD VSS sg13cmos5l_decap_8
+X628 VDD VSS sg13cmos5l_decap_8
+X629 VDD VSS sg13cmos5l_decap_8
+X630 VDD VSS sg13cmos5l_fill_2
+X631 VDD VSS sg13cmos5l_decap_4
+X632 VDD VSS sg13cmos5l_fill_1
+X633 VDD VSS sg13cmos5l_decap_4
+X634 VDD VSS sg13cmos5l_fill_2
+X635 VDD VSS sg13cmos5l_fill_2
+X636 VDD VSS sg13cmos5l_fill_1
+X637 VDD VSS sg13cmos5l_decap_8
+X638 VDD VSS sg13cmos5l_decap_8
+X639 VDD VSS sg13cmos5l_decap_4
+X640 VDD VSS sg13cmos5l_fill_1
+X641 VDD VSS sg13cmos5l_decap_4
+X642 VDD VSS sg13cmos5l_decap_8
+X643 VDD VSS sg13cmos5l_decap_4
+X644 VDD VSS sg13cmos5l_fill_1
+X645 VDD VSS sg13cmos5l_decap_8
+X646 VDD VSS sg13cmos5l_decap_4
+X647 VDD VSS sg13cmos5l_decap_4
+X648 VDD VSS sg13cmos5l_fill_1
+X649 VDD VSS sg13cmos5l_decap_8
+X650 VDD VSS sg13cmos5l_decap_8
+X651 VDD VSS sg13cmos5l_fill_2
+X652 VDD VSS sg13cmos5l_decap_8
+X653 VDD VSS sg13cmos5l_decap_4
+X654 VDD VSS sg13cmos5l_fill_1
+X655 VDD VSS sg13cmos5l_decap_8
+X656 VDD VSS sg13cmos5l_decap_8
+X657 VDD VSS sg13cmos5l_fill_2
+X658 VDD VSS sg13cmos5l_decap_8
+X659 VDD VSS sg13cmos5l_decap_4
+X660 VDD VSS sg13cmos5l_fill_1
+X661 VDD VSS sg13cmos5l_decap_8
+X662 VDD VSS sg13cmos5l_fill_2
+X663 VDD VSS sg13cmos5l_fill_2
+X664 VDD VSS sg13cmos5l_fill_1
+X665 VDD VSS sg13cmos5l_decap_8
+X666 VDD VSS sg13cmos5l_fill_1
+X667 VDD VSS sg13cmos5l_fill_2
+X668 VDD VSS sg13cmos5l_decap_8
+X669 VDD VSS sg13cmos5l_decap_8
+X670 VDD VSS sg13cmos5l_decap_4
+X671 VDD VSS sg13cmos5l_decap_8
+X672 VDD VSS sg13cmos5l_decap_8
+X673 VDD VSS sg13cmos5l_fill_1
+X674 VDD VSS sg13cmos5l_decap_4
+X675 VDD VSS sg13cmos5l_fill_1
+X676 VDD VSS sg13cmos5l_decap_8
+X677 VDD VSS sg13cmos5l_decap_8
+X678 VDD VSS sg13cmos5l_fill_1
+X679 VDD VSS sg13cmos5l_decap_4
+X680 VDD VSS sg13cmos5l_fill_1
+X681 VDD VSS sg13cmos5l_decap_8
+X682 VDD VSS sg13cmos5l_decap_4
+X683 VDD VSS sg13cmos5l_fill_2
+X684 VDD VSS sg13cmos5l_fill_2
+X685 VDD VSS sg13cmos5l_decap_8
+X686 VDD VSS sg13cmos5l_decap_8
+X687 VDD VSS sg13cmos5l_fill_2
+X688 VDD VSS sg13cmos5l_decap_8
+X689 VDD VSS sg13cmos5l_fill_1
+X690 VDD VSS sg13cmos5l_fill_2
+X691 VDD VSS sg13cmos5l_decap_8
+X692 VDD VSS sg13cmos5l_fill_2
+X693 VDD VSS sg13cmos5l_fill_1
+X694 VDD VSS sg13cmos5l_decap_8
+X695 VDD VSS sg13cmos5l_decap_8
+X696 VDD VSS sg13cmos5l_fill_1
+X697 VDD VSS sg13cmos5l_fill_1
+X698 VDD VSS sg13cmos5l_decap_8
+X699 VDD VSS sg13cmos5l_decap_4
+X700 VDD VSS sg13cmos5l_fill_2
+X701 VDD VSS sg13cmos5l_fill_2
+X702 VDD VSS sg13cmos5l_fill_1
+X703 _0_ net11 enable VDD VSS sg13cmos5l_and2_1
+X704 clknet_0_output_divider_i.div4_clk output_divider_i.div4_clk VDD VSS sg13cmos5l_buf_16
+X705 clknet_0_output_divider_i.div4_clk_regs output_divider_i.div4_clk_regs VDD VSS sg13cmos5l_buf_16
+X706 clknet_0_output_divider_i.div8_clk output_divider_i.div8_clk VDD VSS sg13cmos5l_buf_16
+X707 clknet_0_output_divider_i.div8_clk_regs output_divider_i.div8_clk_regs VDD VSS sg13cmos5l_buf_16
+X708 clknet_0_pll_clk pll_clk VDD VSS sg13cmos5l_buf_16
+X709 clknet_0_pll_clk_regs pll_clk_regs VDD VSS sg13cmos5l_buf_16
+X710 clknet_1_0_0_output_divider_i.div4_clk clknet_0_output_divider_i.div4_clk VDD VSS sg13cmos5l_buf_8
+X711 clknet_1_0_0_output_divider_i.div4_clk_regs clknet_0_output_divider_i.div4_clk_regs VDD VSS sg13cmos5l_buf_8
+X712 clknet_1_0_0_output_divider_i.div8_clk clknet_0_output_divider_i.div8_clk VDD VSS sg13cmos5l_buf_8
+X713 clknet_1_0_0_output_divider_i.div8_clk_regs clknet_0_output_divider_i.div8_clk_regs VDD VSS sg13cmos5l_buf_8
+X714 clknet_1_0_0_pll_clk clknet_0_pll_clk VDD VSS sg13cmos5l_buf_8
+X715 clknet_1_0_0_pll_clk_regs clknet_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X716 clknet_1_1_0_pll_clk_regs clknet_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X717 clknet_2_0_0_pll_clk_regs clknet_1_0_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X718 clknet_2_1_0_pll_clk_regs clknet_1_0_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X719 clknet_2_2_0_pll_clk_regs clknet_1_1_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X720 clknet_2_3_0_pll_clk_regs clknet_1_1_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X721 clknet_3_0_0_pll_clk_regs clknet_2_0_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X722 clknet_3_1_0_pll_clk_regs clknet_2_0_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X723 clknet_3_2_0_pll_clk_regs clknet_2_1_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X724 clknet_3_3_0_pll_clk_regs clknet_2_1_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X725 clknet_3_4_0_pll_clk_regs clknet_2_2_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X726 clknet_3_5_0_pll_clk_regs clknet_2_2_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X727 clknet_3_6_0_pll_clk_regs clknet_2_3_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X728 clknet_3_7_0_pll_clk_regs clknet_2_3_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X729 clknet_4_0_0_pll_clk_regs clknet_3_0_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X730 clknet_4_10_0_pll_clk_regs clknet_3_5_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X731 clknet_4_11_0_pll_clk_regs clknet_3_5_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X732 clknet_4_12_0_pll_clk_regs clknet_3_6_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X733 clknet_4_13_0_pll_clk_regs clknet_3_6_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X734 clknet_4_14_0_pll_clk_regs clknet_3_7_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X735 clknet_4_15_0_pll_clk_regs clknet_3_7_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X736 clknet_4_1_0_pll_clk_regs clknet_3_0_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X737 clknet_4_2_0_pll_clk_regs clknet_3_1_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X738 clknet_4_3_0_pll_clk_regs clknet_3_1_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X739 clknet_4_4_0_pll_clk_regs clknet_3_2_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X740 clknet_4_5_0_pll_clk_regs clknet_3_2_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X741 clknet_4_6_0_pll_clk_regs clknet_3_3_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X742 clknet_4_7_0_pll_clk_regs clknet_3_3_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X743 clknet_4_8_0_pll_clk_regs clknet_3_4_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X744 clknet_4_9_0_pll_clk_regs clknet_3_4_0_pll_clk_regs VDD VSS sg13cmos5l_buf_8
+X745 pll_clk_regs pll_clk VDD VSS sg13cmos5l_buf_16
+X746 output_divider_i.div4_clk_regs output_divider_i.div4_clk VDD VSS sg13cmos5l_buf_16
+X747 output_divider_i.div8_clk_regs output_divider_i.div8_clk VDD VSS sg13cmos5l_buf_16
+X748 _NC0 clknet_4_7_0_pll_clk_regs VDD VSS sg13cmos5l_buf_2
+X749 _NC1 clknet_4_15_0_pll_clk_regs VDD VSS sg13cmos5l_buf_2
+X750 net12 feedback_divider_i.configuration_decode_i._029_ VDD VSS sg13cmos5l_buf_1
+X751 net13 feedback_divider_i.configuration_decode_i._029_ VDD VSS sg13cmos5l_buf_1
+X752 net14 net15 VDD VSS sg13cmos5l_buf_1
+X753 net15 feedback_divider_i.configuration_decode_i._027_ VDD VSS sg13cmos5l_buf_1
+X754 net16 feedback_divider_i.configuration_decode_i._025_ VDD VSS sg13cmos5l_buf_1
+X755 net17 feedback_divider_i.configuration_decode_i._025_ VDD VSS sg13cmos5l_buf_1
+X756 net18 net19 VDD VSS sg13cmos5l_buf_1
+X757 net19 feedback_divider_i.configuration_decode_i._018_ VDD VSS sg13cmos5l_buf_1
+X758 net20 feedback_divider_i.configuration_decode_i._032_ VDD VSS sg13cmos5l_buf_1
+X759 net21 net22 VDD VSS sg13cmos5l_buf_1
+X760 net22 net23 VDD VSS sg13cmos5l_buf_1
+X761 net23 net39 VDD VSS sg13cmos5l_buf_1
+X762 net24 net25 VDD VSS sg13cmos5l_buf_1
+X763 net25 net29 VDD VSS sg13cmos5l_buf_1
+X764 net26 net29 VDD VSS sg13cmos5l_buf_1
+X765 net27 net29 VDD VSS sg13cmos5l_buf_1
+X766 net28 net29 VDD VSS sg13cmos5l_buf_1
+X767 net29 net39 VDD VSS sg13cmos5l_buf_1
+X768 net30 net34 VDD VSS sg13cmos5l_buf_1
+X769 net31 net34 VDD VSS sg13cmos5l_buf_1
+X770 net32 net34 VDD VSS sg13cmos5l_buf_1
+X771 net33 net34 VDD VSS sg13cmos5l_buf_1
+X772 net34 net39 VDD VSS sg13cmos5l_buf_1
+X773 net35 net38 VDD VSS sg13cmos5l_buf_1
+X774 net36 net38 VDD VSS sg13cmos5l_buf_1
+X775 net37 net38 VDD VSS sg13cmos5l_buf_1
+X776 net38 net39 VDD VSS sg13cmos5l_buf_1
+X777 net39 feedback_divider_i.reset_b VDD VSS sg13cmos5l_buf_1
+X778 net40 net41 VDD VSS sg13cmos5l_buf_1
+X779 net41 net9 VDD VSS sg13cmos5l_buf_1
+X780 net42 net43 VDD VSS sg13cmos5l_buf_1
+X781 net43 net44 VDD VSS sg13cmos5l_buf_1
+X782 net44 net8 VDD VSS sg13cmos5l_buf_1
+X783 net45 net8 VDD VSS sg13cmos5l_buf_1
+X784 net46 net8 VDD VSS sg13cmos5l_buf_1
+X785 net47 net49 VDD VSS sg13cmos5l_buf_1
+X786 net48 net49 VDD VSS sg13cmos5l_buf_1
+X787 net49 net50 VDD VSS sg13cmos5l_buf_1
+X788 net50 net7 VDD VSS sg13cmos5l_buf_1
+X789 net51 net7 VDD VSS sg13cmos5l_buf_1
+X790 net52 net7 VDD VSS sg13cmos5l_buf_1
+X791 net53 net54 VDD VSS sg13cmos5l_buf_1
+X792 net54 net6 VDD VSS sg13cmos5l_buf_1
+X793 net55 net56 VDD VSS sg13cmos5l_buf_1
+X794 net56 net5 VDD VSS sg13cmos5l_buf_1
+X795 net57 net4 VDD VSS sg13cmos5l_buf_1
+X796 net58 net3 VDD VSS sg13cmos5l_buf_1
+X797 net59 net2 VDD VSS sg13cmos5l_buf_1
+X798 net60 net61 VDD VSS sg13cmos5l_buf_1
+X799 net61 net10 VDD VSS sg13cmos5l_buf_1
+X800 net62 net1 VDD VSS sg13cmos5l_buf_1
+X801 net63 net1 VDD VSS sg13cmos5l_buf_1
+X802 feedback_divider_i._083_ net VDD VSS sg13cmos5l_inv_2
+X803 net VDD VSS sg13cmos5l_tielo
+X804 feedback_divider_i._084_ net57 VDD VSS sg13cmos5l_inv_2
+X805 feedback_divider_i._085_ feedback_divider_i.configuration_decode_i.fraction_seed_2_ VDD VSS sg13cmos5l_inv_2
+X806 feedback_divider_i._086_ feedback_divider_i.configuration_decode_i.fraction_seed_3_ VDD VSS sg13cmos5l_inv_2
+X807 feedback_divider_i._087_ feedback_divider_i.configuration_decode_i.fraction_seed_4_ VDD VSS sg13cmos5l_inv_2
+X808 feedback_divider_i._088_ feedback_divider_i.configuration_decode_i.fraction_seed_5_ VDD VSS sg13cmos5l_inv_2
+X809 feedback_divider_i._089_ feedback_divider_i.configuration_decode_i.fraction_seed_6_ VDD VSS sg13cmos5l_inv_2
+X810 feedback_divider_i._090_ feedback_divider_i.configuration_decode_i.fraction_seed_7_ VDD VSS sg13cmos5l_inv_2
+X811 feedback_divider_i._091_ feedback_divider_i.configuration_decode_i.fraction_seed_8_ VDD VSS sg13cmos5l_inv_2
+X812 feedback_divider_i._092_ feedback_divider_i.configuration_decode_i.fraction_seed_9_ VDD VSS sg13cmos5l_inv_2
+X813 feedback_divider_i._093_ feedback_divider_i.configuration_decode_i.fraction_seed_10_ VDD VSS sg13cmos5l_inv_2
+X814 feedback_divider_i._094_ feedback_divider_i.configuration_decode_i.fraction_seed_11_ VDD VSS sg13cmos5l_inv_2
+X815 feedback_divider_i._095_ feedback_divider_i.configuration_decode_i.fraction_seed_12_ VDD VSS sg13cmos5l_inv_2
+X816 feedback_divider_i._096_ feedback_divider_i.configuration_decode_i.fraction_seed_13_ VDD VSS sg13cmos5l_inv_2
+X817 feedback_divider_i._097_ feedback_divider_i.configuration_decode_i.fraction_seed_14_ VDD VSS sg13cmos5l_inv_2
+X818 feedback_divider_i._098_ feedback_divider_i.configuration_decode_i.fraction_seed_15_ VDD VSS sg13cmos5l_inv_2
+X819 feedback_divider_i._099_ feedback_divider_i.base_countdown_0_ VDD VSS sg13cmos5l_inv_2
+X820 feedback_divider_i._100_ feedback_divider_i.base_countdown_1_ VDD VSS sg13cmos5l_inv_2
+X821 feedback_divider_i._101_ feedback_divider_i.base_countdown_2_ VDD VSS sg13cmos5l_inv_2
+X822 feedback_divider_i._102_ feedback_divider_i.base_countdown_3_ VDD VSS sg13cmos5l_inv_2
+X823 feedback_divider_i._103_ feedback_divider_i.base_countdown_4_ VDD VSS sg13cmos5l_inv_2
+X824 feedback_divider_i._104_ feedback_divider_i.base_countdown_5_ VDD VSS sg13cmos5l_inv_2
+X825 feedback_divider_i._105_ feedback_divider_i.base_countdown_6_ VDD VSS sg13cmos5l_inv_2
+X826 feedback_divider_i._106_ feedback_divider_i.base_countdown_7_ VDD VSS sg13cmos5l_inv_2
+X827 feedback_divider_i._107_ feedback_divider_i.base_countdown_8_ VDD VSS sg13cmos5l_inv_2
+X828 feedback_divider_i._108_ feedback_divider_i.base_countdown_9_ VDD VSS sg13cmos5l_inv_2
+X829 feedback_divider_i._109_ feedback_divider_i.base_countdown_10_ VDD VSS sg13cmos5l_inv_2
+X830 feedback_divider_i._110_ feedback_divider_i.base_countdown_11_ VDD VSS sg13cmos5l_inv_2
+X831 feedback_divider_i._111_ feedback_divider_i.base_countdown_12_ VDD VSS sg13cmos5l_inv_2
+X832 feedback_divider_i._112_ feedback_divider_i.base_countdown_13_ VDD VSS sg13cmos5l_inv_2
+X833 feedback_divider_i._113_ feedback_divider_i.base_countdown_14_ VDD VSS sg13cmos5l_inv_2
+X834 feedback_divider_i._114_ feedback_divider_i.base_countdown_15_ VDD VSS sg13cmos5l_inv_2
+X835 feedback_divider_i._115_ feedback_divider_i.base_countdown_16_ VDD VSS sg13cmos5l_inv_2
+X836 feedback_divider_i._116_ feedback_divider_i.base_countdown_17_ VDD VSS sg13cmos5l_inv_2
+X837 feedback_divider_i._117_ feedback_divider_i.base_countdown_18_ VDD VSS sg13cmos5l_inv_2
+X838 feedback_divider_i._118_ feedback_divider_i.base_countdown_19_ VDD VSS sg13cmos5l_inv_2
+X839 feedback_divider_i._119_ feedback_divider_i.base_countdown_20_ VDD VSS sg13cmos5l_inv_2
+X840 feedback_divider_i._120_ feedback_divider_i.base_countdown_21_ VDD VSS sg13cmos5l_inv_2
+X841 feedback_divider_i._121_ feedback_divider_i.base_countdown_22_ VDD VSS sg13cmos5l_inv_2
+X842 feedback_divider_i._122_ feedback_divider_i.base_countdown_23_ VDD VSS sg13cmos5l_inv_2
+X843 feedback_divider_i._123_ feedback_divider_i.base_countdown_24_ VDD VSS sg13cmos5l_inv_2
+X844 feedback_divider_i._124_ feedback_divider_i.base_countdown_25_ VDD VSS sg13cmos5l_inv_2
+X845 feedback_divider_i._125_ feedback_divider_i.base_countdown_26_ VDD VSS sg13cmos5l_inv_2
+X846 feedback_divider_i._126_ feedback_divider_i.base_countdown_27_ VDD VSS sg13cmos5l_inv_2
+X847 feedback_divider_i._127_ feedback_divider_i.base_countdown_28_ VDD VSS sg13cmos5l_inv_2
+X848 feedback_divider_i._128_ feedback_divider_i.base_countdown_29_ VDD VSS sg13cmos5l_inv_2
+X849 feedback_divider_i._129_ feedback_divider_i.base_countdown_30_ VDD VSS sg13cmos5l_inv_2
+X850 feedback_divider_i._130_ feedback_divider_i.base_countdown_31_ VDD VSS sg13cmos5l_inv_2
+X851 feedback_divider_i._131_ feedback_divider_i.base_countdown_32_ VDD VSS sg13cmos5l_inv_2
+X852 feedback_divider_i._132_ feedback_divider_i.base_countdown_33_ VDD VSS sg13cmos5l_inv_2
+X853 feedback_divider_i._133_ feedback_divider_i.base_countdown_34_ VDD VSS sg13cmos5l_inv_2
+X854 feedback_divider_i._134_ feedback_divider_i.base_countdown_35_ VDD VSS sg13cmos5l_inv_2
+X855 feedback_divider_i._135_ feedback_divider_i.base_countdown_36_ VDD VSS sg13cmos5l_inv_2
+X856 feedback_divider_i._136_ feedback_divider_i.base_countdown_37_ VDD VSS sg13cmos5l_inv_2
+X857 feedback_divider_i._137_ feedback_divider_i.base_countdown_38_ VDD VSS sg13cmos5l_inv_2
+X858 feedback_divider_i._138_ feedback_divider_i.base_countdown_39_ VDD VSS sg13cmos5l_inv_2
+X859 feedback_divider_i._139_ feedback_divider_i.base_countdown_40_ VDD VSS sg13cmos5l_inv_2
+X860 feedback_divider_i._140_ feedback_divider_i.base_countdown_41_ VDD VSS sg13cmos5l_inv_2
+X861 feedback_divider_i._141_ feedback_divider_i.base_countdown_42_ VDD VSS sg13cmos5l_inv_2
+X862 feedback_divider_i._142_ feedback_divider_i.base_countdown_43_ VDD VSS sg13cmos5l_inv_2
+X863 feedback_divider_i._143_ feedback_divider_i.base_countdown_44_ VDD VSS sg13cmos5l_inv_2
+X864 feedback_divider_i._144_ feedback_divider_i.base_countdown_45_ VDD VSS sg13cmos5l_inv_2
+X865 feedback_divider_i._145_ feedback_divider_i.base_countdown_46_ VDD VSS sg13cmos5l_inv_2
+X866 feedback_divider_i._146_ feedback_divider_i.base_countdown_47_ VDD VSS sg13cmos5l_inv_2
+X867 feedback_divider_i._147_ feedback_divider_i.base_countdown_48_ VDD VSS sg13cmos5l_inv_2
+X868 feedback_divider_i._148_ feedback_divider_i.base_countdown_49_ VDD VSS sg13cmos5l_inv_2
+X869 feedback_divider_i._149_ feedback_divider_i.base_countdown_50_ VDD VSS sg13cmos5l_inv_2
+X870 feedback_divider_i._150_ feedback_divider_i.base_countdown_51_ VDD VSS sg13cmos5l_inv_2
+X871 feedback_divider_i._151_ feedback_divider_i.base_countdown_52_ VDD VSS sg13cmos5l_inv_2
+X872 feedback_divider_i._152_ feedback_divider_i.base_countdown_53_ VDD VSS sg13cmos5l_inv_2
+X873 feedback_divider_i._153_ feedback_divider_i.base_countdown_54_ VDD VSS sg13cmos5l_inv_2
+X874 feedback_divider_i._154_ feedback_divider_i.base_countdown_55_ VDD VSS sg13cmos5l_inv_2
+X875 feedback_divider_i._155_ feedback_divider_i.base_countdown_56_ VDD VSS sg13cmos5l_inv_2
+X876 feedback_divider_i._156_ feedback_divider_i.base_countdown_57_ VDD VSS sg13cmos5l_inv_2
+X877 feedback_divider_i._157_ feedback_divider_i.base_countdown_58_ VDD VSS sg13cmos5l_inv_2
+X878 feedback_divider_i._158_ feedback_divider_i.base_countdown_59_ VDD VSS sg13cmos5l_inv_2
+X879 feedback_divider_i._159_ feedback_divider_i.base_countdown_60_ VDD VSS sg13cmos5l_inv_2
+X880 feedback_divider_i._160_ feedback_divider_i.base_countdown_61_ VDD VSS sg13cmos5l_inv_2
+X881 feedback_divider_i._161_ feedback_divider_i.base_countdown_62_ VDD VSS sg13cmos5l_inv_2
+X882 feedback_divider_i._162_ net64 VDD VSS sg13cmos5l_inv_2
+X883 net64 VDD VSS sg13cmos5l_tielo
+X884 feedback_divider_i._065_ feedback_divider_i.countdown_1_ VDD VSS sg13cmos5l_inv_2
+X885 feedback_divider_i._163_ feedback_divider_i.fraction_advance_0_ feedback_divider_i.fraction_pattern_1_ feedback_divider_i.fraction_hold_0_ feedback_divider_i.fraction_pattern_0_ VDD VSS sg13cmos5l_a22oi_1
+X886 feedback_divider_i._066_ feedback_divider_i.fraction_initialized_0_ feedback_divider_i._083_ feedback_divider_i._163_ VDD VSS sg13cmos5l_o21ai_1
+X887 feedback_divider_i._164_ feedback_divider_i.fraction_pattern_1_ feedback_divider_i.fraction_hold_0_ feedback_divider_i.fraction_pattern_2_ feedback_divider_i.fraction_advance_0_ VDD VSS sg13cmos5l_a22oi_1
+X888 feedback_divider_i._073_ feedback_divider_i.fraction_initialized_0_ feedback_divider_i._084_ feedback_divider_i._164_ VDD VSS sg13cmos5l_o21ai_1
+X889 feedback_divider_i._165_ feedback_divider_i.fraction_hold_0_ feedback_divider_i.fraction_pattern_2_ feedback_divider_i.fraction_pattern_3_ feedback_divider_i.fraction_advance_0_ VDD VSS sg13cmos5l_a22oi_1
+X890 feedback_divider_i._074_ feedback_divider_i.fraction_initialized_0_ feedback_divider_i._085_ feedback_divider_i._165_ VDD VSS sg13cmos5l_o21ai_1
+X891 feedback_divider_i._166_ feedback_divider_i.fraction_hold_0_ feedback_divider_i.fraction_pattern_3_ feedback_divider_i.fraction_pattern_4_ feedback_divider_i.fraction_advance_0_ VDD VSS sg13cmos5l_a22oi_1
+X892 feedback_divider_i._075_ feedback_divider_i.fraction_initialized_0_ feedback_divider_i._086_ feedback_divider_i._166_ VDD VSS sg13cmos5l_o21ai_1
+X893 feedback_divider_i._167_ feedback_divider_i.fraction_advance_1_ feedback_divider_i.fraction_pattern_5_ feedback_divider_i.fraction_hold_1_ feedback_divider_i.fraction_pattern_4_ VDD VSS sg13cmos5l_a22oi_1
+X894 feedback_divider_i._076_ feedback_divider_i.fraction_initialized_1_ feedback_divider_i._087_ feedback_divider_i._167_ VDD VSS sg13cmos5l_o21ai_1
+X895 feedback_divider_i._168_ feedback_divider_i.fraction_pattern_5_ feedback_divider_i.fraction_hold_1_ feedback_divider_i.fraction_pattern_6_ feedback_divider_i.fraction_advance_1_ VDD VSS sg13cmos5l_a22oi_1
+X896 feedback_divider_i._077_ feedback_divider_i.fraction_initialized_1_ feedback_divider_i._088_ feedback_divider_i._168_ VDD VSS sg13cmos5l_o21ai_1
+X897 feedback_divider_i._169_ feedback_divider_i.fraction_hold_1_ feedback_divider_i.fraction_pattern_6_ feedback_divider_i.fraction_pattern_7_ feedback_divider_i.fraction_advance_1_ VDD VSS sg13cmos5l_a22oi_1
+X898 feedback_divider_i._078_ feedback_divider_i.fraction_initialized_1_ feedback_divider_i._089_ feedback_divider_i._169_ VDD VSS sg13cmos5l_o21ai_1
+X899 feedback_divider_i._170_ feedback_divider_i.fraction_hold_1_ feedback_divider_i.fraction_pattern_7_ feedback_divider_i.fraction_pattern_8_ feedback_divider_i.fraction_advance_1_ VDD VSS sg13cmos5l_a22oi_1
+X900 feedback_divider_i._079_ feedback_divider_i.fraction_initialized_1_ feedback_divider_i._090_ feedback_divider_i._170_ VDD VSS sg13cmos5l_o21ai_1
+X901 feedback_divider_i._171_ feedback_divider_i.fraction_advance_2_ feedback_divider_i.fraction_pattern_9_ feedback_divider_i.fraction_hold_2_ feedback_divider_i.fraction_pattern_8_ VDD VSS sg13cmos5l_a22oi_1
+X902 feedback_divider_i._080_ feedback_divider_i.fraction_initialized_2_ feedback_divider_i._091_ feedback_divider_i._171_ VDD VSS sg13cmos5l_o21ai_1
+X903 feedback_divider_i._172_ feedback_divider_i.fraction_pattern_9_ feedback_divider_i.fraction_hold_2_ feedback_divider_i.fraction_pattern_10_ feedback_divider_i.fraction_advance_2_ VDD VSS sg13cmos5l_a22oi_1
+X904 feedback_divider_i._081_ feedback_divider_i.fraction_initialized_2_ feedback_divider_i._092_ feedback_divider_i._172_ VDD VSS sg13cmos5l_o21ai_1
+X905 feedback_divider_i._173_ feedback_divider_i.fraction_hold_2_ feedback_divider_i.fraction_pattern_10_ feedback_divider_i.fraction_pattern_11_ feedback_divider_i.fraction_advance_2_ VDD VSS sg13cmos5l_a22oi_1
+X906 feedback_divider_i._067_ feedback_divider_i.fraction_initialized_2_ feedback_divider_i._093_ feedback_divider_i._173_ VDD VSS sg13cmos5l_o21ai_1
+X907 feedback_divider_i._174_ feedback_divider_i.fraction_hold_2_ feedback_divider_i.fraction_pattern_11_ feedback_divider_i.fraction_pattern_12_ feedback_divider_i.fraction_advance_2_ VDD VSS sg13cmos5l_a22oi_1
+X908 feedback_divider_i._068_ feedback_divider_i.fraction_initialized_2_ feedback_divider_i._094_ feedback_divider_i._174_ VDD VSS sg13cmos5l_o21ai_1
+X909 feedback_divider_i._175_ feedback_divider_i.fraction_advance_3_ feedback_divider_i.fraction_pattern_13_ feedback_divider_i.fraction_hold_3_ feedback_divider_i.fraction_pattern_12_ VDD VSS sg13cmos5l_a22oi_1
+X910 feedback_divider_i._069_ feedback_divider_i.fraction_initialized_3_ feedback_divider_i._095_ feedback_divider_i._175_ VDD VSS sg13cmos5l_o21ai_1
+X911 feedback_divider_i._176_ feedback_divider_i.fraction_pattern_13_ feedback_divider_i.fraction_hold_3_ feedback_divider_i.fraction_pattern_14_ feedback_divider_i.fraction_advance_3_ VDD VSS sg13cmos5l_a22oi_1
+X912 feedback_divider_i._070_ feedback_divider_i.fraction_initialized_3_ feedback_divider_i._096_ feedback_divider_i._176_ VDD VSS sg13cmos5l_o21ai_1
+X913 feedback_divider_i._177_ feedback_divider_i.fraction_hold_3_ feedback_divider_i.fraction_pattern_14_ feedback_divider_i.fraction_pattern_15_ feedback_divider_i.fraction_advance_3_ VDD VSS sg13cmos5l_a22oi_1
+X914 feedback_divider_i._071_ feedback_divider_i.fraction_initialized_3_ feedback_divider_i._097_ feedback_divider_i._177_ VDD VSS sg13cmos5l_o21ai_1
+X915 feedback_divider_i._178_ feedback_divider_i.fraction_pattern_0_ feedback_divider_i.fraction_advance_3_ feedback_divider_i.fraction_hold_3_ feedback_divider_i.fraction_pattern_15_ VDD VSS sg13cmos5l_a22oi_1
+X916 feedback_divider_i._072_ feedback_divider_i.fraction_initialized_3_ feedback_divider_i._098_ feedback_divider_i._178_ VDD VSS sg13cmos5l_o21ai_1
+X917 feedback_divider_i._001_ feedback_divider_i.base_reload_idle_0_ feedback_divider_i._099_ feedback_divider_i._065_ VDD VSS sg13cmos5l_o21ai_1
+X918 feedback_divider_i._179_ feedback_divider_i.base_countdown_0_ feedback_divider_i.reload_plus_pending_0_ feedback_divider_i.countdown_2_ VDD VSS sg13cmos5l_a21oi_1
+X919 feedback_divider_i._012_ feedback_divider_i.base_reload_idle_0_ feedback_divider_i._100_ feedback_divider_i._179_ VDD VSS sg13cmos5l_o21ai_1
+X920 feedback_divider_i._180_ feedback_divider_i.reload_plus_pending_0_ feedback_divider_i.base_countdown_1_ feedback_divider_i.countdown_3_ VDD VSS sg13cmos5l_a21oi_1
+X921 feedback_divider_i._023_ feedback_divider_i.base_reload_idle_0_ feedback_divider_i._101_ feedback_divider_i._180_ VDD VSS sg13cmos5l_o21ai_1
+X922 feedback_divider_i._181_ feedback_divider_i.reload_plus_pending_0_ feedback_divider_i.base_countdown_2_ feedback_divider_i.countdown_4_ VDD VSS sg13cmos5l_a21oi_1
+X923 feedback_divider_i._034_ feedback_divider_i.base_reload_idle_0_ feedback_divider_i._102_ feedback_divider_i._181_ VDD VSS sg13cmos5l_o21ai_1
+X924 feedback_divider_i._182_ feedback_divider_i.reload_plus_pending_0_ feedback_divider_i.base_countdown_3_ feedback_divider_i.countdown_5_ VDD VSS sg13cmos5l_a21oi_1
+X925 feedback_divider_i._045_ feedback_divider_i.base_reload_idle_0_ feedback_divider_i._103_ feedback_divider_i._182_ VDD VSS sg13cmos5l_o21ai_1
+X926 feedback_divider_i._183_ feedback_divider_i.reload_plus_pending_0_ feedback_divider_i.base_countdown_4_ feedback_divider_i.countdown_6_ VDD VSS sg13cmos5l_a21oi_1
+X927 feedback_divider_i._056_ feedback_divider_i.base_reload_idle_0_ feedback_divider_i._104_ feedback_divider_i._183_ VDD VSS sg13cmos5l_o21ai_1
+X928 feedback_divider_i._184_ feedback_divider_i.reload_plus_pending_0_ feedback_divider_i.base_countdown_5_ feedback_divider_i.countdown_7_ VDD VSS sg13cmos5l_a21oi_1
+X929 feedback_divider_i._061_ feedback_divider_i.base_reload_idle_0_ feedback_divider_i._105_ feedback_divider_i._184_ VDD VSS sg13cmos5l_o21ai_1
+X930 feedback_divider_i._185_ feedback_divider_i.reload_plus_pending_0_ feedback_divider_i.base_countdown_6_ feedback_divider_i.countdown_8_ VDD VSS sg13cmos5l_a21oi_1
+X931 feedback_divider_i._062_ feedback_divider_i.base_reload_idle_0_ feedback_divider_i._106_ feedback_divider_i._185_ VDD VSS sg13cmos5l_o21ai_1
+X932 feedback_divider_i._186_ feedback_divider_i.base_countdown_7_ feedback_divider_i.reload_plus_pending_1_ feedback_divider_i.countdown_9_ VDD VSS sg13cmos5l_a21oi_1
+X933 feedback_divider_i._063_ feedback_divider_i._107_ feedback_divider_i.base_reload_idle_1_ feedback_divider_i._186_ VDD VSS sg13cmos5l_o21ai_1
+X934 feedback_divider_i._187_ feedback_divider_i.reload_plus_pending_1_ feedback_divider_i.base_countdown_8_ feedback_divider_i.countdown_10_ VDD VSS sg13cmos5l_a21oi_1
+X935 feedback_divider_i._064_ feedback_divider_i.base_reload_idle_1_ feedback_divider_i._108_ feedback_divider_i._187_ VDD VSS sg13cmos5l_o21ai_1
+X936 feedback_divider_i._188_ feedback_divider_i.reload_plus_pending_1_ feedback_divider_i.base_countdown_9_ feedback_divider_i.countdown_11_ VDD VSS sg13cmos5l_a21oi_1
+X937 feedback_divider_i._002_ feedback_divider_i.base_reload_idle_1_ feedback_divider_i._109_ feedback_divider_i._188_ VDD VSS sg13cmos5l_o21ai_1
+X938 feedback_divider_i._189_ feedback_divider_i.reload_plus_pending_1_ feedback_divider_i.base_countdown_10_ feedback_divider_i.countdown_12_ VDD VSS sg13cmos5l_a21oi_1
+X939 feedback_divider_i._003_ feedback_divider_i.base_reload_idle_1_ feedback_divider_i._110_ feedback_divider_i._189_ VDD VSS sg13cmos5l_o21ai_1
+X940 feedback_divider_i._190_ feedback_divider_i.reload_plus_pending_1_ feedback_divider_i.base_countdown_11_ feedback_divider_i.countdown_13_ VDD VSS sg13cmos5l_a21oi_1
+X941 feedback_divider_i._004_ feedback_divider_i.base_reload_idle_1_ feedback_divider_i._111_ feedback_divider_i._190_ VDD VSS sg13cmos5l_o21ai_1
+X942 feedback_divider_i._191_ feedback_divider_i.reload_plus_pending_1_ feedback_divider_i.base_countdown_12_ feedback_divider_i.countdown_14_ VDD VSS sg13cmos5l_a21oi_1
+X943 feedback_divider_i._005_ feedback_divider_i.base_reload_idle_1_ feedback_divider_i._112_ feedback_divider_i._191_ VDD VSS sg13cmos5l_o21ai_1
+X944 feedback_divider_i._192_ feedback_divider_i.reload_plus_pending_1_ feedback_divider_i.base_countdown_13_ feedback_divider_i.countdown_15_ VDD VSS sg13cmos5l_a21oi_1
+X945 feedback_divider_i._006_ feedback_divider_i.base_reload_idle_1_ feedback_divider_i._113_ feedback_divider_i._192_ VDD VSS sg13cmos5l_o21ai_1
+X946 feedback_divider_i._193_ feedback_divider_i.reload_plus_pending_1_ feedback_divider_i.base_countdown_14_ feedback_divider_i.countdown_16_ VDD VSS sg13cmos5l_a21oi_1
+X947 feedback_divider_i._007_ feedback_divider_i.base_reload_idle_1_ feedback_divider_i._114_ feedback_divider_i._193_ VDD VSS sg13cmos5l_o21ai_1
+X948 feedback_divider_i._194_ feedback_divider_i.base_countdown_15_ feedback_divider_i.reload_plus_pending_2_ feedback_divider_i.countdown_17_ VDD VSS sg13cmos5l_a21oi_1
+X949 feedback_divider_i._008_ feedback_divider_i._115_ feedback_divider_i.base_reload_idle_2_ feedback_divider_i._194_ VDD VSS sg13cmos5l_o21ai_1
+X950 feedback_divider_i._195_ feedback_divider_i.reload_plus_pending_2_ feedback_divider_i.base_countdown_16_ feedback_divider_i.countdown_18_ VDD VSS sg13cmos5l_a21oi_1
+X951 feedback_divider_i._009_ feedback_divider_i.base_reload_idle_2_ feedback_divider_i._116_ feedback_divider_i._195_ VDD VSS sg13cmos5l_o21ai_1
+X952 feedback_divider_i._196_ feedback_divider_i.reload_plus_pending_2_ feedback_divider_i.base_countdown_17_ feedback_divider_i.countdown_19_ VDD VSS sg13cmos5l_a21oi_1
+X953 feedback_divider_i._010_ feedback_divider_i.base_reload_idle_2_ feedback_divider_i._117_ feedback_divider_i._196_ VDD VSS sg13cmos5l_o21ai_1
+X954 feedback_divider_i._197_ feedback_divider_i.reload_plus_pending_2_ feedback_divider_i.base_countdown_18_ feedback_divider_i.countdown_20_ VDD VSS sg13cmos5l_a21oi_1
+X955 feedback_divider_i._011_ feedback_divider_i.base_reload_idle_2_ feedback_divider_i._118_ feedback_divider_i._197_ VDD VSS sg13cmos5l_o21ai_1
+X956 feedback_divider_i._198_ feedback_divider_i.reload_plus_pending_2_ feedback_divider_i.base_countdown_19_ feedback_divider_i.countdown_21_ VDD VSS sg13cmos5l_a21oi_1
+X957 feedback_divider_i._013_ feedback_divider_i.base_reload_idle_2_ feedback_divider_i._119_ feedback_divider_i._198_ VDD VSS sg13cmos5l_o21ai_1
+X958 feedback_divider_i._199_ feedback_divider_i.reload_plus_pending_2_ feedback_divider_i.base_countdown_20_ feedback_divider_i.countdown_22_ VDD VSS sg13cmos5l_a21oi_1
+X959 feedback_divider_i._014_ feedback_divider_i.base_reload_idle_2_ feedback_divider_i._120_ feedback_divider_i._199_ VDD VSS sg13cmos5l_o21ai_1
+X960 feedback_divider_i._200_ feedback_divider_i.reload_plus_pending_2_ feedback_divider_i.base_countdown_21_ feedback_divider_i.countdown_23_ VDD VSS sg13cmos5l_a21oi_1
+X961 feedback_divider_i._015_ feedback_divider_i.base_reload_idle_2_ feedback_divider_i._121_ feedback_divider_i._200_ VDD VSS sg13cmos5l_o21ai_1
+X962 feedback_divider_i._201_ feedback_divider_i.reload_plus_pending_2_ feedback_divider_i.base_countdown_22_ feedback_divider_i.countdown_24_ VDD VSS sg13cmos5l_a21oi_1
+X963 feedback_divider_i._016_ feedback_divider_i.base_reload_idle_2_ feedback_divider_i._122_ feedback_divider_i._201_ VDD VSS sg13cmos5l_o21ai_1
+X964 feedback_divider_i._202_ feedback_divider_i.base_countdown_23_ feedback_divider_i.reload_plus_pending_3_ feedback_divider_i.countdown_25_ VDD VSS sg13cmos5l_a21oi_1
+X965 feedback_divider_i._017_ feedback_divider_i._123_ feedback_divider_i.base_reload_idle_3_ feedback_divider_i._202_ VDD VSS sg13cmos5l_o21ai_1
+X966 feedback_divider_i._203_ feedback_divider_i.reload_plus_pending_3_ feedback_divider_i.base_countdown_24_ feedback_divider_i.countdown_26_ VDD VSS sg13cmos5l_a21oi_1
+X967 feedback_divider_i._018_ feedback_divider_i.base_reload_idle_3_ feedback_divider_i._124_ feedback_divider_i._203_ VDD VSS sg13cmos5l_o21ai_1
+X968 feedback_divider_i._204_ feedback_divider_i.reload_plus_pending_3_ feedback_divider_i.base_countdown_25_ feedback_divider_i.countdown_27_ VDD VSS sg13cmos5l_a21oi_1
+X969 feedback_divider_i._019_ feedback_divider_i.base_reload_idle_3_ feedback_divider_i._125_ feedback_divider_i._204_ VDD VSS sg13cmos5l_o21ai_1
+X970 feedback_divider_i._205_ feedback_divider_i.reload_plus_pending_3_ feedback_divider_i.base_countdown_26_ feedback_divider_i.countdown_28_ VDD VSS sg13cmos5l_a21oi_1
+X971 feedback_divider_i._020_ feedback_divider_i.base_reload_idle_3_ feedback_divider_i._126_ feedback_divider_i._205_ VDD VSS sg13cmos5l_o21ai_1
+X972 feedback_divider_i._206_ feedback_divider_i.reload_plus_pending_3_ feedback_divider_i.base_countdown_27_ feedback_divider_i.countdown_29_ VDD VSS sg13cmos5l_a21oi_1
+X973 feedback_divider_i._021_ feedback_divider_i.base_reload_idle_3_ feedback_divider_i._127_ feedback_divider_i._206_ VDD VSS sg13cmos5l_o21ai_1
+X974 feedback_divider_i._207_ feedback_divider_i.reload_plus_pending_3_ feedback_divider_i.base_countdown_28_ feedback_divider_i.countdown_30_ VDD VSS sg13cmos5l_a21oi_1
+X975 feedback_divider_i._022_ feedback_divider_i.base_reload_idle_3_ feedback_divider_i._128_ feedback_divider_i._207_ VDD VSS sg13cmos5l_o21ai_1
+X976 feedback_divider_i._208_ feedback_divider_i.reload_plus_pending_3_ feedback_divider_i.base_countdown_29_ feedback_divider_i.countdown_31_ VDD VSS sg13cmos5l_a21oi_1
+X977 feedback_divider_i._024_ feedback_divider_i.base_reload_idle_3_ feedback_divider_i._129_ feedback_divider_i._208_ VDD VSS sg13cmos5l_o21ai_1
+X978 feedback_divider_i._209_ feedback_divider_i.reload_plus_pending_3_ feedback_divider_i.base_countdown_30_ feedback_divider_i.countdown_32_ VDD VSS sg13cmos5l_a21oi_1
+X979 feedback_divider_i._025_ feedback_divider_i.base_reload_idle_3_ feedback_divider_i._130_ feedback_divider_i._209_ VDD VSS sg13cmos5l_o21ai_1
+X980 feedback_divider_i._210_ feedback_divider_i.base_countdown_31_ feedback_divider_i.reload_plus_pending_4_ feedback_divider_i.countdown_33_ VDD VSS sg13cmos5l_a21oi_1
+X981 feedback_divider_i._026_ feedback_divider_i._131_ feedback_divider_i.base_reload_idle_4_ feedback_divider_i._210_ VDD VSS sg13cmos5l_o21ai_1
+X982 feedback_divider_i._211_ feedback_divider_i.reload_plus_pending_4_ feedback_divider_i.base_countdown_32_ feedback_divider_i.countdown_34_ VDD VSS sg13cmos5l_a21oi_1
+X983 feedback_divider_i._027_ feedback_divider_i.base_reload_idle_4_ feedback_divider_i._132_ feedback_divider_i._211_ VDD VSS sg13cmos5l_o21ai_1
+X984 feedback_divider_i._212_ feedback_divider_i.reload_plus_pending_4_ feedback_divider_i.base_countdown_33_ feedback_divider_i.countdown_35_ VDD VSS sg13cmos5l_a21oi_1
+X985 feedback_divider_i._028_ feedback_divider_i.base_reload_idle_4_ feedback_divider_i._133_ feedback_divider_i._212_ VDD VSS sg13cmos5l_o21ai_1
+X986 feedback_divider_i._213_ feedback_divider_i.reload_plus_pending_4_ feedback_divider_i.base_countdown_34_ feedback_divider_i.countdown_36_ VDD VSS sg13cmos5l_a21oi_1
+X987 feedback_divider_i._029_ feedback_divider_i.base_reload_idle_4_ feedback_divider_i._134_ feedback_divider_i._213_ VDD VSS sg13cmos5l_o21ai_1
+X988 feedback_divider_i._214_ feedback_divider_i.reload_plus_pending_4_ feedback_divider_i.base_countdown_35_ feedback_divider_i.countdown_37_ VDD VSS sg13cmos5l_a21oi_1
+X989 feedback_divider_i._030_ feedback_divider_i.base_reload_idle_4_ feedback_divider_i._135_ feedback_divider_i._214_ VDD VSS sg13cmos5l_o21ai_1
+X990 feedback_divider_i._215_ feedback_divider_i.reload_plus_pending_4_ feedback_divider_i.base_countdown_36_ feedback_divider_i.countdown_38_ VDD VSS sg13cmos5l_a21oi_1
+X991 feedback_divider_i._031_ feedback_divider_i.base_reload_idle_4_ feedback_divider_i._136_ feedback_divider_i._215_ VDD VSS sg13cmos5l_o21ai_1
+X992 feedback_divider_i._216_ feedback_divider_i.reload_plus_pending_4_ feedback_divider_i.base_countdown_37_ feedback_divider_i.countdown_39_ VDD VSS sg13cmos5l_a21oi_1
+X993 feedback_divider_i._032_ feedback_divider_i.base_reload_idle_4_ feedback_divider_i._137_ feedback_divider_i._216_ VDD VSS sg13cmos5l_o21ai_1
+X994 feedback_divider_i._217_ feedback_divider_i.reload_plus_pending_4_ feedback_divider_i.base_countdown_38_ feedback_divider_i.countdown_40_ VDD VSS sg13cmos5l_a21oi_1
+X995 feedback_divider_i._033_ feedback_divider_i.base_reload_idle_4_ feedback_divider_i._138_ feedback_divider_i._217_ VDD VSS sg13cmos5l_o21ai_1
+X996 feedback_divider_i._218_ feedback_divider_i.base_countdown_39_ feedback_divider_i.reload_plus_pending_5_ feedback_divider_i.countdown_41_ VDD VSS sg13cmos5l_a21oi_1
+X997 feedback_divider_i._035_ feedback_divider_i._139_ feedback_divider_i.base_reload_idle_5_ feedback_divider_i._218_ VDD VSS sg13cmos5l_o21ai_1
+X998 feedback_divider_i._219_ feedback_divider_i.reload_plus_pending_5_ feedback_divider_i.base_countdown_40_ feedback_divider_i.countdown_42_ VDD VSS sg13cmos5l_a21oi_1
+X999 feedback_divider_i._036_ feedback_divider_i.base_reload_idle_5_ feedback_divider_i._140_ feedback_divider_i._219_ VDD VSS sg13cmos5l_o21ai_1
+X1000 feedback_divider_i._220_ feedback_divider_i.reload_plus_pending_5_ feedback_divider_i.base_countdown_41_ feedback_divider_i.countdown_43_ VDD VSS sg13cmos5l_a21oi_1
+X1001 feedback_divider_i._037_ feedback_divider_i.base_reload_idle_5_ feedback_divider_i._141_ feedback_divider_i._220_ VDD VSS sg13cmos5l_o21ai_1
+X1002 feedback_divider_i._221_ feedback_divider_i.reload_plus_pending_5_ feedback_divider_i.base_countdown_42_ feedback_divider_i.countdown_44_ VDD VSS sg13cmos5l_a21oi_1
+X1003 feedback_divider_i._038_ feedback_divider_i.base_reload_idle_5_ feedback_divider_i._142_ feedback_divider_i._221_ VDD VSS sg13cmos5l_o21ai_1
+X1004 feedback_divider_i._222_ feedback_divider_i.reload_plus_pending_5_ feedback_divider_i.base_countdown_43_ feedback_divider_i.countdown_45_ VDD VSS sg13cmos5l_a21oi_1
+X1005 feedback_divider_i._039_ feedback_divider_i.base_reload_idle_5_ feedback_divider_i._143_ feedback_divider_i._222_ VDD VSS sg13cmos5l_o21ai_1
+X1006 feedback_divider_i._223_ feedback_divider_i.reload_plus_pending_5_ feedback_divider_i.base_countdown_44_ feedback_divider_i.countdown_46_ VDD VSS sg13cmos5l_a21oi_1
+X1007 feedback_divider_i._040_ feedback_divider_i.base_reload_idle_5_ feedback_divider_i._144_ feedback_divider_i._223_ VDD VSS sg13cmos5l_o21ai_1
+X1008 feedback_divider_i._224_ feedback_divider_i.reload_plus_pending_5_ feedback_divider_i.base_countdown_45_ feedback_divider_i.countdown_47_ VDD VSS sg13cmos5l_a21oi_1
+X1009 feedback_divider_i._041_ feedback_divider_i.base_reload_idle_5_ feedback_divider_i._145_ feedback_divider_i._224_ VDD VSS sg13cmos5l_o21ai_1
+X1010 feedback_divider_i._225_ feedback_divider_i.reload_plus_pending_5_ feedback_divider_i.base_countdown_46_ feedback_divider_i.countdown_48_ VDD VSS sg13cmos5l_a21oi_1
+X1011 feedback_divider_i._042_ feedback_divider_i.base_reload_idle_5_ feedback_divider_i._146_ feedback_divider_i._225_ VDD VSS sg13cmos5l_o21ai_1
+X1012 feedback_divider_i._226_ feedback_divider_i.base_countdown_47_ feedback_divider_i.reload_plus_pending_6_ feedback_divider_i.countdown_49_ VDD VSS sg13cmos5l_a21oi_1
+X1013 feedback_divider_i._043_ feedback_divider_i._147_ feedback_divider_i.base_reload_idle_6_ feedback_divider_i._226_ VDD VSS sg13cmos5l_o21ai_1
+X1014 feedback_divider_i._227_ feedback_divider_i.reload_plus_pending_6_ feedback_divider_i.base_countdown_48_ feedback_divider_i.countdown_50_ VDD VSS sg13cmos5l_a21oi_1
+X1015 feedback_divider_i._044_ feedback_divider_i.base_reload_idle_6_ feedback_divider_i._148_ feedback_divider_i._227_ VDD VSS sg13cmos5l_o21ai_1
+X1016 feedback_divider_i._228_ feedback_divider_i.reload_plus_pending_6_ feedback_divider_i.base_countdown_49_ feedback_divider_i.countdown_51_ VDD VSS sg13cmos5l_a21oi_1
+X1017 feedback_divider_i._046_ feedback_divider_i.base_reload_idle_6_ feedback_divider_i._149_ feedback_divider_i._228_ VDD VSS sg13cmos5l_o21ai_1
+X1018 feedback_divider_i._229_ feedback_divider_i.reload_plus_pending_6_ feedback_divider_i.base_countdown_50_ feedback_divider_i.countdown_52_ VDD VSS sg13cmos5l_a21oi_1
+X1019 feedback_divider_i._047_ feedback_divider_i.base_reload_idle_6_ feedback_divider_i._150_ feedback_divider_i._229_ VDD VSS sg13cmos5l_o21ai_1
+X1020 feedback_divider_i._230_ feedback_divider_i.reload_plus_pending_6_ feedback_divider_i.base_countdown_51_ feedback_divider_i.countdown_53_ VDD VSS sg13cmos5l_a21oi_1
+X1021 feedback_divider_i._048_ feedback_divider_i.base_reload_idle_6_ feedback_divider_i._151_ feedback_divider_i._230_ VDD VSS sg13cmos5l_o21ai_1
+X1022 feedback_divider_i._231_ feedback_divider_i.reload_plus_pending_6_ feedback_divider_i.base_countdown_52_ feedback_divider_i.countdown_54_ VDD VSS sg13cmos5l_a21oi_1
+X1023 feedback_divider_i._049_ feedback_divider_i.base_reload_idle_6_ feedback_divider_i._152_ feedback_divider_i._231_ VDD VSS sg13cmos5l_o21ai_1
+X1024 feedback_divider_i._232_ feedback_divider_i.reload_plus_pending_6_ feedback_divider_i.base_countdown_53_ feedback_divider_i.countdown_55_ VDD VSS sg13cmos5l_a21oi_1
+X1025 feedback_divider_i._050_ feedback_divider_i.base_reload_idle_6_ feedback_divider_i._153_ feedback_divider_i._232_ VDD VSS sg13cmos5l_o21ai_1
+X1026 feedback_divider_i._233_ feedback_divider_i.reload_plus_pending_6_ feedback_divider_i.base_countdown_54_ feedback_divider_i.countdown_56_ VDD VSS sg13cmos5l_a21oi_1
+X1027 feedback_divider_i._051_ feedback_divider_i.base_reload_idle_6_ feedback_divider_i._154_ feedback_divider_i._233_ VDD VSS sg13cmos5l_o21ai_1
+X1028 feedback_divider_i._234_ feedback_divider_i.base_countdown_55_ feedback_divider_i.reload_plus_pending_7_ feedback_divider_i.countdown_57_ VDD VSS sg13cmos5l_a21oi_1
+X1029 feedback_divider_i._052_ feedback_divider_i._155_ feedback_divider_i.base_reload_idle_7_ feedback_divider_i._234_ VDD VSS sg13cmos5l_o21ai_1
+X1030 feedback_divider_i._235_ feedback_divider_i.reload_plus_pending_7_ feedback_divider_i.base_countdown_56_ feedback_divider_i.countdown_58_ VDD VSS sg13cmos5l_a21oi_1
+X1031 feedback_divider_i._053_ feedback_divider_i.base_reload_idle_7_ feedback_divider_i._156_ feedback_divider_i._235_ VDD VSS sg13cmos5l_o21ai_1
+X1032 feedback_divider_i._236_ feedback_divider_i.reload_plus_pending_7_ feedback_divider_i.base_countdown_57_ feedback_divider_i.countdown_59_ VDD VSS sg13cmos5l_a21oi_1
+X1033 feedback_divider_i._054_ feedback_divider_i.base_reload_idle_7_ feedback_divider_i._157_ feedback_divider_i._236_ VDD VSS sg13cmos5l_o21ai_1
+X1034 feedback_divider_i._237_ feedback_divider_i.reload_plus_pending_7_ feedback_divider_i.base_countdown_58_ feedback_divider_i.countdown_60_ VDD VSS sg13cmos5l_a21oi_1
+X1035 feedback_divider_i._055_ feedback_divider_i.base_reload_idle_7_ feedback_divider_i._158_ feedback_divider_i._237_ VDD VSS sg13cmos5l_o21ai_1
+X1036 feedback_divider_i._238_ feedback_divider_i.reload_plus_pending_7_ feedback_divider_i.base_countdown_59_ feedback_divider_i.countdown_61_ VDD VSS sg13cmos5l_a21oi_1
+X1037 feedback_divider_i._057_ feedback_divider_i.base_reload_idle_7_ feedback_divider_i._159_ feedback_divider_i._238_ VDD VSS sg13cmos5l_o21ai_1
+X1038 feedback_divider_i._239_ feedback_divider_i.reload_plus_pending_7_ feedback_divider_i.base_countdown_60_ feedback_divider_i.countdown_62_ VDD VSS sg13cmos5l_a21oi_1
+X1039 feedback_divider_i._058_ feedback_divider_i.base_reload_idle_7_ feedback_divider_i._160_ feedback_divider_i._239_ VDD VSS sg13cmos5l_o21ai_1
+X1040 feedback_divider_i._240_ feedback_divider_i.reload_plus_pending_7_ feedback_divider_i.base_countdown_61_ feedback_divider_i.countdown_63_ VDD VSS sg13cmos5l_a21oi_1
+X1041 feedback_divider_i._059_ feedback_divider_i.base_reload_idle_7_ feedback_divider_i._161_ feedback_divider_i._240_ VDD VSS sg13cmos5l_o21ai_1
+X1042 feedback_divider_i._241_ feedback_divider_i.reload_plus_pending_7_ feedback_divider_i.base_countdown_62_ VDD VSS sg13cmos5l_nand2_1
+X1043 feedback_divider_i._060_ feedback_divider_i.base_reload_idle_7_ feedback_divider_i._162_ feedback_divider_i._241_ VDD VSS sg13cmos5l_o21ai_1
+X1044 feedback_divider_i._000_ feedback_divider_i.fraction_pattern_0_ feedback_divider_i.countdown_1_ VDD VSS sg13cmos5l_nand2b_2
+X1045 feedback_divider_i.reset_b net11 enable VDD VSS sg13cmos5l_and2_1
+X1046 feedback_divider_i._082_ feedback_divider_i.fraction_pattern_0_ feedback_divider_i.countdown_1_ VDD VSS sg13cmos5l_and2_2
+X1047 feedback_divider_i.base_reload_idle_7_ clknet_4_1_0_pll_clk_regs feedback_divider_i._000_ net21 VDD VSS sg13cmos5l_dfrbpq_2
+X1048 feedback_divider_i.reload_plus_pending_7_ clknet_4_0_0_pll_clk_regs feedback_divider_i._082_ net21 VDD VSS sg13cmos5l_dfrbpq_2
+X1049 feedback_divider_i.base_reload_idle_6_ clknet_4_0_0_pll_clk_regs feedback_divider_i._000_ net22 VDD VSS sg13cmos5l_dfrbpq_2
+X1050 feedback_divider_i.reload_plus_pending_6_ clknet_4_0_0_pll_clk_regs feedback_divider_i._082_ net22 VDD VSS sg13cmos5l_dfrbpq_2
+X1051 feedback_divider_i.base_reload_idle_5_ clknet_4_8_0_pll_clk_regs feedback_divider_i._000_ net30 VDD VSS sg13cmos5l_dfrbpq_2
+X1052 feedback_divider_i.reload_plus_pending_5_ clknet_4_2_0_pll_clk_regs feedback_divider_i._082_ net23 VDD VSS sg13cmos5l_dfrbpq_2
+X1053 feedback_divider_i.base_reload_idle_4_ clknet_4_8_0_pll_clk_regs feedback_divider_i._000_ net30 VDD VSS sg13cmos5l_dfrbpq_2
+X1054 feedback_divider_i.reload_plus_pending_4_ clknet_4_10_0_pll_clk_regs feedback_divider_i._082_ net32 VDD VSS sg13cmos5l_dfrbpq_2
+X1055 feedback_divider_i.base_reload_idle_3_ clknet_4_3_0_pll_clk_regs feedback_divider_i._000_ net31 VDD VSS sg13cmos5l_dfrbpq_2
+X1056 feedback_divider_i.reload_plus_pending_3_ clknet_4_12_0_pll_clk_regs feedback_divider_i._082_ net35 VDD VSS sg13cmos5l_dfrbpq_2
+X1057 feedback_divider_i.base_reload_idle_2_ clknet_4_12_0_pll_clk_regs feedback_divider_i._000_ net35 VDD VSS sg13cmos5l_dfrbpq_2
+X1058 feedback_divider_i.reload_plus_pending_2_ clknet_4_12_0_pll_clk_regs feedback_divider_i._082_ net35 VDD VSS sg13cmos5l_dfrbpq_2
+X1059 feedback_divider_i.base_reload_idle_1_ clknet_4_4_0_pll_clk_regs feedback_divider_i._000_ net24 VDD VSS sg13cmos5l_dfrbpq_2
+X1060 feedback_divider_i.reload_plus_pending_1_ clknet_4_4_0_pll_clk_regs feedback_divider_i._082_ net24 VDD VSS sg13cmos5l_dfrbpq_2
+X1061 feedback_divider_i.base_reload_idle_0_ clknet_4_12_0_pll_clk_regs feedback_divider_i._000_ net35 VDD VSS sg13cmos5l_dfrbpq_2
+X1062 feedback_divider_i.reload_plus_pending_0_ clknet_4_12_0_pll_clk_regs feedback_divider_i._082_ net35 VDD VSS sg13cmos5l_dfrbpq_2
+X1063 feedback_divider_i.countdown_63_ clknet_4_1_0_pll_clk_regs feedback_divider_i._060_ net21 VDD VSS sg13cmos5l_dfrbpq_2
+X1064 feedback_divider_i.countdown_62_ clknet_4_1_0_pll_clk_regs feedback_divider_i._059_ net21 VDD VSS sg13cmos5l_dfrbpq_2
+X1065 feedback_divider_i.countdown_61_ clknet_4_1_0_pll_clk_regs feedback_divider_i._058_ net21 VDD VSS sg13cmos5l_dfrbpq_2
+X1066 feedback_divider_i.countdown_60_ clknet_4_1_0_pll_clk_regs feedback_divider_i._057_ net21 VDD VSS sg13cmos5l_dfrbpq_2
+X1067 feedback_divider_i.countdown_59_ clknet_4_3_0_pll_clk_regs feedback_divider_i._055_ net21 VDD VSS sg13cmos5l_dfrbpq_2
+X1068 feedback_divider_i.countdown_58_ clknet_4_3_0_pll_clk_regs feedback_divider_i._054_ net21 VDD VSS sg13cmos5l_dfrbpq_2
+X1069 feedback_divider_i.countdown_57_ clknet_4_3_0_pll_clk_regs feedback_divider_i._053_ net22 VDD VSS sg13cmos5l_dfrbpq_2
+X1070 feedback_divider_i.countdown_56_ clknet_4_2_0_pll_clk_regs feedback_divider_i._052_ net23 VDD VSS sg13cmos5l_dfrbpq_2
+X1071 feedback_divider_i.countdown_55_ clknet_4_0_0_pll_clk_regs feedback_divider_i._051_ net22 VDD VSS sg13cmos5l_dfrbpq_2
+X1072 feedback_divider_i.countdown_54_ clknet_4_0_0_pll_clk_regs feedback_divider_i._050_ net22 VDD VSS sg13cmos5l_dfrbpq_2
+X1073 feedback_divider_i.countdown_53_ clknet_4_0_0_pll_clk_regs feedback_divider_i._049_ net22 VDD VSS sg13cmos5l_dfrbpq_2
+X1074 feedback_divider_i.countdown_52_ clknet_4_0_0_pll_clk_regs feedback_divider_i._048_ net22 VDD VSS sg13cmos5l_dfrbpq_2
+X1075 feedback_divider_i.countdown_51_ clknet_4_2_0_pll_clk_regs feedback_divider_i._047_ net23 VDD VSS sg13cmos5l_dfrbpq_2
+X1076 feedback_divider_i.countdown_50_ clknet_4_2_0_pll_clk_regs feedback_divider_i._046_ net23 VDD VSS sg13cmos5l_dfrbpq_2
+X1077 feedback_divider_i.countdown_49_ clknet_4_2_0_pll_clk_regs feedback_divider_i._044_ net23 VDD VSS sg13cmos5l_dfrbpq_2
+X1078 feedback_divider_i.countdown_48_ clknet_4_2_0_pll_clk_regs feedback_divider_i._043_ net23 VDD VSS sg13cmos5l_dfrbpq_2
+X1079 feedback_divider_i.countdown_47_ clknet_4_8_0_pll_clk_regs feedback_divider_i._042_ net30 VDD VSS sg13cmos5l_dfrbpq_2
+X1080 feedback_divider_i.countdown_46_ clknet_4_8_0_pll_clk_regs feedback_divider_i._041_ net30 VDD VSS sg13cmos5l_dfrbpq_2
+X1081 feedback_divider_i.countdown_45_ clknet_4_2_0_pll_clk_regs feedback_divider_i._040_ net23 VDD VSS sg13cmos5l_dfrbpq_2
+X1082 feedback_divider_i.countdown_44_ clknet_4_9_0_pll_clk_regs feedback_divider_i._039_ net30 VDD VSS sg13cmos5l_dfrbpq_2
+X1083 feedback_divider_i.countdown_43_ clknet_4_9_0_pll_clk_regs feedback_divider_i._038_ net30 VDD VSS sg13cmos5l_dfrbpq_2
+X1084 feedback_divider_i.countdown_42_ clknet_4_9_0_pll_clk_regs feedback_divider_i._037_ net30 VDD VSS sg13cmos5l_dfrbpq_2
+X1085 feedback_divider_i.countdown_41_ clknet_4_8_0_pll_clk_regs feedback_divider_i._036_ net30 VDD VSS sg13cmos5l_dfrbpq_2
+X1086 feedback_divider_i.countdown_40_ clknet_4_8_0_pll_clk_regs feedback_divider_i._035_ net32 VDD VSS sg13cmos5l_dfrbpq_2
+X1087 feedback_divider_i.countdown_39_ clknet_4_8_0_pll_clk_regs feedback_divider_i._033_ net32 VDD VSS sg13cmos5l_dfrbpq_2
+X1088 feedback_divider_i.countdown_38_ clknet_4_10_0_pll_clk_regs feedback_divider_i._032_ net32 VDD VSS sg13cmos5l_dfrbpq_2
+X1089 feedback_divider_i.countdown_37_ clknet_4_10_0_pll_clk_regs feedback_divider_i._031_ net32 VDD VSS sg13cmos5l_dfrbpq_2
+X1090 feedback_divider_i.countdown_36_ clknet_4_10_0_pll_clk_regs feedback_divider_i._030_ net32 VDD VSS sg13cmos5l_dfrbpq_2
+X1091 feedback_divider_i.countdown_35_ clknet_4_10_0_pll_clk_regs feedback_divider_i._029_ net32 VDD VSS sg13cmos5l_dfrbpq_2
+X1092 feedback_divider_i.countdown_34_ clknet_4_10_0_pll_clk_regs feedback_divider_i._028_ net32 VDD VSS sg13cmos5l_dfrbpq_2
+X1093 feedback_divider_i.countdown_33_ clknet_4_10_0_pll_clk_regs feedback_divider_i._027_ net33 VDD VSS sg13cmos5l_dfrbpq_2
+X1094 feedback_divider_i.countdown_32_ clknet_4_11_0_pll_clk_regs feedback_divider_i._026_ net33 VDD VSS sg13cmos5l_dfrbpq_2
+X1095 feedback_divider_i.countdown_31_ clknet_4_11_0_pll_clk_regs feedback_divider_i._025_ net33 VDD VSS sg13cmos5l_dfrbpq_2
+X1096 feedback_divider_i.countdown_30_ clknet_4_11_0_pll_clk_regs feedback_divider_i._024_ net33 VDD VSS sg13cmos5l_dfrbpq_2
+X1097 feedback_divider_i.countdown_29_ clknet_4_9_0_pll_clk_regs feedback_divider_i._022_ net31 VDD VSS sg13cmos5l_dfrbpq_2
+X1098 feedback_divider_i.countdown_28_ clknet_4_9_0_pll_clk_regs feedback_divider_i._021_ net31 VDD VSS sg13cmos5l_dfrbpq_2
+X1099 feedback_divider_i.countdown_27_ clknet_4_9_0_pll_clk_regs feedback_divider_i._020_ net31 VDD VSS sg13cmos5l_dfrbpq_2
+X1100 feedback_divider_i.countdown_26_ clknet_4_9_0_pll_clk_regs feedback_divider_i._019_ net31 VDD VSS sg13cmos5l_dfrbpq_2
+X1101 feedback_divider_i.countdown_25_ clknet_4_11_0_pll_clk_regs feedback_divider_i._018_ net33 VDD VSS sg13cmos5l_dfrbpq_2
+X1102 feedback_divider_i.countdown_24_ clknet_4_11_0_pll_clk_regs feedback_divider_i._017_ net37 VDD VSS sg13cmos5l_dfrbpq_2
+X1103 feedback_divider_i.countdown_23_ clknet_4_14_0_pll_clk_regs feedback_divider_i._016_ net37 VDD VSS sg13cmos5l_dfrbpq_2
+X1104 feedback_divider_i.countdown_22_ clknet_4_14_0_pll_clk_regs feedback_divider_i._015_ net37 VDD VSS sg13cmos5l_dfrbpq_2
+X1105 feedback_divider_i.countdown_21_ clknet_4_14_0_pll_clk_regs feedback_divider_i._014_ net37 VDD VSS sg13cmos5l_dfrbpq_2
+X1106 feedback_divider_i.countdown_20_ clknet_4_14_0_pll_clk_regs feedback_divider_i._013_ net37 VDD VSS sg13cmos5l_dfrbpq_2
+X1107 feedback_divider_i.countdown_19_ clknet_4_14_0_pll_clk_regs feedback_divider_i._011_ net37 VDD VSS sg13cmos5l_dfrbpq_2
+X1108 feedback_divider_i.countdown_18_ clknet_4_14_0_pll_clk_regs feedback_divider_i._010_ net35 VDD VSS sg13cmos5l_dfrbpq_2
+X1109 feedback_divider_i.countdown_17_ clknet_4_14_0_pll_clk_regs feedback_divider_i._009_ net37 VDD VSS sg13cmos5l_dfrbpq_2
+X1110 feedback_divider_i.countdown_16_ clknet_4_12_0_pll_clk_regs feedback_divider_i._008_ net35 VDD VSS sg13cmos5l_dfrbpq_2
+X1111 feedback_divider_i.countdown_15_ clknet_4_3_0_pll_clk_regs feedback_divider_i._007_ net27 VDD VSS sg13cmos5l_dfrbpq_2
+X1112 feedback_divider_i.countdown_14_ clknet_4_3_0_pll_clk_regs feedback_divider_i._006_ net39 VDD VSS sg13cmos5l_dfrbpq_2
+X1113 feedback_divider_i.countdown_13_ clknet_4_1_0_pll_clk_regs feedback_divider_i._005_ net24 VDD VSS sg13cmos5l_dfrbpq_2
+X1114 feedback_divider_i.countdown_12_ clknet_4_1_0_pll_clk_regs feedback_divider_i._004_ net24 VDD VSS sg13cmos5l_dfrbpq_2
+X1115 feedback_divider_i.countdown_11_ clknet_4_3_0_pll_clk_regs feedback_divider_i._003_ net25 VDD VSS sg13cmos5l_dfrbpq_2
+X1116 feedback_divider_i.countdown_10_ clknet_4_6_0_pll_clk_regs feedback_divider_i._002_ net27 VDD VSS sg13cmos5l_dfrbpq_2
+X1117 feedback_divider_i.countdown_9_ clknet_4_6_0_pll_clk_regs feedback_divider_i._064_ net27 VDD VSS sg13cmos5l_dfrbpq_2
+X1118 feedback_divider_i.countdown_8_ clknet_4_6_0_pll_clk_regs feedback_divider_i._063_ net27 VDD VSS sg13cmos5l_dfrbpq_2
+X1119 feedback_divider_i.countdown_7_ clknet_4_12_0_pll_clk_regs feedback_divider_i._062_ net35 VDD VSS sg13cmos5l_dfrbpq_2
+X1120 feedback_divider_i.countdown_6_ clknet_4_13_0_pll_clk_regs feedback_divider_i._061_ net36 VDD VSS sg13cmos5l_dfrbpq_2
+X1121 feedback_divider_i.countdown_5_ clknet_4_15_0_pll_clk_regs feedback_divider_i._056_ net37 VDD VSS sg13cmos5l_dfrbpq_2
+X1122 feedback_divider_i.countdown_4_ clknet_4_15_0_pll_clk_regs feedback_divider_i._045_ net38 VDD VSS sg13cmos5l_dfrbpq_2
+X1123 feedback_divider_i.countdown_3_ clknet_4_15_0_pll_clk_regs feedback_divider_i._034_ net38 VDD VSS sg13cmos5l_dfrbpq_2
+X1124 feedback_divider_i.countdown_2_ clknet_4_15_0_pll_clk_regs feedback_divider_i._023_ net38 VDD VSS sg13cmos5l_dfrbpq_2
+X1125 feedback_divider_i.countdown_1_ clknet_4_15_0_pll_clk_regs feedback_divider_i._012_ net36 VDD VSS sg13cmos5l_dfrbpq_2
+X1126 feedback_divider_i.countdown_0_ clknet_4_11_0_pll_clk_regs feedback_divider_i._001_ net33 VDD VSS sg13cmos5l_dfrbpq_2
+X1127 feedback_divider_i.fraction_initialized_3_ clknet_4_5_0_pll_clk_regs net65 net25 VDD VSS sg13cmos5l_dfrbpq_2
+X1128 net65 VDD VSS sg13cmos5l_tiehi
+X1129 feedback_divider_i.fraction_advance_3_ clknet_4_4_0_pll_clk_regs feedback_divider_i.countdown_1_ net25 VDD VSS sg13cmos5l_dfrbpq_2
+X1130 feedback_divider_i.fraction_hold_3_ clknet_4_5_0_pll_clk_regs feedback_divider_i._065_ net25 VDD VSS sg13cmos5l_dfrbpq_2
+X1131 feedback_divider_i.fraction_initialized_2_ clknet_4_7_0_pll_clk_regs net66 net27 VDD VSS sg13cmos5l_dfrbpq_2
+X1132 net66 VDD VSS sg13cmos5l_tiehi
+X1133 feedback_divider_i.fraction_advance_2_ clknet_4_13_0_pll_clk_regs feedback_divider_i.countdown_1_ net36 VDD VSS sg13cmos5l_dfrbpq_2
+X1134 feedback_divider_i.fraction_hold_2_ clknet_4_13_0_pll_clk_regs feedback_divider_i._065_ net36 VDD VSS sg13cmos5l_dfrbpq_2
+X1135 feedback_divider_i.fraction_initialized_1_ clknet_4_7_0_pll_clk_regs net67 net27 VDD VSS sg13cmos5l_dfrbpq_2
+X1136 net67 VDD VSS sg13cmos5l_tiehi
+X1137 feedback_divider_i.fraction_advance_1_ clknet_4_6_0_pll_clk_regs feedback_divider_i.countdown_1_ net27 VDD VSS sg13cmos5l_dfrbpq_2
+X1138 feedback_divider_i.fraction_hold_1_ clknet_4_6_0_pll_clk_regs feedback_divider_i._065_ net27 VDD VSS sg13cmos5l_dfrbpq_2
+X1139 feedback_divider_i.fraction_initialized_0_ clknet_4_4_0_pll_clk_regs net68 net24 VDD VSS sg13cmos5l_dfrbpq_2
+X1140 net68 VDD VSS sg13cmos5l_tiehi
+X1141 feedback_divider_i.fraction_advance_0_ clknet_4_4_0_pll_clk_regs feedback_divider_i.countdown_1_ net24 VDD VSS sg13cmos5l_dfrbpq_2
+X1142 feedback_divider_i.fraction_hold_0_ clknet_4_4_0_pll_clk_regs feedback_divider_i._065_ net24 VDD VSS sg13cmos5l_dfrbpq_2
+X1143 feedback_divider_i.fraction_pattern_15_ clknet_4_5_0_pll_clk_regs feedback_divider_i._072_ net25 VDD VSS sg13cmos5l_dfrbpq_2
+X1144 feedback_divider_i.fraction_pattern_14_ clknet_4_5_0_pll_clk_regs feedback_divider_i._071_ net26 VDD VSS sg13cmos5l_dfrbpq_2
+X1145 feedback_divider_i.fraction_pattern_13_ clknet_4_5_0_pll_clk_regs feedback_divider_i._070_ net26 VDD VSS sg13cmos5l_dfrbpq_2
+X1146 feedback_divider_i.fraction_pattern_12_ clknet_4_5_0_pll_clk_regs feedback_divider_i._069_ net26 VDD VSS sg13cmos5l_dfrbpq_2
+X1147 feedback_divider_i.fraction_pattern_11_ clknet_4_13_0_pll_clk_regs feedback_divider_i._068_ net36 VDD VSS sg13cmos5l_dfrbpq_2
+X1148 feedback_divider_i.fraction_pattern_10_ clknet_4_13_0_pll_clk_regs feedback_divider_i._067_ net36 VDD VSS sg13cmos5l_dfrbpq_2
+X1149 feedback_divider_i.fraction_pattern_9_ clknet_4_13_0_pll_clk_regs feedback_divider_i._081_ net36 VDD VSS sg13cmos5l_dfrbpq_2
+X1150 feedback_divider_i.fraction_pattern_8_ clknet_4_13_0_pll_clk_regs feedback_divider_i._080_ net36 VDD VSS sg13cmos5l_dfrbpq_2
+X1151 feedback_divider_i.fraction_pattern_7_ clknet_4_7_0_pll_clk_regs feedback_divider_i._079_ net28 VDD VSS sg13cmos5l_dfrbpq_2
+X1152 feedback_divider_i.fraction_pattern_6_ clknet_4_7_0_pll_clk_regs feedback_divider_i._078_ net28 VDD VSS sg13cmos5l_dfrbpq_2
+X1153 feedback_divider_i.fraction_pattern_5_ clknet_4_7_0_pll_clk_regs feedback_divider_i._077_ net28 VDD VSS sg13cmos5l_dfrbpq_2
+X1154 feedback_divider_i.fraction_pattern_4_ clknet_4_7_0_pll_clk_regs feedback_divider_i._076_ net28 VDD VSS sg13cmos5l_dfrbpq_2
+X1155 feedback_divider_i.fraction_pattern_3_ clknet_4_5_0_pll_clk_regs feedback_divider_i._075_ net26 VDD VSS sg13cmos5l_dfrbpq_2
+X1156 feedback_divider_i.fraction_pattern_2_ clknet_4_6_0_pll_clk_regs feedback_divider_i._074_ net25 VDD VSS sg13cmos5l_dfrbpq_2
+X1157 feedback_divider_i.fraction_pattern_1_ clknet_4_6_0_pll_clk_regs feedback_divider_i._073_ net25 VDD VSS sg13cmos5l_dfrbpq_2
+X1158 feedback_divider_i.fraction_pattern_0_ clknet_4_4_0_pll_clk_regs feedback_divider_i._066_ net24 VDD VSS sg13cmos5l_dfrbpq_2
+X1159 feedback_clk clknet_4_11_0_pll_clk_regs feedback_divider_i.countdown_0_ net33 VDD VSS sg13cmos5l_dfrbpq_2
+X1160 feedback_divider_i.configuration_decode_i._030_ net57 VDD VSS sg13cmos5l_inv_2
+X1161 feedback_divider_i.configuration_decode_i._031_ net58 VDD VSS sg13cmos5l_inv_2
+X1162 feedback_divider_i.configuration_decode_i._032_ net59 VDD VSS sg13cmos5l_inv_2
+X1163 feedback_divider_i.configuration_decode_i._033_ net57 net62 VDD VSS sg13cmos5l_nand2_1
+X1164 feedback_divider_i.configuration_decode_i.fraction_seed_8_ feedback_divider_i.configuration_decode_i._033_ VDD VSS sg13cmos5l_inv_2
+X1165 feedback_divider_i.configuration_decode_i._034_ net58 net59 VDD VSS sg13cmos5l_nor2_1
+X1166 feedback_divider_i.configuration_decode_i._035_ net57 net59 VDD VSS sg13cmos5l_nor2_1
+X1167 feedback_divider_i.configuration_decode_i._036_ net58 net20 VDD VSS sg13cmos5l_nor2_1
+X1168 feedback_divider_i.configuration_decode_i._037_ net58 net59 VDD VSS sg13cmos5l_nand2b_1
+X1169 feedback_divider_i.configuration_decode_i._038_ net57 net59 feedback_divider_i.configuration_decode_i._037_ VDD VSS sg13cmos5l_o21ai_1
+X1170 feedback_divider_i.configuration_decode_i.fraction_seed_2_ feedback_divider_i.configuration_decode_i._031_ net20 feedback_divider_i.configuration_decode_i._033_ feedback_divider_i.configuration_decode_i._038_ VDD VSS sg13cmos5l_a22oi_1
+X1171 feedback_divider_i.configuration_decode_i._039_ net20 net58 VDD VSS sg13cmos5l_nand2_1
+X1172 feedback_divider_i.configuration_decode_i._000_ net20 net58 net57 VDD VSS sg13cmos5l_a21oi_1
+X1173 feedback_divider_i.configuration_decode_i.fraction_seed_3_ feedback_divider_i.configuration_decode_i._030_ feedback_divider_i.configuration_decode_i._039_ feedback_divider_i.configuration_decode_i._036_ net62 VDD VSS sg13cmos5l_a22oi_1
+X1174 feedback_divider_i.configuration_decode_i._001_ net62 net58 VDD VSS sg13cmos5l_nand2_1
+X1175 feedback_divider_i.configuration_decode_i._002_ net62 net3 net59 net57 VDD VSS sg13cmos5l_a22oi_1
+X1176 feedback_divider_i.configuration_decode_i.fraction_seed_4_ feedback_divider_i.configuration_decode_i._030_ net20 feedback_divider_i.configuration_decode_i._002_ VDD VSS sg13cmos5l_a21oi_1
+X1177 feedback_divider_i.configuration_decode_i._003_ net62 net58 VDD VSS sg13cmos5l_nor2_1
+X1178 feedback_divider_i.configuration_decode_i._004_ net62 net3 net20 VDD VSS sg13cmos5l_nor3_1
+X1179 feedback_divider_i.configuration_decode_i._005_ net57 net59 feedback_divider_i.configuration_decode_i._001_ VDD VSS sg13cmos5l_a21oi_1
+X1180 feedback_divider_i.configuration_decode_i.fraction_seed_5_ feedback_divider_i.configuration_decode_i._035_ feedback_divider_i.configuration_decode_i._004_ feedback_divider_i.configuration_decode_i._005_ VDD VSS sg13cmos5l_nor3_1
+X1181 feedback_divider_i.configuration_decode_i._006_ net63 net4 VDD VSS sg13cmos5l_nand2b_1
+X1182 feedback_divider_i.configuration_decode_i.fraction_seed_9_ net63 feedback_divider_i.configuration_decode_i._030_ feedback_divider_i.configuration_decode_i._001_ VDD VSS sg13cmos5l_o21ai_1
+X1183 feedback_divider_i.configuration_decode_i.fraction_seed_6_ feedback_divider_i.configuration_decode_i._031_ feedback_divider_i.configuration_decode_i._032_ feedback_divider_i.configuration_decode_i._001_ feedback_divider_i.configuration_decode_i._006_ VDD VSS sg13cmos5l_a22oi_1
+X1184 feedback_divider_i.configuration_decode_i.fraction_seed_7_ net63 feedback_divider_i.configuration_decode_i._034_ feedback_divider_i.configuration_decode_i._030_ VDD VSS sg13cmos5l_o21ai_1
+X1185 feedback_divider_i.configuration_decode_i.fraction_seed_10_ feedback_divider_i.configuration_decode_i._035_ feedback_divider_i.configuration_decode_i._003_ feedback_divider_i.configuration_decode_i._005_ VDD VSS sg13cmos5l_nor3_1
+X1186 feedback_divider_i.configuration_decode_i._007_ net4 net3 net2 VDD VSS sg13cmos5l_a21oi_1
+X1187 feedback_divider_i.configuration_decode_i.fraction_seed_11_ feedback_divider_i.configuration_decode_i._007_ net63 feedback_divider_i.configuration_decode_i._001_ feedback_divider_i.configuration_decode_i._000_ VDD VSS sg13cmos5l_a22oi_1
+X1188 feedback_divider_i.configuration_decode_i._008_ net62 net59 VDD VSS sg13cmos5l_nor2_1
+X1189 feedback_divider_i.configuration_decode_i.fraction_seed_12_ feedback_divider_i.configuration_decode_i._030_ feedback_divider_i.configuration_decode_i._039_ feedback_divider_i.configuration_decode_i._036_ net62 feedback_divider_i.configuration_decode_i._008_ VDD VSS sg13cmos5l_a221oi_1
+X1190 feedback_divider_i.configuration_decode_i.fraction_seed_13_ feedback_divider_i.configuration_decode_i._007_ net63 feedback_divider_i.configuration_decode_i._033_ feedback_divider_i.configuration_decode_i._038_ VDD VSS sg13cmos5l_a22oi_1
+X1191 feedback_divider_i.configuration_decode_i.fraction_seed_14_ feedback_divider_i.configuration_decode_i._003_ net20 feedback_divider_i.configuration_decode_i._030_ VDD VSS sg13cmos5l_a21oi_1
+X1192 feedback_divider_i.configuration_decode_i.fraction_seed_15_ feedback_divider_i.configuration_decode_i._003_ net20 feedback_divider_i.configuration_decode_i._030_ VDD VSS sg13cmos5l_nand3_1
+X1193 feedback_divider_i.configuration_decode_i._009_ net60 net40 VDD VSS sg13cmos5l_nor2_1
+X1194 feedback_divider_i.configuration_decode_i._010_ net61 net41 VDD VSS sg13cmos5l_or2_1
+X1195 feedback_divider_i.configuration_decode_i._011_ net43 net48 VDD VSS sg13cmos5l_or2_1
+X1196 feedback_divider_i.configuration_decode_i._012_ net53 net55 VDD VSS sg13cmos5l_nor2b_1
+X1197 feedback_divider_i.configuration_decode_i._013_ net54 net56 VDD VSS sg13cmos5l_nand2b_1
+X1198 feedback_divider_i.base_countdown_0_ net45 feedback_divider_i.configuration_decode_i._013_ net51 feedback_divider_i.configuration_decode_i._010_ VDD VSS sg13cmos5l_nor4_1
+X1199 feedback_divider_i.configuration_decode_i._014_ net55 net53 VDD VSS sg13cmos5l_nor2b_1
+X1200 feedback_divider_i.configuration_decode_i._015_ net56 net54 VDD VSS sg13cmos5l_nand2b_1
+X1201 feedback_divider_i.base_countdown_1_ net45 feedback_divider_i.configuration_decode_i._015_ net52 feedback_divider_i.configuration_decode_i._010_ VDD VSS sg13cmos5l_nor4_1
+X1202 feedback_divider_i.configuration_decode_i._016_ net56 net54 VDD VSS sg13cmos5l_nand2_1
+X1203 feedback_divider_i.base_countdown_2_ net46 feedback_divider_i.configuration_decode_i._016_ net52 feedback_divider_i.configuration_decode_i._010_ VDD VSS sg13cmos5l_nor4_1
+X1204 feedback_divider_i.configuration_decode_i._017_ net55 net53 VDD VSS sg13cmos5l_nor2_1
+X1205 feedback_divider_i.configuration_decode_i._018_ net44 net50 VDD VSS sg13cmos5l_nand2b_1
+X1206 feedback_divider_i.base_countdown_3_ net56 net18 net54 feedback_divider_i.configuration_decode_i._010_ VDD VSS sg13cmos5l_nor4_1
+X1207 feedback_divider_i.base_countdown_4_ net61 net41 feedback_divider_i.configuration_decode_i._013_ net18 VDD VSS sg13cmos5l_nor4_1
+X1208 feedback_divider_i.base_countdown_5_ net61 net41 feedback_divider_i.configuration_decode_i._015_ net18 VDD VSS sg13cmos5l_nor4_1
+X1209 feedback_divider_i.base_countdown_6_ net61 net41 feedback_divider_i.configuration_decode_i._016_ net19 VDD VSS sg13cmos5l_nor4_1
+X1210 feedback_divider_i.configuration_decode_i._019_ net47 feedback_divider_i.configuration_decode_i._017_ net42 VDD VSS sg13cmos5l_nand3b_1
+X1211 feedback_divider_i.base_countdown_7_ net61 net41 feedback_divider_i.configuration_decode_i._019_ VDD VSS sg13cmos5l_nor3_1
+X1212 feedback_divider_i.configuration_decode_i._020_ net53 net45 net55 VDD VSS sg13cmos5l_nand3b_1
+X1213 feedback_divider_i.base_countdown_8_ net50 net60 net40 feedback_divider_i.configuration_decode_i._020_ VDD VSS sg13cmos5l_nor4_1
+X1214 feedback_divider_i.configuration_decode_i._021_ net55 net53 net45 VDD VSS sg13cmos5l_nand3b_1
+X1215 feedback_divider_i.base_countdown_9_ net50 net60 net40 feedback_divider_i.configuration_decode_i._021_ VDD VSS sg13cmos5l_nor4_1
+X1216 feedback_divider_i.configuration_decode_i._022_ net56 net54 net45 VDD VSS sg13cmos5l_nand3_1
+X1217 feedback_divider_i.base_countdown_10_ net47 net60 net40 feedback_divider_i.configuration_decode_i._022_ VDD VSS sg13cmos5l_nor4_1
+X1218 feedback_divider_i.base_countdown_11_ net42 net47 feedback_divider_i.configuration_decode_i._009_ feedback_divider_i.configuration_decode_i._017_ VDD VSS sg13cmos5l_and4_1
+X1219 feedback_divider_i.base_countdown_12_ net42 net47 feedback_divider_i.configuration_decode_i._009_ feedback_divider_i.configuration_decode_i._012_ VDD VSS sg13cmos5l_and4_1
+X1220 feedback_divider_i.base_countdown_13_ net42 net48 feedback_divider_i.configuration_decode_i._009_ feedback_divider_i.configuration_decode_i._014_ VDD VSS sg13cmos5l_and4_1
+X1221 feedback_divider_i.configuration_decode_i._023_ net55 net53 net42 net48 VDD VSS sg13cmos5l_nand4_1
+X1222 feedback_divider_i.base_countdown_14_ net60 net40 feedback_divider_i.configuration_decode_i._023_ VDD VSS sg13cmos5l_nor3_1
+X1223 feedback_divider_i.configuration_decode_i._024_ net60 net40 VDD VSS sg13cmos5l_nor2b_1
+X1224 feedback_divider_i.configuration_decode_i._025_ net61 net41 VDD VSS sg13cmos5l_nand2b_1
+X1225 feedback_divider_i.base_countdown_15_ net5 net16 net6 feedback_divider_i.configuration_decode_i._011_ VDD VSS sg13cmos5l_nor4_1
+X1226 feedback_divider_i.base_countdown_16_ net46 net52 feedback_divider_i.configuration_decode_i._013_ net16 VDD VSS sg13cmos5l_nor4_1
+X1227 feedback_divider_i.base_countdown_17_ net46 net52 feedback_divider_i.configuration_decode_i._015_ net16 VDD VSS sg13cmos5l_nor4_1
+X1228 feedback_divider_i.base_countdown_18_ net46 net52 feedback_divider_i.configuration_decode_i._016_ net17 VDD VSS sg13cmos5l_nor4_1
+X1229 feedback_divider_i.base_countdown_19_ net5 net6 net18 net17 VDD VSS sg13cmos5l_nor4_1
+X1230 feedback_divider_i.base_countdown_20_ feedback_divider_i.configuration_decode_i._013_ feedback_divider_i.configuration_decode_i._018_ net17 VDD VSS sg13cmos5l_nor3_1
+X1231 feedback_divider_i.base_countdown_21_ feedback_divider_i.configuration_decode_i._015_ net19 net17 VDD VSS sg13cmos5l_nor3_1
+X1232 feedback_divider_i.base_countdown_22_ feedback_divider_i.configuration_decode_i._016_ net19 net17 VDD VSS sg13cmos5l_nor3_1
+X1233 feedback_divider_i.base_countdown_23_ feedback_divider_i.configuration_decode_i._019_ net16 VDD VSS sg13cmos5l_nor2_1
+X1234 feedback_divider_i.base_countdown_24_ net52 feedback_divider_i.configuration_decode_i._020_ net16 VDD VSS sg13cmos5l_nor3_1
+X1235 feedback_divider_i.base_countdown_25_ net52 feedback_divider_i.configuration_decode_i._021_ net16 VDD VSS sg13cmos5l_nor3_1
+X1236 feedback_divider_i.base_countdown_26_ net51 feedback_divider_i.configuration_decode_i._022_ net16 VDD VSS sg13cmos5l_nor3_1
+X1237 feedback_divider_i.base_countdown_27_ net43 net49 feedback_divider_i.configuration_decode_i._017_ feedback_divider_i.configuration_decode_i._024_ VDD VSS sg13cmos5l_and4_1
+X1238 feedback_divider_i.base_countdown_28_ net43 net49 feedback_divider_i.configuration_decode_i._012_ feedback_divider_i.configuration_decode_i._024_ VDD VSS sg13cmos5l_and4_1
+X1239 feedback_divider_i.base_countdown_29_ net43 net49 feedback_divider_i.configuration_decode_i._014_ feedback_divider_i.configuration_decode_i._024_ VDD VSS sg13cmos5l_and4_1
+X1240 feedback_divider_i.base_countdown_30_ feedback_divider_i.configuration_decode_i._023_ net16 VDD VSS sg13cmos5l_nor2_1
+X1241 feedback_divider_i.configuration_decode_i._026_ net41 net61 VDD VSS sg13cmos5l_nor2b_1
+X1242 feedback_divider_i.configuration_decode_i._027_ net9 net10 VDD VSS sg13cmos5l_nand2b_1
+X1243 feedback_divider_i.base_countdown_31_ net56 net14 net54 feedback_divider_i.configuration_decode_i._011_ VDD VSS sg13cmos5l_nor4_1
+X1244 feedback_divider_i.base_countdown_32_ net45 net51 feedback_divider_i.configuration_decode_i._013_ net14 VDD VSS sg13cmos5l_nor4_1
+X1245 feedback_divider_i.base_countdown_33_ net45 net51 feedback_divider_i.configuration_decode_i._015_ net14 VDD VSS sg13cmos5l_nor4_1
+X1246 feedback_divider_i.base_countdown_34_ net45 net51 feedback_divider_i.configuration_decode_i._016_ net14 VDD VSS sg13cmos5l_nor4_1
+X1247 feedback_divider_i.base_countdown_35_ net56 net54 net18 net14 VDD VSS sg13cmos5l_nor4_1
+X1248 feedback_divider_i.base_countdown_36_ feedback_divider_i.configuration_decode_i._013_ net18 net14 VDD VSS sg13cmos5l_nor3_1
+X1249 feedback_divider_i.base_countdown_37_ feedback_divider_i.configuration_decode_i._015_ net18 net14 VDD VSS sg13cmos5l_nor3_1
+X1250 feedback_divider_i.base_countdown_38_ feedback_divider_i.configuration_decode_i._016_ net18 net15 VDD VSS sg13cmos5l_nor3_1
+X1251 feedback_divider_i.base_countdown_39_ feedback_divider_i.configuration_decode_i._019_ net14 VDD VSS sg13cmos5l_nor2_1
+X1252 feedback_divider_i.base_countdown_40_ net51 feedback_divider_i.configuration_decode_i._020_ net15 VDD VSS sg13cmos5l_nor3_1
+X1253 feedback_divider_i.base_countdown_41_ net51 feedback_divider_i.configuration_decode_i._021_ net15 VDD VSS sg13cmos5l_nor3_1
+X1254 feedback_divider_i.base_countdown_42_ net51 feedback_divider_i.configuration_decode_i._022_ net15 VDD VSS sg13cmos5l_nor3_1
+X1255 feedback_divider_i.base_countdown_43_ net44 net49 feedback_divider_i.configuration_decode_i._017_ feedback_divider_i.configuration_decode_i._026_ VDD VSS sg13cmos5l_and4_1
+X1256 feedback_divider_i.base_countdown_44_ net44 net49 feedback_divider_i.configuration_decode_i._012_ feedback_divider_i.configuration_decode_i._026_ VDD VSS sg13cmos5l_and4_1
+X1257 feedback_divider_i.base_countdown_45_ net44 net49 feedback_divider_i.configuration_decode_i._014_ feedback_divider_i.configuration_decode_i._026_ VDD VSS sg13cmos5l_and4_1
+X1258 feedback_divider_i.base_countdown_46_ feedback_divider_i.configuration_decode_i._023_ net15 VDD VSS sg13cmos5l_nor2_1
+X1259 feedback_divider_i.configuration_decode_i._028_ net60 net40 VDD VSS sg13cmos5l_and2_1
+X1260 feedback_divider_i.configuration_decode_i._029_ net60 net40 VDD VSS sg13cmos5l_nand2_1
+X1261 feedback_divider_i.base_countdown_47_ net55 net13 net53 feedback_divider_i.configuration_decode_i._011_ VDD VSS sg13cmos5l_nor4_1
+X1262 feedback_divider_i.base_countdown_48_ net42 net12 net48 feedback_divider_i.configuration_decode_i._013_ VDD VSS sg13cmos5l_nor4_1
+X1263 feedback_divider_i.base_countdown_49_ net42 net12 net48 feedback_divider_i.configuration_decode_i._015_ VDD VSS sg13cmos5l_nor4_1
+X1264 feedback_divider_i.base_countdown_50_ net42 net48 feedback_divider_i.configuration_decode_i._016_ net12 VDD VSS sg13cmos5l_nor4_1
+X1265 feedback_divider_i.base_countdown_51_ net55 net12 net53 net19 VDD VSS sg13cmos5l_nor4_1
+X1266 feedback_divider_i.base_countdown_52_ feedback_divider_i.configuration_decode_i._013_ net19 net12 VDD VSS sg13cmos5l_nor3_1
+X1267 feedback_divider_i.base_countdown_53_ feedback_divider_i.configuration_decode_i._015_ net19 net12 VDD VSS sg13cmos5l_nor3_1
+X1268 feedback_divider_i.base_countdown_54_ feedback_divider_i.configuration_decode_i._016_ net19 net12 VDD VSS sg13cmos5l_nor3_1
+X1269 feedback_divider_i.base_countdown_55_ feedback_divider_i.configuration_decode_i._019_ net12 VDD VSS sg13cmos5l_nor2_1
+X1270 feedback_divider_i.base_countdown_56_ net13 net48 feedback_divider_i.configuration_decode_i._020_ VDD VSS sg13cmos5l_nor3_1
+X1271 feedback_divider_i.base_countdown_57_ net13 net48 feedback_divider_i.configuration_decode_i._021_ VDD VSS sg13cmos5l_nor3_1
+X1272 feedback_divider_i.base_countdown_58_ net13 net47 feedback_divider_i.configuration_decode_i._022_ VDD VSS sg13cmos5l_nor3_1
+X1273 feedback_divider_i.base_countdown_59_ net43 net47 feedback_divider_i.configuration_decode_i._017_ feedback_divider_i.configuration_decode_i._028_ VDD VSS sg13cmos5l_and4_1
+X1274 feedback_divider_i.base_countdown_60_ net43 net47 feedback_divider_i.configuration_decode_i._012_ feedback_divider_i.configuration_decode_i._028_ VDD VSS sg13cmos5l_and4_1
+X1275 feedback_divider_i.base_countdown_61_ net43 net47 feedback_divider_i.configuration_decode_i._014_ feedback_divider_i.configuration_decode_i._028_ VDD VSS sg13cmos5l_and4_1
+X1276 feedback_divider_i.base_countdown_62_ feedback_divider_i.configuration_decode_i._023_ net13 VDD VSS sg13cmos5l_nor2_1
+X1277 net1 div_ratio[0] VDD VSS sg13cmos5l_buf_1
+X1278 net10 div_ratio[9] VDD VSS sg13cmos5l_buf_1
+X1279 net11 reset_n VDD VSS sg13cmos5l_buf_1
+X1280 net2 div_ratio[1] VDD VSS sg13cmos5l_buf_1
+X1281 net3 div_ratio[2] VDD VSS sg13cmos5l_buf_1
+X1282 net4 div_ratio[3] VDD VSS sg13cmos5l_buf_1
+X1283 net5 div_ratio[4] VDD VSS sg13cmos5l_buf_1
+X1284 net6 div_ratio[5] VDD VSS sg13cmos5l_buf_1
+X1285 net7 div_ratio[6] VDD VSS sg13cmos5l_buf_1
+X1286 net8 div_ratio[7] VDD VSS sg13cmos5l_buf_1
+X1287 net9 div_ratio[8] VDD VSS sg13cmos5l_buf_1
+X1288 output_divider_i.reset_b net11 enable VDD VSS sg13cmos5l_and2_1
+X1289 test_clk clknet_1_0_0_pll_clk clknet_1_0_0_output_divider_i.div4_clk clknet_1_0_0_output_divider_i.div8_clk output_divider_i.div16_clk test_div_select[0] test_div_select[1] VDD VSS sg13cmos5l_mux4_1
+X1290 output_divider_i.div16_clk output_divider_i._3_ clknet_1_0_0_output_divider_i.div8_clk_regs output_divider_i._3_ output_divider_i.reset_b VDD VSS sg13cmos5l_dfrbp_2
+X1291 pll_clk output_divider_i._0_ net72 output_divider_i._0_ output_divider_i.reset_b VDD VSS sg13cmos5l_dfrbp_2
+X1292 output_divider_i.div4_clk output_divider_i._1_ clknet_4_15_0_pll_clk_regs output_divider_i._1_ output_divider_i.reset_b VDD VSS sg13cmos5l_dfrbp_2
+X1293 output_divider_i.div8_clk output_divider_i._2_ clknet_1_0_0_output_divider_i.div4_clk_regs output_divider_i._2_ output_divider_i.reset_b VDD VSS sg13cmos5l_dfrbp_2
+X1294 net71 vco_clk VDD VSS sg13cmos5l_inv_4
+X1295 net72 net71 VDD VSS sg13cmos5l_inv_16
+X1296 pfd_i._02_ _0_ VDD VSS sg13cmos5l_inv_2
+X1297 pfd_i._00_ up down pfd_i._02_ VDD VSS sg13cmos5l_a21oi_1
+X1298 pfd_i._01_ up down pfd_i._02_ VDD VSS sg13cmos5l_a21oi_1
+X1299 down feedback_clk net70 pfd_i._01_ VDD VSS sg13cmos5l_dfrbpq_2
+X1300 net70 VDD VSS sg13cmos5l_tiehi
+X1301 up ref_clk net69 pfd_i._00_ VDD VSS sg13cmos5l_dfrbpq_2
+X1302 net69 VDD VSS sg13cmos5l_tiehi
+
+************************
+* end of SPICE netlist *
+************************
+
+
+.ends pll_digital
+
+************************************************************************
+* 
+* Copyright 2023 IHP PDK Authors
+* 
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+* 
+*    https://www.apache.org/licenses/LICENSE-2.0
+* 
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+* 
+************************************************************************
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_a21o_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_a21o_1 X A1 A2 B1 VDD VSS
+*.PININFO A1:I A2:I B1:I X:O VDD:B VSS:B
+MN0 net1 A1 net2 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN1 net2 A2 VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN2 net1 B1 VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN3 X net1 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MP2 net1 B1 net3 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP0 net3 A1 VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP1 net3 A2 VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP3 X net1 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_a21o_2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_a21o_2 X A1 A2 B1 VDD VSS
+*.PININFO A1:I A2:I B1:I X:O VDD:B VSS:B
+MN0 net1 A1 net2 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 net2 A2 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 net1 B1 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN3 X net1 VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MP2 net1 B1 net3 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP0 net3 A1 VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP1 net3 A2 VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP3 X net1 VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_a21oi_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_a21oi_1 Y A1 A2 B1 VDD VSS
+*.PININFO A1:I A2:I B1:I Y:O VDD:B VSS:B
+MN0 Y B1 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 net1 A2 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 Y A1 net1 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MP2 Y B1 net2 VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP1 net2 A2 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP0 net2 A1 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_a21oi_2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_a21oi_2 Y A1 A2 B1 VDD VSS
+*.PININFO A1:I A2:I B1:I Y:O VDD:B VSS:B
+MN0 Y B1 VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MN2 net2 A2 VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MN1 Y A1 net2 VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MP2 Y B1 net1 VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP1 net1 A2 VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP0 net1 A1 VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_a221oi_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_a221oi_1 Y A1 A2 B1 B2 C1 VDD VSS
+*.PININFO A1:I A2:I B1:I B2:I C1:I Y:O VDD:B VSS:B
+MP2 Y C1 net3 VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP4 net3 B2 net1 VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP1 net3 B1 net1 VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP3 net1 A2 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP0 net1 A1 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MN4 Y C1 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN3 net4 B2 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 Y B1 net4 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 net2 A2 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN0 Y A1 net2 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_and2_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_and2_1 X A B VDD VSS
+*.PININFO A:I B:I X:O VDD:B VSS:B
+MN0 net4 A net2 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN2 X net4 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 net2 B VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MP0 net4 B VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP2 X net4 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP1 net4 A VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_and2_2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_and2_2 X A B VDD VSS
+*.PININFO A:I B:I X:O VDD:B VSS:B
+MN0 net1 A net2 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN2 X net1 VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MN1 net2 B VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MP0 net1 B VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP2 X net1 VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP1 net1 A VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_and3_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_and3_1 X A B C VDD VSS
+*.PININFO A:I B:I C:I X:O VDD:B VSS:B
+MN2 net3 C VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN3 X net2 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN0 net2 A net1 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN1 net1 B net3 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MP3 X net2 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP1 net2 B VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP2 net2 A VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP0 net2 C VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_and3_2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_and3_2 X A B C VDD VSS
+*.PININFO A:I B:I C:I X:O VDD:B VSS:B
+MN2 net3 C VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN3 X net2 VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MN0 net2 A net1 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN1 net1 B net3 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MP3 X net2 VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP1 net2 B VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP2 net2 A VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP0 net2 C VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_and4_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_and4_1 X A B C D VDD VSS
+*.PININFO A:I B:I C:I D:I X:O VDD:B VSS:B
+MN3 net17 D VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN2 net16 C net17 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN1 net15 B net16 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN0 net1 A net15 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN4 X net1 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MP3 net1 A VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP4 X net1 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP0 net1 D VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP1 net1 C VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP2 net1 B VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_and4_2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_and4_2 X A B C D VDD VSS
+*.PININFO A:I B:I C:I D:I X:O VDD:B VSS:B
+MN3 net17 D VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN2 net16 C net17 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN1 net15 B net16 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN0 net1 A net15 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN4 X net1 VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MP3 net1 A VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP4 X net1 VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP0 net1 D VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP1 net1 C VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP2 net1 B VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_antennanp
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_antennanp A VDD VSS
+*.PININFO A:I VDD:B VSS:B
+DD1 VSS A dantenna m=1 w=780n l=780n a=608.4f p=3.12u
+DD0 A VDD dpantenna m=1 w=1.05u l=1.34u a=1.407p p=4.78u
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_buf_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_buf_1 X A VDD VSS
+*.PININFO A:I X:O VDD:B VSS:B
+MN0 net1 A VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN1 X net1 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MP1 X net1 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP0 net1 A VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_buf_16
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_buf_16 X A VDD VSS
+*.PININFO A:I X:O VDD:B VSS:B
+MN0 net1 A VSS VSS sg13_lv_nmos m=1 w=4.44u l=130.00n ng=6
+MN1 X net1 VSS VSS sg13_lv_nmos m=1 w=11.84u l=130.00n ng=16
+MP1 X net1 VDD VDD sg13_lv_pmos m=1 w=17.92u l=130.00n ng=16
+MP0 net1 A VDD VDD sg13_lv_pmos m=1 w=6.72u l=130.00n ng=6
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_buf_2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_buf_2 X A VDD VSS
+*.PININFO A:I X:O VDD:B VSS:B
+MN0 net1 A VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN1 X net1 VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MP1 X net1 VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP0 net1 A VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_buf_4
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_buf_4 X A VDD VSS
+*.PININFO A:I X:O VDD:B VSS:B
+MN0 net1 A VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 X net1 VSS VSS sg13_lv_nmos m=1 w=2.96u l=130.00n ng=4
+MP1 X net1 VDD VDD sg13_lv_pmos m=1 w=4.48u l=130.00n ng=4
+MP0 net1 A VDD VDD sg13_lv_pmos m=1 w=1.68u l=130.00n ng=2
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_buf_8
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_buf_8 X A VDD VSS
+*.PININFO A:I X:O VDD:B VSS:B
+MN0 net1 A VSS VSS sg13_lv_nmos m=1 w=2.22u l=130.00n ng=3
+MN1 X net1 VSS VSS sg13_lv_nmos m=1 w=5.92u l=130.00n ng=8
+MP1 X net1 VDD VDD sg13_lv_pmos m=1 w=8.96u l=130.00n ng=8
+MP0 net1 A VDD VDD sg13_lv_pmos m=1 w=3.36u l=130.00n ng=3
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_decap_4
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_decap_4 VDD VSS
+*.PININFO VDD:B VSS:B
+MN0 VSS VDD VSS VSS sg13_lv_nmos m=1 w=420.00n l=1.000u ng=1
+MP0 VDD VSS VDD VDD sg13_lv_pmos m=1 w=1.000u l=1.000u ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_decap_8
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_decap_8 VDD VSS
+*.PININFO VDD:B VSS:B
+MN0 VSS VDD VSS VSS sg13_lv_nmos m=1 w=840.00n l=1.000u ng=2
+MP0 VDD VSS VDD VDD sg13_lv_pmos m=1 w=2.000u l=1.000u ng=2
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_dfrbp_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_dfrbp_1 Q Q_N CLK D RESET_B VDD VSS
+*.PININFO CLK:I D:I RESET_B:I Q:O Q_N:O VDD:B VSS:B
+MN11 net12 net2 VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN10 net5 clkneg net12 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN12 net2 net5 net11 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN13 net11 RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN14 Q_N net5 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN0 Db D net10 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN1 net10 RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN4 Db clkneg net6 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN5 net6 clkpos net9 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN6 net9 net4 net8 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN7 net8 RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN8 net4 net6 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 clkneg CLK VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN9 net4 clkpos net5 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN3 clkpos clkneg VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN16 Q net1 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN15 net1 net5 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MP11 net5 clkpos net3 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP12 net2 net5 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP13 net2 RESET_B VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP14 Q_N net5 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP4 Db clkpos net6 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP0 Db RESET_B VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP1 Db D VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP5 net7 net4 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP6 net6 clkneg net7 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP7 net6 RESET_B VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP2 clkneg CLK VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP3 clkpos clkneg VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP8 net4 net6 VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP9 net4 clkneg net5 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP16 Q net1 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP10 net3 net2 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP15 net1 net5 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_dfrbp_2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_dfrbp_2 Q Q_N CLK D RESET_B VDD VSS
+*.PININFO CLK:I D:I RESET_B:I Q:O Q_N:O VDD:B VSS:B
+MN11 net12 net2 VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN10 net5 clkneg net12 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN12 net2 net5 net11 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN13 net11 RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN14 Q_N net5 VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MN0 Db D net10 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN1 net10 RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN4 Db clkneg net6 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN5 net6 clkpos net9 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN6 net9 net4 net8 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN7 net8 RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN8 net4 net6 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 clkneg CLK VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN9 net4 clkpos net5 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN3 clkpos clkneg VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN16 Q net1 VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MN15 net1 net5 VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MP11 net5 clkpos net3 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP12 net2 net5 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP13 net2 RESET_B VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP14 Q_N net5 VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP4 Db clkpos net6 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP0 Db RESET_B VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP1 Db D VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP5 net7 net4 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP6 net6 clkneg net7 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP7 net6 RESET_B VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP2 clkneg CLK VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP3 clkpos clkneg VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP8 net4 net6 VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP9 net4 clkneg net5 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP16 Q net1 VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP10 net3 net2 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP15 net1 net5 VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_dlhq_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_dlhq_1 Q D GATE VDD VSS
+*.PININFO D:I GATE:I Q:O VDD:B VSS:B
+MP8 Q qint_b VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP6 qint GATE_BB net8 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP7 qint_b qint VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP2 Db D VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP0 GATE_B GATE VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP1 GATE_BB GATE_B VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP5 net8 qint_b VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP4 net4 GATE_B qint VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP3 net4 Db VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MN0 GATE_B GATE VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 GATE_BB GATE_B VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN5 qint GATE_B net9 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN8 Q qint_b VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN4 net7 Db VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN6 net9 qint_b VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN7 qint_b qint VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN3 qint GATE_BB net7 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 Db D VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_dlhr_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_dlhr_1 Q Q_N D GATE RESET_B VDD VSS
+*.PININFO D:I GATE:I RESET_B:I Q:O Q_N:O VDD:B VSS:B
+MP8 qint_b RESET_B VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP9 Q qint_b VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP6 qint GATE_BB net11 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP5 net11 qint_b VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP4 qint GATE_B net2 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP3 net2 Db VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP2 Db D VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP0 GATE_B GATE VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP11 Q_N qintn_b VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP7 qint_b qint VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP1 GATE_BB GATE_B VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP10 qintn_b qint_b VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MN7 qint_b qint net9 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN8 net9 RESET_B VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN5 qint GATE_B net7 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN6 net7 qint_b VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN9 Q qint_b VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN3 qint GATE_BB net1 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN4 net1 Db VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN2 Db D VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN0 GATE_B GATE VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN11 Q_N qintn_b VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 GATE_BB GATE_B VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN10 qintn_b qint_b VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_dlhrq_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_dlhrq_1 Q D GATE RESET_B VDD VSS
+*.PININFO D:I GATE:I RESET_B:I Q:O VDD:B VSS:B
+MN8 net116 RESET_B VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN9 Q qint_b VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 GATE_BB GATE_B VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN5 qint GATE_B net89 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN7 qint_b qint net116 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 Db D VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN4 net61 Db VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN3 qint GATE_BB net61 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN6 net89 qint_b VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN0 GATE_B GATE VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MP3 net60 Db VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP8 qint_b RESET_B VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP6 qint GATE_BB net92 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP9 Q qint_b VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP5 net92 qint_b VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP0 GATE_B GATE VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP2 Db D VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP4 qint GATE_B net60 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP1 GATE_BB GATE_B VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP7 qint_b qint VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_dllr_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_dllr_1 Q Q_N D GATE_N RESET_B VDD VSS
+*.PININFO D:I GATE_N:I RESET_B:I Q:O Q_N:O VDD:B VSS:B
+MN2 Db D VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN0 gnb GATE_N VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 gnbb gnb VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN6 net89 qint_b VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN7 qint_b qint net116 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN8 net116 RESET_B VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN5 qint gnbb net89 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN11 Q_N qintn_b VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN3 qint gnb net61 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN10 qintn_b qint_b VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN4 net61 Db VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN9 Q qint_b VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MP1 gnbb gnb VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP4 qint gnbb net60 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP10 qintn_b qint_b VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP11 Q_N qintn_b VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP3 net60 Db VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP5 net92 qint_b VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP8 qint_b RESET_B VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP2 Db D VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP0 gnb GATE_N VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP9 Q qint_b VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP6 qint gnb net92 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP7 qint_b qint VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_dllrq_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_dllrq_1 Q D GATE_N RESET_B VDD VSS
+*.PININFO D:I GATE_N:I RESET_B:I Q:O VDD:B VSS:B
+MN5 qint gnbb net89 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN3 qint gnb net61 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN8 net116 RESET_B VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN9 Q qint_b VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN4 net61 Db VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN6 net89 qint_b VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN7 qint_b qint net116 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 Db D VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN0 gnb GATE_N VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 gnbb gnb VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MP3 net59 Db VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP8 qint_b RESET_B VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP0 gnb GATE_N VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP5 net92 qint_b VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP7 qint_b qint VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP9 Q qint_b VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP4 qint gnbb net59 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP2 Db D VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP1 gnbb gnb VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP6 qint gnb net92 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_dlygate4sd1_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_dlygate4sd1_1 X A VDD VSS
+*.PININFO A:I X:O VDD:B VSS:B
+MP3 X net3 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP2 net3 net2 VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP1 net2 net1 VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP0 net1 A VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MN3 X net3 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 net3 net2 VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN1 net2 net1 VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN0 net1 A VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_dlygate4sd2_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_dlygate4sd2_1 X A VDD VSS
+*.PININFO A:I X:O VDD:B VSS:B
+MP3 X net3 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP2 net3 net2 VDD VDD sg13_lv_pmos m=1 w=1.000u l=250.00n ng=1
+MP1 net2 net1 VDD VDD sg13_lv_pmos m=1 w=1.000u l=250.00n ng=1
+MP0 net1 A VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MN3 X net3 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 net3 net2 VSS VSS sg13_lv_nmos m=1 w=420.00n l=180.00n ng=1
+MN1 net2 net1 VSS VSS sg13_lv_nmos m=1 w=420.00n l=180.00n ng=1
+MN0 net1 A VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_dlygate4sd3_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_dlygate4sd3_1 X A VDD VSS
+*.PININFO A:I X:O VDD:B VSS:B
+MP3 X net3 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP2 net3 net2 VDD VDD sg13_lv_pmos m=1 w=1.000u l=500.0n ng=1
+MP1 net2 net1 VDD VDD sg13_lv_pmos m=1 w=1.000u l=500.0n ng=1
+MP0 net1 A VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MN3 X net3 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 net3 net2 VSS VSS sg13_lv_nmos m=1 w=420.00n l=500.0n ng=1
+MN1 net2 net1 VSS VSS sg13_lv_nmos m=1 w=420.00n l=500.0n ng=1
+MN0 net1 A VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_ebufn_2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_ebufn_2 Z A TE_B VDD VSS
+*.PININFO A:I TE_B:I Z:O VDD:B VSS:B
+MN3 net4 net3 VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MN2 Z net1 net4 VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MN1 net3 TE_B VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN0 net1 A VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MP2 net2 TE_B VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP3 Z net1 net2 VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP1 net3 TE_B VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP0 net1 A VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_ebufn_4
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_ebufn_4 Z A TE_B VDD VSS
+*.PININFO A:I TE_B:I Z:O VDD:B VSS:B
+MN0 net23 A VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 net21 TE_B VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 Z net23 net22 VSS sg13_lv_nmos m=1 w=2.96u l=130.00n ng=4
+MN3 net22 net21 VSS VSS sg13_lv_nmos m=1 w=2.96u l=130.00n ng=4
+MP0 net23 A VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP1 net21 TE_B VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP3 Z net23 net24 VDD sg13_lv_pmos m=1 w=4.48u l=130.00n ng=4
+MP2 net24 TE_B VDD VDD sg13_lv_pmos m=1 w=4.48u l=130.00n ng=4
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_ebufn_8
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_ebufn_8 Z A TE_B VDD VSS
+*.PININFO A:I TE_B:I Z:O VDD:B VSS:B
+MN3 net23 net22 VSS VSS sg13_lv_nmos m=1 w=5.92u l=130.00n ng=8
+MN2 Z net21 net23 VSS sg13_lv_nmos m=1 w=5.92u l=130.00n ng=8
+MN1 net22 TE_B VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN0 net21 A VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MP2 net24 TE_B VDD VDD sg13_lv_pmos m=1 w=8.96u l=130.00n ng=8
+MP3 Z net21 net24 VDD sg13_lv_pmos m=1 w=8.96u l=130.00n ng=8
+MP1 net22 TE_B VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP0 net21 A VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_einvn_2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_einvn_2 Z A TE_B VDD VSS
+*.PININFO A:I TE_B:I Z:O VDD:B VSS:B
+MN0 TE TE_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN2 net1 TE VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MN1 Z A net1 VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MP0 TE TE_B VDD VDD sg13_lv_pmos m=1 w=640.00n l=130.00n ng=1
+MP1 net2 TE_B VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP2 Z A net2 VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_einvn_4
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_einvn_4 Z A TE_B VDD VSS
+*.PININFO A:I TE_B:I Z:O VDD:B VSS:B
+MN2 net16 TE VSS VSS sg13_lv_nmos m=1 w=2.96u l=130.00n ng=4
+MN0 TE TE_B VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 Z A net16 VSS sg13_lv_nmos m=1 w=2.96u l=130.00n ng=4
+MP0 TE TE_B VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP1 net17 TE_B VDD VDD sg13_lv_pmos m=1 w=4.48u l=130.00n ng=4
+MP2 Z A net17 VDD sg13_lv_pmos m=1 w=4.48u l=130.00n ng=4
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_einvn_8
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_einvn_8 Z A TE_B VDD VSS
+*.PININFO A:I TE_B:I Z:O VDD:B VSS:B
+MN1 Z A net29 VSS sg13_lv_nmos m=1 w=5.92u l=130.00n ng=8
+MN0 TE TE_B VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 net29 TE VSS VSS sg13_lv_nmos m=1 w=5.92u l=130.00n ng=8
+MP1 net28 TE_B VDD VDD sg13_lv_pmos m=1 w=8.96u l=130.00n ng=8
+MP2 Z A net28 VDD sg13_lv_pmos m=1 w=8.96u l=130.00n ng=8
+MP0 TE TE_B VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_inv_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_inv_1 Y A VDD VSS
+*.PININFO A:I Y:O VDD:B VSS:B
+MN0 Y A VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MP0 Y A VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_inv_16
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_inv_16 Y A VDD VSS
+*.PININFO A:I Y:O VDD:B VSS:B
+MN0 Y A VSS VSS sg13_lv_nmos m=1 w=11.84u l=130.00n ng=16
+MP0 Y A VDD VDD sg13_lv_pmos m=1 w=17.92u l=130.00n ng=16
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_inv_2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_inv_2 Y A VDD VSS
+*.PININFO A:I Y:O VDD:B VSS:B
+MN0 Y A VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MP0 Y A VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_inv_4
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_inv_4 Y A VDD VSS
+*.PININFO A:I Y:O VDD:B VSS:B
+MP0 Y A VDD VDD sg13_lv_pmos m=1 w=4.48u l=130.00n ng=4
+MN0 Y A VSS VSS sg13_lv_nmos m=1 w=2.96u l=130.00n ng=4
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_inv_8
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_inv_8 Y A VDD VSS
+*.PININFO A:I Y:O VDD:B VSS:B
+MN0 Y A VSS VSS sg13_lv_nmos m=1 w=5.92u l=130.00n ng=8
+MP0 Y A VDD VDD sg13_lv_pmos m=1 w=8.96u l=130.00n ng=8
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_lgcp_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_lgcp_1 GCLK CLK GATE VDD VSS
+*.PININFO CLK:I GATE:I GCLK:O VDD:B VSS:B
+MP1 CLKBB CLKB VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP3 net1 CLKBB net4 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP4 int_GATE net1 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP2 net4 GATE VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP8 net3 int_GATE VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP9 GCLK net3 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP6 net1 CLKB net6 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP0 CLKB CLK VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP7 net3 CLK VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP5 net6 int_GATE VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MN9 GCLK net3 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN7 net3 int_GATE net5 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN4 int_GATE net1 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 CLKBB CLKB VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN6 net7 int_GATE VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN3 net2 GATE VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN5 net1 CLKBB net7 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN0 CLKB CLK VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN8 net5 CLK VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN2 net1 CLKB net2 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_mux2_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_mux2_1 X A0 A1 S VDD VSS
+*.PININFO A0:I A1:I S:I X:O VDD:B VSS:B
+MP1 net4 S VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP5 X net6 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP4 net6 A1 net5 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP0 Sb S VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP3 net5 Sb VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP2 net6 A0 net4 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MN4 net3 S VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 net1 Sb VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN5 X net6 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN0 Sb S VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN3 net6 A1 net3 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 net6 A0 net1 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_mux2_2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_mux2_2 X A0 A1 S VDD VSS
+*.PININFO A0:I A1:I S:I X:O VDD:B VSS:B
+MP1 net4 S VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP5 X net6 VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP4 net6 A1 net5 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP0 Sb S VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP3 net5 Sb VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP2 net6 A0 net4 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MN4 net3 S VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 net1 Sb VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN5 X net6 VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MN0 Sb S VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN3 net6 A1 net3 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 net6 A0 net1 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_mux4_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_mux4_1 X A0 A1 A2 A3 S0 S1 VDD VSS
+*.PININFO A0:I A1:I A2:I A3:I S0:I S1:I X:O VDD:B VSS:B
+MN12 X Xb VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 low S0b net7 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN3 net7 A0 VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN6 low S1b Xb VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN11 high S1 Xb VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN10 net4 A3 VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN9 high S0 net4 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN8 net6 A2 VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN7 high S0b net6 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN5 net2 A1 VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN4 low S0 net2 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN1 S1b S1 VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN0 S0b S0 VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MP6 low S1 Xb VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP11 high S1b Xb VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP12 X Xb VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP10 high S0b net3 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP9 net3 A3 VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP8 high S0 net5 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP7 net5 A2 VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP2 net8 A0 VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP3 low S0 net8 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP1 S1b S1 VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP0 S0b S0 VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP5 low S0b net1 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP4 net1 A1 VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_nand2_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_nand2_1 Y A B VDD VSS
+*.PININFO A:I B:I Y:O VDD:B VSS:B
+MP1 Y B VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP0 Y A VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MN1 net1 B VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN0 Y A net1 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_nand2_2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_nand2_2 Y A B VDD VSS
+*.PININFO A:I B:I Y:O VDD:B VSS:B
+MP1 Y B VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP0 Y A VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MN1 net1 B VSS VSS sg13_lv_nmos m=1 w=1.44u l=130.00n ng=2
+MN0 Y A net1 VSS sg13_lv_nmos m=1 w=1.44u l=130.00n ng=2
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_nand2b_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_nand2b_1 Y A_N B VDD VSS
+*.PININFO A_N:I B:I Y:O VDD:B VSS:B
+MP2 Y net2 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP1 net2 A_N VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP0 Y B VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MN1 Y net2 net1 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN0 net2 A_N VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN2 net1 B VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_nand2b_2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_nand2b_2 Y A_N B VDD VSS
+*.PININFO A_N:I B:I Y:O VDD:B VSS:B
+MP2 Y A VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP0 A A_N VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP1 Y B VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MN1 Y B net1 VSS sg13_lv_nmos m=1 w=1.44u l=130.00n ng=2
+MN0 A A_N VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN2 net1 A VSS VSS sg13_lv_nmos m=1 w=1.44u l=130.00n ng=2
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_nand3_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_nand3_1 Y A B C VDD VSS
+*.PININFO A:I B:I C:I Y:O VDD:B VSS:B
+MP0 Y A VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP1 Y B VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP2 Y C VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MN1 net2 B net3 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 net3 C VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN0 Y A net2 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_nand3b_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_nand3b_1 Y A_N B C VDD VSS
+*.PININFO A_N:I B:I C:I Y:O VDD:B VSS:B
+MP0 net1 A_N VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP1 Y net1 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP2 Y B VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP3 Y C VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MN2 net2 B net3 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN3 net3 C VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN0 net1 A_N VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN1 Y net1 net2 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_nand4_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_nand4_1 Y A B C D VDD VSS
+*.PININFO A:I B:I C:I D:I Y:O VDD:B VSS:B
+MP3 Y D VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP0 Y A VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP1 Y B VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP2 Y C VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MN1 net2 B net3 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 net3 C net5 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN0 Y A net2 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN3 net5 D VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_nor2_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_nor2_1 Y A B VDD VSS
+*.PININFO A:I B:I Y:O VDD:B VSS:B
+MN0 Y A VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 Y B VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MP0 net1 A VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP1 Y B net1 VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_nor2_2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_nor2_2 Y A B VDD VSS
+*.PININFO A:I B:I Y:O VDD:B VSS:B
+MN0 Y A VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MN1 Y B VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MP0 net1 A VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP1 Y B net1 VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_nor2b_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_nor2b_1 Y A B_N VDD VSS
+*.PININFO A:I B_N:I Y:O VDD:B VSS:B
+MN0 B B_N VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN1 Y A VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 Y B VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MP0 B B_N VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP1 net1 B VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP2 Y A net1 VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_nor2b_2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_nor2b_2 Y A B_N VDD VSS
+*.PININFO A:I B_N:I Y:O VDD:B VSS:B
+MN0 B B_N VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN1 Y A VSS VSS sg13_lv_nmos m=1 w=1.44u l=130.00n ng=2
+MN2 Y B VSS VSS sg13_lv_nmos m=1 w=1.44u l=130.00n ng=2
+MP0 B B_N VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP1 net1 B VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP2 Y A net1 VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_nor3_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_nor3_1 Y A B C VDD VSS
+*.PININFO A:I B:I C:I Y:O VDD:B VSS:B
+MP2 Y C net2 VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP1 net2 B net3 VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP0 net3 A VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MN0 Y A VSS VSS sg13_lv_nmos m=1 w=770.00n l=130.00n ng=1
+MN1 Y B VSS VSS sg13_lv_nmos m=1 w=770.00n l=130.00n ng=1
+MN2 Y C VSS VSS sg13_lv_nmos m=1 w=770.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_nor3_2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_nor3_2 Y A B C VDD VSS
+*.PININFO A:I B:I C:I Y:O VDD:B VSS:B
+MP2 Y C net2 VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP1 net2 B net3 VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP0 net3 A VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MN0 Y A VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MN1 Y B VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MN2 Y C VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_nor4_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_nor4_1 Y A B C D VDD VSS
+*.PININFO A:I B:I C:I D:I Y:O VDD:B VSS:B
+MP0 net3 A VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP1 net2 B net3 VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP2 net1 C net2 VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP3 Y D net1 VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MN0 Y A VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN3 Y D VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 Y B VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 Y C VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_nor4_2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_nor4_2 Y A B C D VDD VSS
+*.PININFO A:I B:I C:I D:I Y:O VDD:B VSS:B
+MP0 net3 A VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP1 net2 B net3 VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP2 net1 C net2 VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP3 Y D net1 VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MN0 Y A VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MN3 Y D VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MN1 Y B VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MN2 Y C VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_o21ai_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_o21ai_1 Y A1 A2 B1 VDD VSS
+*.PININFO A1:I A2:I B1:I Y:O VDD:B VSS:B
+MP0 net14 A1 VDD VDD sg13_lv_pmos m=1 w=1.12u l=150.00n ng=1
+MP1 Y A2 net14 VDD sg13_lv_pmos m=1 w=1.12u l=150.00n ng=1
+MP2 Y B1 VDD VDD sg13_lv_pmos m=1 w=1.12u l=150.00n ng=1
+MN0 net1 A2 VSS VSS sg13_lv_nmos m=1 w=740.00n l=150.00n ng=1
+MN2 net1 A1 VSS VSS sg13_lv_nmos m=1 w=740.00n l=150.00n ng=1
+MN1 Y B1 net1 VSS sg13_lv_nmos m=1 w=740.00n l=150.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_or2_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_or2_1 X A B VDD VSS
+*.PININFO A:I B:I X:O VDD:B VSS:B
+MP1 net2 B net3 VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP0 net3 A VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP2 X net2 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MN1 net2 A VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN0 net2 B VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN2 X net2 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_or2_2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_or2_2 X A B VDD VSS
+*.PININFO A:I B:I X:O VDD:B VSS:B
+MP1 net2 B net3 VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP0 net3 A VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP2 X net2 VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MN1 net2 A VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN0 net2 B VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN2 X net2 VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_or3_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_or3_1 X A B C VDD VSS
+*.PININFO A:I B:I C:I X:O VDD:B VSS:B
+MN2 net1 C VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN3 X net1 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 net1 B VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN0 net1 A VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MP3 X net1 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP1 net9 B net12 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP0 net12 A VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP2 net1 C net9 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_or3_2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_or3_2 X A B C VDD VSS
+*.PININFO A:I B:I C:I X:O VDD:B VSS:B
+MN2 net1 C VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN3 X net1 VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MN1 net1 B VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN0 net1 A VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MP3 X net1 VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP1 net9 B net12 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP0 net12 A VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP2 net1 C net9 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_or4_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_or4_1 X A B C D VDD VSS
+*.PININFO A:I B:I C:I D:I X:O VDD:B VSS:B
+MN4 X net1 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN3 net1 D VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN2 net1 C VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN1 net1 B VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN0 net1 A VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MP0 net4 A VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP1 net3 B net4 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP2 net2 C net3 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP3 net1 D net2 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP4 X net1 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_or4_2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_or4_2 X A B C D VDD VSS
+*.PININFO A:I B:I C:I D:I X:O VDD:B VSS:B
+MN4 X net1 VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MN3 net1 D VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN2 net1 C VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN1 net1 B VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN0 net1 A VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MP0 net4 A VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP1 net3 B net4 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP2 net2 C net3 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP3 net1 D net2 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP4 X net1 VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_sdfbbp_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_sdfbbp_1 Q Q_N CLK D RESET_B SCD SCE SET_B VDD VSS
+*.PININFO CLK:I D:I RESET_B:I SCD:I SCE:I SET_B:I Q:O Q_N:O VDD:B VSS:B
+MP1 resetbb RESET_B VDD VDD sg13_lv_pmos m=1 w=640.00n l=130.00n ng=1
+MP19 pre_q DbbLatch2 net8 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP20 pre_q SET_B VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP3 CLKbb CLKb VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP0 SCEb SCE VDD VDD sg13_lv_pmos m=1 w=640.00n l=130.00n ng=1
+MP7 Db D net3 VDD sg13_lv_pmos m=1 w=640.00n l=130.00n ng=1
+MP13 DbbTG CLKb net10 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP12 net10 DbLatchM VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP6 net3 SCE VDD VDD sg13_lv_pmos m=1 w=640.00n l=130.00n ng=1
+MP21 Q_N pre_q VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP14 net1 DbLatchM VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP18 net8 resetbb VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP11 DbLatchM SET_B VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP4 net2 SCD VDD VDD sg13_lv_pmos m=1 w=640.00n l=130.00n ng=1
+MP2 CLKb CLK VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP10 DbLatchM DbbTG net7 VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP8 Db CLKbb DbbTG VDD sg13_lv_pmos m=1 w=640.00n l=130.00n ng=1
+MP5 Db SCEb net2 VDD sg13_lv_pmos m=1 w=640.00n l=130.00n ng=1
+MP22 pre_qb pre_q VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP9 net7 resetbb VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP16 net6 pre_q VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP17 DbbLatch2 CLKbb net6 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP15 DbbLatch2 CLKb net1 VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP23 Q pre_qb VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MN4 Db SCE net5 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN5 net5 SCD VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN18 pre_q DbbLatch2 net11 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN8 Db CLKb DbbTG VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN7 net4 SCEb VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN3 CLKbb CLKb VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 resetbb RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN17 net14 pre_q VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN9 DbLatchM DbbTG net12 VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN0 SCEb SCE VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN10 net12 SET_B VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN13 net15 DbLatchM VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN19 net11 SET_B VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN12 DbbTG CLKbb net15 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN6 Db D net4 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN22 pre_qb pre_q VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN16 DbbLatch2 CLKb net14 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN23 Q pre_qb VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN15 net13 DbLatchM VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN2 CLKb CLK VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN14 DbbLatch2 CLKbb net13 VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN11 DbLatchM resetbb net12 VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN21 Q_N pre_q VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN20 pre_q resetbb net11 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_sighold
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_sighold SH VDD VSS
+*.PININFO SH:B VDD:B VSS:B
+MN1 net1 SH VSS VSS sg13_lv_nmos m=1 w=300.0n l=130.00n ng=1
+MN0 SH net1 VSS VSS sg13_lv_nmos m=1 w=300.0n l=700.0n ng=1
+MP1 net1 SH VDD VDD sg13_lv_pmos m=1 w=450.00n l=130.00n ng=1
+MP0 SH net1 VDD VDD sg13_lv_pmos m=1 w=300.0n l=700.0n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_slgcp_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_slgcp_1 GCLK CLK GATE SCE VDD VSS
+*.PININFO CLK:I GATE:I SCE:I GCLK:O VDD:B VSS:B
+MP10 GCLK net5 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP4 net1 CLKbb net6 VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP1 CLKbb CLKb VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP8 net5 int_GATE VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP2 net3 SCE VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP7 net6 CLKb net4 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP5 int_GATE net6 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP0 CLKb CLK VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP9 net5 CLK VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP6 net4 int_GATE VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP3 net1 GATE net3 VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MN5 int_GATE net6 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN9 net2 CLK VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN2 net1 SCE VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN4 net6 CLKb net1 VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN7 net7 int_GATE VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN8 net5 int_GATE net2 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN10 GCLK net5 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 CLKbb CLKb VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN3 net1 GATE VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN0 CLKb CLK VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN6 net6 CLKbb net7 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_tiehi
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_tiehi L_HI VDD VSS
+*.PININFO L_HI:O VDD:B VSS:B
+MN1 net3 net2 VSS VSS sg13_lv_nmos m=1 w=795.00n l=130.00n ng=1
+MN0 net1 net1 VSS VSS sg13_lv_nmos m=1 w=300n l=130.00n ng=1
+MP1 L_HI net3 VDD VDD sg13_lv_pmos m=1 w=1.155u l=130.00n ng=1
+MP0 net2 net1 VDD VDD sg13_lv_pmos m=1 w=660.0n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_tielo
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_tielo L_LO VDD VSS
+*.PININFO L_LO:O VDD:B VSS:B
+MN0 net3 net2 VSS VSS sg13_lv_nmos m=1 w=385.00n l=130.00n ng=1
+MN1 L_LO net1 VSS VSS sg13_lv_nmos m=1 w=880.0n l=130.00n ng=1
+MP0 net2 net2 VDD VDD sg13_lv_pmos m=1 w=300n l=130.00n ng=1
+MP1 net1 net3 VDD VDD sg13_lv_pmos m=1 w=1.045u l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_xnor2_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_xnor2_1 Y A B VDD VSS
+*.PININFO A:I B:I Y:O VDD:B VSS:B
+MP4 Y net1 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP3 Y B net4 VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP2 net4 A VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP1 net1 B VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP0 net1 A VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MN3 Y net1 net3 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 net2 A VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN0 net1 B net2 VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MN4 net3 B VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 net3 A VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_xor2_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_xor2_1 X A B VDD VSS
+*.PININFO A:I B:I X:O VDD:B VSS:B
+MN0 net1 A VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN3 X B net3 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 X net1 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN4 net3 A VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 net1 B VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MP0 net6 A VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP1 net1 B net6 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP2 net5 A VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP4 net5 B VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP3 X net1 net5 VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_a22oi_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_a22oi_1 Y A1 A2 B1 B2 VDD VSS
+*.PININFO A1:I A2:I B1:I B2:I Y:O VDD:B VSS:B
+MN1 net1 B1 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN0 Y B2 net1 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN3 net2 A2 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 Y A1 net2 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MP1 Y B1 net3 VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP3 Y B2 net3 VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP2 net3 A2 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP0 net3 A1 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_sdfrbpq_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_sdfrbpq_1 Q CLK D RESET_B SCD SCE VDD VSS
+*.PININFO CLK:I D:I RESET_B:I SCD:I SCE:I Q:O VDD:B VSS:B
+MN3 Db SCD net63 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 Db D net65 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN0 SCEb SCE VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN4 net63 SCE VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 net65 SCEb VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN17 net12 net2 VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN16 net5 clkneg net12 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN18 net2 net5 net11 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN19 net11 RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN20 Q net2 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN6 Dbbb Dbb net10 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN7 net10 RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN10 Dbbb clkneg net6 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN11 net6 clkpos net9 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN12 net9 net4 net8 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN13 net8 RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN14 net4 net6 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN8 clkneg CLK VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN15 net4 clkpos net5 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN9 clkpos clkneg VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN5 Dbb Db VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MP1 net64 SCE VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP3 net62 SCEb VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP0 SCEb SCE VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP4 Db SCD net62 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP2 Db D net64 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP17 net5 clkpos net3 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP18 net2 net5 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP19 net2 RESET_B VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP20 Q net2 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP10 Dbbb clkpos net6 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP6 Dbbb RESET_B VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP7 Dbbb Dbb VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP11 net7 net4 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP12 net6 clkneg net7 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP13 net6 RESET_B VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP8 clkneg CLK VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP9 clkpos clkneg VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP14 net4 net6 VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP15 net4 clkneg net5 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP5 Dbb Db VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP16 net3 net2 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_sdfrbpq_2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_sdfrbpq_2 Q CLK D RESET_B SCD SCE VDD VSS
+*.PININFO CLK:I D:I RESET_B:I SCD:I SCE:I Q:O VDD:B VSS:B
+MN3 Db SCD net63 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 Db D net65 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN0 SCEb SCE VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN4 net63 SCE VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 net65 SCEb VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN5 Dbb Db VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN17 net12 net2 VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN16 net5 clkneg net12 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN18 net2 net5 net11 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN19 net11 RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN20 Q net2 VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MN6 Dbbb Dbb net10 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN7 net10 RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN10 Dbbb clkneg net6 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN11 net6 clkpos net9 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN12 net9 net4 net8 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN13 net8 RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN14 net4 net6 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN8 clkneg CLK VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN15 net4 clkpos net5 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN9 clkpos clkneg VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MP1 net64 SCE VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP3 net62 SCEb VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP0 SCEb SCE VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP4 Db SCD net62 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP2 Db D net64 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP5 Dbb Db VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP17 net5 clkpos net3 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP18 net2 net5 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP19 net2 RESET_B VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP20 Q net2 VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP10 Dbbb clkpos net6 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP6 Dbbb RESET_B VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP7 Dbbb Dbb VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP11 net7 net4 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP12 net6 clkneg net7 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP13 net6 RESET_B VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP8 clkneg CLK VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP9 clkpos clkneg VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP14 net4 net6 VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP15 net4 clkneg net5 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP16 net3 net2 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_sdfrbp_2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_sdfrbp_2 Q Q_N CLK D RESET_B SCD SCE VDD VSS
+*.PININFO CLK:I D:I RESET_B:I SCD:I SCE:I Q:O Q_N:O VDD:B VSS:B
+MN3 Db SCD net63 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 Db D net65 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN0 SCEb SCE VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN4 net63 SCE VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 net65 SCEb VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN5 Dbb Db VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN17 net12 net2 VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN16 net5 clkneg net12 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN18 net2 net5 net11 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN19 net11 RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN20 Q_N net5 VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MN6 Dbbb Dbb net10 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN7 net10 RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN10 Dbbb clkneg net6 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN11 net6 clkpos net9 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN12 net9 net4 net8 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN13 net8 RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN14 net4 net6 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN8 clkneg CLK VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN15 net4 clkpos net5 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN9 clkpos clkneg VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN22 Q net1 VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MN21 net1 net5 VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MP1 net64 SCE VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP3 net62 SCEb VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP0 SCEb SCE VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP4 Db SCD net62 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP2 Db D net64 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP5 Dbb Db VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP17 net5 clkpos net3 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP18 net2 net5 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP19 net2 RESET_B VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP20 Q_N net5 VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP10 Dbbb clkpos net6 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP6 Dbbb RESET_B VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP7 Dbbb Dbb VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP11 net7 net4 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP12 net6 clkneg net7 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP13 net6 RESET_B VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP8 clkneg CLK VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP9 clkpos clkneg VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP14 net4 net6 VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP15 net4 clkneg net5 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP22 Q net1 VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP16 net3 net2 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP21 net1 net5 VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_sdfrbp_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_sdfrbp_1 Q Q_N CLK D RESET_B SCD SCE VDD VSS
+*.PININFO CLK:I D:I RESET_B:I SCD:I SCE:I Q:O Q_N:O VDD:B VSS:B
+MN3 Db SCD net63 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN1 Db D net65 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN0 SCEb SCE VSS VSS sg13_lv_nmos m=1 w=550.00n l=130.00n ng=1
+MN4 net63 SCE VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 net65 SCEb VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN5 net13 Db VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN17 net12 net2 VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN16 net5 clkneg net12 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN18 net2 net5 net11 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN19 net11 RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN20 Q_N net5 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN6 Dbb net13 net10 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN7 net10 RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN10 Dbb clkneg net6 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN11 net6 clkpos net9 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN12 net9 net4 net8 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN13 net8 RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN14 net4 net6 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN8 clkneg CLK VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN15 net4 clkpos net5 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN9 clkpos clkneg VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN22 Q net1 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN21 net1 net5 VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MP1 net64 SCE VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP3 net62 SCEb VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP0 SCEb SCE VDD VDD sg13_lv_pmos m=1 w=840.00n l=130.00n ng=1
+MP4 Db SCD net62 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP2 Db D net64 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP5 net13 Db VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP17 net5 clkpos net3 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP18 net2 net5 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP19 net2 RESET_B VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP20 Q_N net5 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP10 Dbb clkpos net6 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP6 Dbb RESET_B VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP7 Dbb net13 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP11 net7 net4 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP12 net6 clkneg net7 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP13 net6 RESET_B VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP8 clkneg CLK VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP9 clkpos clkneg VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP14 net4 net6 VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP15 net4 clkneg net5 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP22 Q net1 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP16 net3 net2 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP21 net1 net5 VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_dfrbpq_2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_dfrbpq_2 Q CLK D RESET_B VDD VSS
+*.PININFO CLK:I D:I RESET_B:I Q:O VDD:B VSS:B
+MN11 net12 net2 VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN10 net5 clkneg net12 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN12 net2 net5 net11 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN13 net11 RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN0 Db D net10 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN1 net10 RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN4 Db clkneg net6 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN5 net6 clkpos net9 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN6 net9 net4 net8 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN7 net8 RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN8 net4 net6 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 clkneg CLK VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN9 net4 clkpos net5 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN3 clkpos clkneg VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN15 Q net1 VSS VSS sg13_lv_nmos m=1 w=1.48u l=130.00n ng=2
+MN14 net1 net5 VSS VSS sg13_lv_nmos m=1 w=640.00n l=130.00n ng=1
+MP11 net5 clkpos net3 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP12 net2 net5 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP13 net2 RESET_B VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP4 Db clkpos net6 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP0 Db RESET_B VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP1 Db D VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP5 net7 net4 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP6 net6 clkneg net7 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP7 net6 RESET_B VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP2 clkneg CLK VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP3 clkpos clkneg VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP8 net4 net6 VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP9 net4 clkneg net5 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP15 Q net1 VDD VDD sg13_lv_pmos m=1 w=2.24u l=130.00n ng=2
+MP10 net3 net2 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP14 net1 net5 VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_dfrbpq_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_dfrbpq_1 Q CLK D RESET_B VDD VSS
+*.PININFO CLK:I D:I RESET_B:I Q:O VDD:B VSS:B
+MN11 net12 net2 VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN10 net5 clkneg net12 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN12 net2 net5 net11 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN13 net11 RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN0 Db D net10 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN1 net10 RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN4 Db clkneg net6 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN5 net6 clkpos net9 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN6 net9 net4 net8 VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN7 net8 RESET_B VSS VSS sg13_lv_nmos m=1 w=420.00n l=130.00n ng=1
+MN8 net4 net6 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN2 clkneg CLK VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN9 net4 clkpos net5 VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN3 clkpos clkneg VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN15 Q net1 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MN14 net1 net5 VSS VSS sg13_lv_nmos m=1 w=740.00n l=130.00n ng=1
+MP11 net5 clkpos net3 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP12 net2 net5 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP13 net2 RESET_B VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP4 Db clkpos net6 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP0 Db RESET_B VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP1 Db D VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP5 net7 net4 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP6 net6 clkneg net7 VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP7 net6 RESET_B VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP2 clkneg CLK VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP3 clkpos clkneg VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP8 net4 net6 VDD VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP9 net4 clkneg net5 VDD sg13_lv_pmos m=1 w=1.000u l=130.00n ng=1
+MP15 Q net1 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+MP10 net3 net2 VDD VDD sg13_lv_pmos m=1 w=420.00n l=130.00n ng=1
+MP14 net1 net5 VDD VDD sg13_lv_pmos m=1 w=1.12u l=130.00n ng=1
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_fill_1
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_fill_1 VDD VSS
+*.PININFO VDD:B VSS:B
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_fill_2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_fill_2 VDD VSS
+*.PININFO VDD:B VSS:B
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_fill_4
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_fill_4 VDD VSS
+*.PININFO VDD:B VSS:B
+.ENDS
+
+************************************************************************
+* Library Name: sg13cmos5l_stdcell
+* Cell Name:    sg13cmos5l_fill_8
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sg13cmos5l_fill_8 VDD VSS
+*.PININFO VDD:B VSS:B
+.ENDS

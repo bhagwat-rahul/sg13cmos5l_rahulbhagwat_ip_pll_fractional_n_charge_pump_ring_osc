@@ -1,0 +1,22 @@
+{
+  "input-hierarchy": {
+    "status": "PASS",
+    "detail": "complete saved hierarchy, correct technology"
+  },
+  "source-reference": {
+    "status": "PASS",
+    "detail": "independent slot_13 assembly + fresh analog SPICE/CDL + powered digital Yosys export + full PDK cell circuits"
+  },
+  "lvs-magic": {
+    "status": "PASS",
+    "detail": "schematic and hierarchical Magic device/model view match"
+  },
+  "lvs-klayout": {
+    "status": "PASS",
+    "detail": "schematic and GDS match; CMOM dimensions audited"
+  },
+  "gds-export": {
+    "status": "PASS",
+    "detail": "/foss/designs/current-designs/chipalooza2/sg13cmos5l_rahulbhagwat_ip_pll_fractional_n_charge_pump_ring_osc/layout/core/checks/slot_13/20261022-053728-293987/slot_13.gds"
+  }
+}

@@ -1,0 +1,18 @@
+* Slot13 assembly contract. Existing harness access points; no pad changes.
+* reset is active LOW for this project; ibias0 supplies +2 uA into IREF.
+* Unused accesses remain isolated. Direct terminals are not the _esd terminals.
+.subckt slot_13 vbias
++ dig_in[23] dig_in[22] dig_in[21] dig_in[20] dig_in[19] dig_in[18]
++ dig_in[17] dig_in[16] dig_in[15] dig_in[14] dig_in[13] dig_in[12]
++ dig_in[11] dig_in[10] dig_in[9] dig_in[8] dig_in[7] dig_in[6]
++ dig_in[5] dig_in[4] dig_in[3] dig_in[2] dig_in[1] dig_in[0]
++ dig_out[11] dig_out[10] dig_out[9] dig_out[8] dig_out[7] dig_out[6]
++ dig_out[5] dig_out[4] dig_out[3] dig_out[2] dig_out[1] dig_out[0]
++ ibias0 ibias1 analog_bus3 analog_bus2 analog_bus1 analog_bus0
++ vss_1v2 vdd_1v2 vss_3v3 vdd_3v3 enable clk reset
++ s13_an_0_esd s13_an[0] s13_an_1_esd s13_an[1]
+Xpll vdd_1v2 vss_1v2 ibias0 s13_an[0] reset enable
++ dig_in[0] dig_in[1] dig_in[2] dig_in[3] dig_in[4]
++ dig_in[5] dig_in[6] dig_in[7] dig_in[8] dig_in[9]
++ dig_in[10] dig_in[11] s13_an[1] pll_core
+.ends slot_13
