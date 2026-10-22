@@ -1,0 +1,189 @@
+{
+  "label": "FF 7us schematic analog + frozen receiver/PFD; provisional phase screen",
+  "waveform_sha256": "292f16c11ce7b38c0cc9e6430ea79696afefa443b9d251626e570ac2699c435e",
+  "vdd_v": 1.32,
+  "reference_hz": 100000000.0,
+  "target_output_hz": 500000000.0,
+  "stop_s": 7e-06,
+  "settled_start_s": 6e-06,
+  "measured_output_hz": 500000184.85416925,
+  "frequency_within_1pct": true,
+  "lock_time_s_1pct_sampled": 1.7500000000000002e-06,
+  "frequency_windows": [
+    {
+      "start_s": 5e-07,
+      "frequency_hz": 179884325.8258807
+    },
+    {
+      "start_s": 7.5e-07,
+      "frequency_hz": 179884325.8258807
+    },
+    {
+      "start_s": 1.0000000000000002e-06,
+      "frequency_hz": 445789574.04445195
+    },
+    {
+      "start_s": 1.25e-06,
+      "frequency_hz": 446475383.20300096
+    },
+    {
+      "start_s": 1.5e-06,
+      "frequency_hz": 507860982.9830682
+    },
+    {
+      "start_s": 1.7500000000000002e-06,
+      "frequency_hz": 502061914.4383691
+    },
+    {
+      "start_s": 2.0000000000000003e-06,
+      "frequency_hz": 500742186.01600194
+    },
+    {
+      "start_s": 2.25e-06,
+      "frequency_hz": 500641560.7839754
+    },
+    {
+      "start_s": 2.5e-06,
+      "frequency_hz": 500283610.2554474
+    },
+    {
+      "start_s": 2.7500000000000004e-06,
+      "frequency_hz": 500139618.2257116
+    },
+    {
+      "start_s": 3.0000000000000005e-06,
+      "frequency_hz": 500091733.6985096
+    },
+    {
+      "start_s": 3.2500000000000002e-06,
+      "frequency_hz": 500021079.742677
+    },
+    {
+      "start_s": 3.5000000000000004e-06,
+      "frequency_hz": 500004943.1678855
+    },
+    {
+      "start_s": 3.7500000000000005e-06,
+      "frequency_hz": 499995694.42924035
+    },
+    {
+      "start_s": 4.000000000000001e-06,
+      "frequency_hz": 500001475.003193
+    },
+    {
+      "start_s": 4.250000000000001e-06,
+      "frequency_hz": 500006278.66503
+    },
+    {
+      "start_s": 4.500000000000001e-06,
+      "frequency_hz": 499988721.3930478
+    },
+    {
+      "start_s": 4.750000000000001e-06,
+      "frequency_hz": 499987403.9094869
+    },
+    {
+      "start_s": 5.000000000000001e-06,
+      "frequency_hz": 499998031.66843593
+    },
+    {
+      "start_s": 5.250000000000001e-06,
+      "frequency_hz": 499996856.99539393
+    },
+    {
+      "start_s": 5.5000000000000016e-06,
+      "frequency_hz": 500005883.28926206
+    },
+    {
+      "start_s": 5.750000000000001e-06,
+      "frequency_hz": 500000124.11835045
+    },
+    {
+      "start_s": 6.000000000000001e-06,
+      "frequency_hz": 500004811.1025388
+    },
+    {
+      "start_s": 6.250000000000001e-06,
+      "frequency_hz": 499995849.52459365
+    },
+    {
+      "start_s": 6.500000000000001e-06,
+      "frequency_hz": 499994273.5872804
+    }
+  ],
+  "vctrl_mean_v": 0.49892593054509726,
+  "vctrl_ripple_pp_v": 0.003473604874351721,
+  "rms_period_variation_s": 2.582610157300679e-12,
+  "peak_to_peak_period_variation_s": 1.2860150261590018e-11,
+  "deterministic_test_clock_sidebands_dbc": {
+    "lower": -51.05305415695052,
+    "upper": -51.01637653692527
+  },
+  "up": {
+    "complete_pulses": 100,
+    "minimum_ps": 213.3126708844224,
+    "maximum_ps": 213.94313610960137,
+    "mean_ps": 213.68229955402515
+  },
+  "down": {
+    "complete_pulses": 100,
+    "minimum_ps": 973.6776506515205,
+    "maximum_ps": 990.2222969104281,
+    "mean_ps": 981.4983086082907
+  },
+  "limitations": "Report closed-loop transient evidence, not foundry/noise/timing signoff.\n\nConsumes the binary real ngspice waveform from run_pll_cosim.sh. Frequency\nlock is a sampled 1% frequency-band diagnostic, not phase-lock proof.\nPhase stability is screened separately over complete divider-pattern periods,\nwith provisional limits, not an agreed jitter/phase-error specification.\nSidebands are deterministic simulated TEST_CLK voltage sidebands; transient\nnoise, pad/package/substrate coupling and unmodeled digital timing are absent.\n",
+  "vco": {
+    "observed": true,
+    "frequency_hz": 2000002546.6321607,
+    "target_hz": 2000000000.0,
+    "frequency_within_1pct": true
+  },
+  "phase_lock_screen": {
+    "status": "PASS",
+    "provisional_limits": {
+      "pattern_mean_spread_ps": 25.0,
+      "slope_ps_per_us": 25.0,
+      "phase_excursion_reference_cycles": 0.5,
+      "minimum_complete_patterns": 4
+    },
+    "window_start_s": 6e-06,
+    "window_stop_s": 7e-06,
+    "limitations": "Screen unwrapped phase, retaining slips and averaging fractional patterns.\n\n    The physical /2 divider schedules Q6.4 intervals, so its pattern repeats\n    after 16/gcd(N*8,16) reference cycles (including odd integer ratios).\n    Limits are deliberately labelled provisional: 25 ps spread of pattern\n    means and 25 ps/us fitted drift, sustained over the final 1-us window.\n    A half-reference-cycle excursion rejects gross slips without wrapping\n    them away; it is not a bound on sub-cycle jitter or absolute phase offset.\n    ",
+    "pattern_reference_cycles": 1,
+    "reference_edges": 99,
+    "complete_patterns": 99,
+    "full_window_covered": true,
+    "pattern_mean_spread_ps": 9.138966132695714,
+    "fitted_drift_ps_per_us": 0.18546666950757282,
+    "unwrapped_phase_excursion_reference_cycles": 0.0009138966132695714,
+    "gross_cycle_slip_screen_pass": true
+  },
+  "feedback_phase": {
+    "reference_edges": 99,
+    "relative_phase_pp_ps": 9.138966132695714,
+    "relative_phase_drift_ps": 0.8437621852408483,
+    "note": "Raw unwrapped phase relative to first measured edge; see phase_lock_screen for the provisional gate."
+  },
+  "physical_receiver": {
+    "observed": true,
+    "complete_cycles": 999,
+    "frequency_hz": 1000000766.4795983,
+    "worst_cycle_peak_v": 1.3393413980615003,
+    "worst_cycle_low_v": -0.01195271368114191,
+    "every_complete_cycle_swing_pass": true,
+    "vco_edges_per_q_cycle_min": 2,
+    "vco_edges_per_q_cycle_max": 2,
+    "every_complete_cycle_divides_by_two": true
+  },
+  "buffered_feedback_clock": {
+    "observed": true,
+    "complete_cycles": 999,
+    "frequency_hz": 1000000688.0578783,
+    "worst_cycle_peak_v": 1.3610991634284968,
+    "worst_cycle_low_v": -0.02414032953256059,
+    "every_complete_cycle_swing_pass": true,
+    "vco_edges_per_q_cycle_min": 2,
+    "vco_edges_per_q_cycle_max": 2,
+    "every_complete_cycle_divides_by_two": true
+  }
+}
