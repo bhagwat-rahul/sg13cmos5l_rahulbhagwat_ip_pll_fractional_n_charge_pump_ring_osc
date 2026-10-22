@@ -54,7 +54,7 @@ def main():
         if mode in ('all', 'drc-klayout'):
             checks.run('drc-klayout-full', checks.klayout_drc)
         if mode in ('all', 'pex'):
-            checks.run('pex-resistance-lumped-c', checks.pex)
+            checks.run('pex-resistance-native-c', checks.pex)
         checks.run('gds-export', lambda: str(checks.export()))
     (checks.work / 'summary.json').write_text(json.dumps(checks.results, indent=2)+'\n')
     print(f'Reports: {checks.work}', flush=True)

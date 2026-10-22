@@ -220,26 +220,30 @@ markers, LVS reports/databases, antenna feedback, and the PEX netlist
 is nonzero if any requested check fails. Missing reports/tool errors also fail;
 an incomplete KLayout run is not accepted as a clean result.
 
-The PEX export explicitly disables hierarchy after the LVS preset: Magic
-8.3.681's hierarchical exporter incorrectly applies resistor-π capacitance
-movement to MOS subcircuits. It also saves `<cell>_c_only.spice` before
-resistance annotation. Because extresist adds grounded copies of coupling C,
-the final PEX uses that independent C-only matrix at the original named nodes,
-retaining the full resistance network and device terminal connections.
-Missing or shorted capacitor endpoints fail the check. The untouched resistance
-export is retained as `<cell>_raw_extresist.spice`; `capacitance_model.json`
-records the approximation. **C is lumped at original nodes, not spatially
-distributed along resistance fragments.** This is not foundry-qualified PEX
-or a substrate-noise model. Earlier results using the old hierarchical/duplicated
-capacitance export must be regenerated before electrical conclusions are used.
+PEX now preserves the **native Magic extresist netlist byte-for-byte**:
+no C-only export, capacitor replacement, node-name rewrite or simulator shunts.
+The export remains flat, with zero R/C thresholds and resistor tee off.
+`pex/capacitance_model.json` records the native-netlist hash, warning count and
+limitations; `pex/extraction.feedback` preserves extraction warning locations.
+The result is named `pex-resistance-native-c` to distinguish it from historical
+`pex-resistance-lumped-c` runs. Export and port checks are not capacitance
+accuracy or foundry signoff, and do not waive extraction warnings.
 
-`pex/capacitance_endpoint_audit.json` records missing original C endpoints,
-their affected capacitor lines and the reference/resistance-export hashes.
-The current filter fails on the internal `rhigh` body node. PEX explicitly
-keeps resistor tee off: the installed flat tee emitter loses the second half,
-and hierarchical tee changes the foundry model's contact/capacitance behavior.
-Do not remove the affected C or split the model just to pass this audit.
-See `../cic/README.md` for the reproduced tool failure and electrical control.
+The retired merge failed because original C-only node names need not survive
+resistance extraction. Historical `capacitance_endpoint_audit.json` files
+describe that merge, not native Magic DRC errors. Do not interpret those old
+reports as current native-export results. The earlier capacitance double-count
+workaround has not been established as necessary for current Magic 8.3.685.
+
+A native deck can contain capacitance-only floating conductors (for example,
+poly in digital filler cells). A DC `.op` cannot determine their voltage.
+For a startup transient, `tran ... uic` can bypass that undefined DC solution;
+document the assumed initial capacitor charge and reset/supply stimulus.
+This is a testbench choice, not automatic proof of lock or RC accuracy.
+Do not silently ground these nodes or discard their coupling capacitors.
+Global `rshunt` is not enabled: diagnostic shunts changed the DC solution.
+The installed resistor-tee issues described in `../cic/README.md` remain
+separate; this change does not split or replace the foundry resistor model.
 
 Magic can exit zero after reporting an undefined layer, ambiguous CIF style,
 or nonzero output problems. These diagnostics now fail the check regardless

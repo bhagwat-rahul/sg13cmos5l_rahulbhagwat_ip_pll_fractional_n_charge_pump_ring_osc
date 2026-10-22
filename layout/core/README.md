@@ -47,8 +47,12 @@ unconnected placement preview. Magic DRC, Netgen LVS, GDS/KLayout LVS with CMOM
 dimension checks, Magic antenna and frozen-digital polygon preservation pass.
 Full KLayout has exactly seven **density** markers (AFil.g, GFil.g, M1.j,
 M2.j, M3.j, M4.j, TM1.c), with no antenna or other rule markers. Required Magic
-PEX still fails: **2,836** C-only endpoints are absent from its R network.
-The complete checker therefore returns FAIL. No full RC, post-route performance,
+PEX in that historical run failed its custom merge audit: **2,836** C-only
+endpoints were absent from its R export. That complete check returned FAIL.
+The current checker instead preserves native Magic RC without a C rewrite;
+see the extraction procedure and startup assumptions in
+`../../macros/pll_analog/layout/README.md`. Old reports are not relabeled as
+native passes. No full RC electrical qualification, post-route performance,
 full-chip assembly, final fill, ESD qualification or submission is implied.
 The older core manifest describes `pll_core`, not this additional slot wrapper.
 
@@ -97,9 +101,10 @@ and review provenance after changing the recipe, analog sources or interface.
 
 An unfilled checkpoint is not expected to close full-chip density. Compact filled
 candidate031 and its physical reports remain separate experiments described in
-`../README.md`. Magic's distributed-R/lumped-C endpoint problem is not waived;
-the alternative native KPEX RC export has its own required audits. A passing
-CC export does not constitute full-RC closure.
+`../README.md`. The historical Magic distributed-R/lumped-C merge has been
+retired, not repaired by forcing node names. Native Magic export/port checks
+do not establish electrical signoff; the alternative KPEX RC export also has
+its own required audits. A passing CC export does not constitute full-RC closure.
 
 ## Promotion validation
 

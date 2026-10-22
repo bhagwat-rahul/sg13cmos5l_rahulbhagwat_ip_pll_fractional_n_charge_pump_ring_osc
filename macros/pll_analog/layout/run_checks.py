@@ -287,7 +287,7 @@ quit -noprompt
             'stream': str(stream), 'sha256': hashlib.sha256(stream.read_bytes()).hexdigest(),
             'physical_import': str(physical_stream), 'recognition_restored': str(restored),
             'import_log': str(self.work / 'gds-import.log'),
-            'limitations': 'Same Magic extraction engine and lumped-C approximation; not independent foundry PEX',
+            'limitations': 'Same native Magic RC extraction engine; not independent foundry PEX',
         }, indent=2) + '\n')
         child.run('input-hierarchy', lambda: child.validate_hierarchy(self.cell, set()))
         if child.results['input-hierarchy']['status'] == 'PASS':
@@ -295,13 +295,13 @@ quit -noprompt
             child.run('antenna-magic', child.antenna)
             child.run('lvs-magic', child.lvs, required=self.gds_magic_lvs_required)
             child.run('lvs-klayout-roundtrip', lambda: child.lvs(True, restored))
-            child.run('pex-resistance-lumped-c', child.pex)
+            child.run('pex-resistance-native-c', child.pex)
         (child.work / 'summary.json').write_text(json.dumps(child.results, indent=2) + '\n')
         failed = [name for name, result in child.results.items()
                   if result['status'] != 'PASS' and result.get('required', True)]
         if failed:
             raise RuntimeError(f'GDS round-trip failed {", ".join(failed)}; reports: {child.work}')
-        return f'GDS-reimported hierarchy passes required DRC/antenna/LVS and lumped-RC checks; reports: {child.work}'
+        return f'GDS-reimported hierarchy passes required DRC/antenna/LVS and native-RC export checks; reports: {child.work}'
 
     def drc(self):
         directory, _ = self.magic('drc', '''drc euclidean on
@@ -469,14 +469,7 @@ extract do capacitance
 extract do coupling
 extract do resistance
 extract all
-ext2spice lvs
-ext2spice resistor tee off
-ext2spice hierarchy off
-ext2spice subcircuit top on
-ext2spice cthresh 0
-ext2spice rthresh 0
-ext2spice extresist off
-ext2spice -o {self.cell}_c_only.spice
+feedback save extraction.feedback
 ext2sim labels on
 ext2sim
 extresist threshold 0
@@ -500,58 +493,28 @@ ext2spice -o {self.cell}_pex.spice''')
         text = netlist.read_text()
         if not re.search(rf'^\.subckt\s+{self.cell}_pex\s', text, re.M | re.I):
             raise RuntimeError('PEX netlist has no expected top subcircuit')
-        # Magic 8.3.681 extresist distributes coupling as grounded C while
-        # retaining the original explicit coupling. Use the independently
-        # exported flat C matrix, attached at the original named nodes.
-        # This is full resistance + LUMPED coupled C, not spatially resolved C.
-        # Keep the raw export and reject missing/shorted capacitor endpoints.
-        reference = (directory / f'{self.cell}_c_only.spice').read_text()
-        caps = re.findall(r'^C\S+[^\n]*', reference, re.M)
-        parents = {}
-
-        def root(node):
-            parents.setdefault(node, node)
-            if parents[node] != node:
-                parents[node] = root(parents[node])
-            return parents[node]
-
-        connected = set(re.search(r'^\.subckt\s+\S+\s+([^\n]+)', text, re.M)[1].split())
-        for line in text.splitlines():
-            fields = line.split()
-            if fields and fields[0][0] in ('R', 'X'):
-                connected.update(fields[1:3] if fields[0][0] == 'R' else fields[1:5])
-            if fields and fields[0][0] == 'R':
-                parents[root(fields[1])] = root(fields[2])
-        endpoints = {node for cap in caps for node in cap.split()[1:3]}
-        missing = endpoints - connected - {'0'}
-        (directory / 'capacitance_endpoint_audit.json').write_text(json.dumps({
-            'reference': f'{self.cell}_c_only.spice',
-            'reference_sha256': hashlib.sha256(reference.encode()).hexdigest(),
-            'resistance_export_sha256': hashlib.sha256(text.encode()).hexdigest(),
-            'missing_endpoints': sorted(missing),
-            'affected_capacitors': [cap for cap in caps if missing.intersection(cap.split()[1:3])],
-        }, indent=2) + '\n')
-        if missing:
-            raise RuntimeError(f'{len(missing)} C-only endpoints absent from resistance network; examples: '
-                               + ', '.join(sorted(missing)[:8])
-                               + '; see pex/capacitance_endpoint_audit.json')
-        if len({root(node) for node in endpoints}) != len(endpoints):
-            raise RuntimeError('resistance network shorts distinct C-only endpoints')
-        netlist.with_name(f'{self.cell}_raw_extresist.spice').write_text(text)
-        text = re.sub(r'^C\S+[^\n]*\n', '', text, flags=re.M)
-        text = re.sub(r'^\.ends\b', '\n'.join(caps) + '\n.ends', text, count=1, flags=re.M)
-        netlist.write_text(text)
+        # Keep Magic's R/C network byte-for-byte. Original C-only node names
+        # need not survive extresist, and floating conductor capacitance is
+        # not a missing wire connection. Numerical startup is a testbench
+        # concern, not a reason to rewrite or discard extracted capacitors.
+        warnings = sum(int(n) for n in re.findall(r'Total of (\d+) warnings\.', log))
         (directory / 'capacitance_model.json').write_text(json.dumps({
-            'mode': 'full resistance; original-node lumped ground and coupling capacitance',
-            'reference': f'{self.cell}_c_only.spice',
-            'capacitors_preserved': len(caps),
-            'limitations': 'No spatial distribution of C along wires; not foundry-qualified extraction',
+            'mode': 'native Magic extresist resistance and capacitance',
+            'netlist_sha256': hashlib.sha256(netlist.read_bytes()).hexdigest(),
+            'capacitor_statements_rewritten': False,
+            'extraction_warnings': warnings,
+            'feedback': 'extraction.feedback',
+            'limitations': 'Export/port checks only, not capacitance accuracy or simulation signoff; '
+                           'review extraction feedback. Capacitance-only floating nodes can make '
+                           'a DC operating point undefined; transient UIC requires explicit '
+                           'initial-condition assumptions. No simulator shunts are inserted.',
         }, indent=2) + '\n')
         resistors = len(re.findall(r'^R\S+\s', text, re.M | re.I))
         capacitors = len(re.findall(r'^C\S+\s', text, re.M | re.I))
         self.command('pex-ports', ['python3', REPO / 'scripts/check_pex_ports.py', netlist])
-        return (f'extracted {resistors} resistors, {capacitors} original-node lumped capacitors; '
-                'C matrix preserved; port-fragment check passed (LVS still required)')
+        return (f'extracted {resistors} resistors, {capacitors} native capacitors; '
+                f'{warnings} extraction warnings (review pex/extraction.feedback); '
+                'no C rewrite; port-fragment check passed (LVS and simulation still required)')
 
     def run(self, name, action, required=True):
         try:
@@ -607,7 +570,7 @@ def main():
             checks.run('lvs-magic', checks.lvs)
             checks.run('lvs-klayout', lambda: checks.lvs(True))
         if mode in ('all', 'pex'):
-            checks.run('pex-resistance-lumped-c', checks.pex)
+            checks.run('pex-resistance-native-c', checks.pex)
         if mode in ('all', 'gds-roundtrip'):
             checks.run('gds-roundtrip', checks.gds_roundtrip)
         (checks.work / 'summary.json').write_text(json.dumps(checks.results, indent=2) + '\n')

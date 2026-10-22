@@ -161,7 +161,7 @@ def main():
         checks.run('lvs-magic', checks.lvs)
         checks.run('lvs-klayout', lambda: checks.lvs(True))
     if mode in ('all', 'pex'):
-        checks.run('pex-resistance-lumped-c', checks.pex)
+        checks.run('pex-resistance-native-c', checks.pex)
     if mode in ('all', 'gds-roundtrip'):
         checks.run('gds-roundtrip', checks.gds_roundtrip)
     (checks.work / 'summary.json').write_text(json.dumps(checks.results, indent=2) + '\n')
