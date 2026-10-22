@@ -3,6 +3,8 @@
 
 Consumes the binary real ngspice waveform from run_pll_cosim.sh. Frequency
 lock is a sampled 1% frequency-band diagnostic, not phase-lock proof.
+Phase stability is screened separately over complete divider-pattern periods,
+with provisional limits, not an agreed jitter/phase-error specification.
 Sidebands are deterministic simulated TEST_CLK voltage sidebands; transient
 noise, pad/package/substrate coupling and unmodeled digital timing are absent.
 """
@@ -10,6 +12,7 @@ noise, pad/package/substrate coupling and unmodeled digital timing are absent.
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path
 import re
 
@@ -38,6 +41,59 @@ def pulse_widths(time, voltage, vdd):
             'mean_ps': float(np.mean(widths)) if len(widths) else None}
 
 
+def phase_lock_screen(reference_edges, feedback_edges, fref, divide, start, stop):
+    """Screen unwrapped phase, retaining slips and averaging fractional patterns.
+
+    The physical /2 divider schedules Q6.4 intervals, so its pattern repeats
+    after 16/gcd(N*8,16) reference cycles (including odd integer ratios).
+    Limits are deliberately labelled provisional: 25 ps spread of pattern
+    means and 25 ps/us fitted drift, sustained over the final 1-us window.
+    A half-reference-cycle excursion rejects gross slips without wrapping
+    them away; it is not a bound on sub-cycle jitter or absolute phase offset.
+    """
+    limits = dict(pattern_mean_spread_ps=25., slope_ps_per_us=25.,
+                  phase_excursion_reference_cycles=.5, minimum_complete_patterns=4)
+    result = dict(status='INSUFFICIENT', provisional_limits=limits,
+                  window_start_s=float(start), window_stop_s=float(stop),
+                  limitations=phase_lock_screen.__doc__)
+    word = round(divide * 8)
+    if not math.isfinite(divide) or abs(word / 8 - divide) > 1e-9:
+        raise ValueError('phase screen requires a Q7.3 divide ratio')
+    pattern = 16 // math.gcd(word, 16)
+    result['pattern_reference_cycles'] = pattern
+    if len(feedback_edges) < 2:
+        return result
+    refs = reference_edges[(reference_edges >= start) & (reference_edges <= stop)
+                           & (reference_edges >= feedback_edges[0])
+                           & (reference_edges <= feedback_edges[-1])]
+    blocks = len(refs) // pattern
+    result.update(reference_edges=len(refs), complete_patterns=blocks)
+    if blocks < limits['minimum_complete_patterns'] or len(refs) < 2:
+        return result
+    # Never use nearest-edge or modulo-phase subtraction: those hide slips.
+    phase = (np.interp(refs, feedback_edges, np.arange(len(feedback_edges)))
+             - np.arange(len(refs)))
+    phase_ps = (phase - phase[0]) / fref * 1e12
+    n = blocks * pattern
+    means = phase_ps[:n].reshape(blocks, pattern).mean(axis=1)
+    times = refs[:n].reshape(blocks, pattern).mean(axis=1)
+    slope = float(np.polyfit((times - times[0]) * 1e6, means, 1)[0])
+    spread = float(np.ptp(means))
+    excursion = float(np.ptp(phase))
+    # Require almost the full requested window, not a short late burst of edges.
+    # Bracketing by feedback edges can discard one additional reference edge.
+    coverage = bool(refs[0] - start <= 1.1 / fref
+                    and stop - refs[-1] <= 2.1 / fref)
+    passed = (coverage and spread <= limits['pattern_mean_spread_ps']
+              and abs(slope) <= limits['slope_ps_per_us']
+              and excursion < limits['phase_excursion_reference_cycles'])
+    result.update(status='PASS' if passed else 'FAIL', full_window_covered=coverage,
+                  pattern_mean_spread_ps=spread, fitted_drift_ps_per_us=slope,
+                  unwrapped_phase_excursion_reference_cycles=excursion,
+                  gross_cycle_slip_screen_pass=bool(excursion < .5))
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('waveform', type=Path)
@@ -48,6 +104,8 @@ def main():
     parser.add_argument('--divide', type=float, default=20)
     parser.add_argument('--test-div', type=int, default=1)
     parser.add_argument('--vctrl-node', default='x_pll.x_analog.vctrl')
+    parser.add_argument('--require-phase-lock', action='store_true',
+                        help='exit nonzero unless phase stability and output frequency screens pass')
     args = parser.parse_args()
     raw = args.waveform.read_bytes()
     header, payload = raw.split(b'Binary:\n', 1)
@@ -121,8 +179,12 @@ def main():
                              frequency_within_1pct=bool(vf is not None and
                                  abs(vf / (args.fref * args.divide) - 1) <= .01))
     feedback, reference = vectors.get('v(x_pll.fb_clk)'), vectors.get('v(ref_clk)')
+    result['phase_lock_screen'] = dict(status='INSUFFICIENT', reason='missing feedback/reference waveform')
     if feedback is not None and reference is not None:
         fe = crossings(time, feedback, args.vdd / 2)
+        result['phase_lock_screen'] = phase_lock_screen(
+            crossings(time, reference, args.vdd / 2), fe,
+            args.fref, args.divide, start, time[-1])
         ref_edges = crossings(ts, reference[settled], args.vdd / 2)
         if len(fe) > 1:
             ref_edges = ref_edges[(ref_edges >= fe[0]) & (ref_edges <= fe[-1])]
@@ -134,7 +196,7 @@ def main():
                     'reference_edges': len(ref_edges),
                     'relative_phase_pp_ps': float(np.ptp(phase) / args.fref * 1e12),
                     'relative_phase_drift_ps': float((phase[-1] - phase[0]) / args.fref * 1e12),
-                    'note': 'Relative to first measured edge; no phase-lock acceptance threshold imposed.'}
+                    'note': 'Raw unwrapped phase relative to first measured edge; see phase_lock_screen for the provisional gate.'}
     buffered = [name for name in vectors if re.fullmatch(
         r'v\(x_pll\.x_receiver\.xreceiver\.load_\d+_out\)', name)]
     if len(buffered) > 1:
@@ -192,6 +254,9 @@ def main():
     fig.savefig(args.output / 'closed_loop.png', dpi=160)
     plt.close(fig)
     print(json.dumps({k: v for k, v in result.items() if k != 'frequency_windows'}, indent=2))
+    if args.require_phase_lock and (result['phase_lock_screen']['status'] != 'PASS'
+                                   or not result['frequency_within_1pct']):
+        raise SystemExit(1)
 
 
 if __name__ == '__main__':
