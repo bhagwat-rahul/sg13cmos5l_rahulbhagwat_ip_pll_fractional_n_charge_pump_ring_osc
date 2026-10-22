@@ -174,6 +174,45 @@ it is exclusion metadata, not submission paint. Its actual harness-tech
 Magic import/reexport passed an empty XOR on both purposes. Final wrapper
 routing/access and assembled-die DRC/LVS/density remain required.
 
+## Packaged Magic/GDS and slot13 placement draft
+
+`build/slot13-draft-034/` contains complete `unfilled/mag/` and `filled/mag/`
+libraries, the exact checked `gds/pll_core.gds` in each variant, and a
+`gds/slot_13.gds` with the harness-required top name and (0,0) origin.
+`mag/slot13_preview.mag` and `gds/slot13_preview.gds` additionally overlay the
+existing harness access shapes for inspection. Do not install that preview:
+the harness already owns those shapes.
+
+**This is an unconnected placement draft**, not an electrically integrated
+slot or submission. Supply/bias/control/clock adapter routes, reset-polarity
+review, and dedicated input/output clock pad changes remain. The current
+harness still uses analog pads. Core polygon preservation is audited during
+packaging; source checker results (including PEX failures) are retained in
+the package manifest. Nothing is installed into the harness or `final/gds`.
+
+Regenerate with container python3, using a new output directory:
+
+```sh
+python3 scripts/pll/package_slot13.py \
+  --unfilled-report layout/core/checks/pll_core/20261021-143021-246540 \
+  --filled-report layout/build/pll-slot13-024/checks/pll_core/20261021-135108-071462 \
+  --fill-keepouts layout/build/pll-slot13-fill-031/fill_keepouts.gds \
+  --output layout/build/slot13-draft-next
+```
+
+Open Magic from the variant's `mag/` directory so hierarchy resolves. Readonly
+digital backing streams are copied into each library, with their paths rewritten
+for this package location. Keep those files together; repackage after relocation.
+
+Fresh slot-level checks pass hierarchy, Magic DRC and Magic antenna for both
+variants. Full KLayout reports only global-density markers: seven on unfilled,
+six on filled (AFil.g, GFil.g, M1.j, M2.j, M4.j, TM1.c). The larger full-slot
+boundary changes the density denominator; filled031's smaller core-fill
+boundary pass does not transfer to this slot draft. These are not waived.
+Reports are under each variant's `checks/slot_13/`, with timestamps
+`20261021-152900-229766` (unfilled) and `20261021-153216-210388` (filled).
+The package includes `slot_checks.json`; there is no slot-level LVS/RC pass.
+
 ## Generate and check
 
 From the repository root **inside IIC-OSIC-TOOLS**:
