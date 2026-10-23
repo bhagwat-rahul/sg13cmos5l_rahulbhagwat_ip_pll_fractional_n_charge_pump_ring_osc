@@ -30,6 +30,52 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def kpex_worker(arguments):
+    """Apply named ideal-net requests only inside the isolated KPEX process."""
+    from importlib.metadata import version
+    from klayout_pex.kpex_cli import KpexCLI
+    from klayout_pex.rcx25.r.r_extractor import RExtractor
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--skip-resistance-net', action='append', required=True)
+    parser.add_argument('--audit', type=Path, required=True)
+    parser.add_argument('command', nargs=argparse.REMAINDER)
+    args = parser.parse_args(arguments)
+    if version('klayout-pex') != '0.6.10':
+        parser.error('ideal-net request filtering requires reviewed KPEX 0.6.10')
+    selected = set(args.skip_resistance_net)
+    original = RExtractor.prepare_request
+
+    def prepare_request(extractor):
+        request = original(extractor)
+        available = {net.net_name for net in request.net_extraction_requests}
+        missing = selected - available
+        if missing:
+            raise ValueError(f'resistance nets not found: {sorted(missing)}; '
+                             f'available exact names: {sorted(available)}')
+        before = len(request.net_extraction_requests)
+        for index in reversed(range(before)):
+            if request.net_extraction_requests[index].net_name in selected:
+                del request.net_extraction_requests[index]
+        args.audit.write_text(json.dumps(dict(
+            skipped_resistance_nets=sorted(selected),
+            resistance_nets_before=before,
+            resistance_nets_after=len(request.net_extraction_requests),
+            capacitance_and_device_extraction='unchanged',
+            limitation='selected nets are ideal; no supply IR-drop/ground-bounce qualification',
+        ), indent=2) + '\n')
+        return request
+
+    RExtractor.prepare_request = prepare_request
+    try:
+        command = args.command
+        if command and command[0] == '--':
+            command = command[1:]
+        return KpexCLI().main(['kpex', *command])
+    finally:
+        RExtractor.prepare_request = original
+
+
 def audit(netlist, database, require_resistance=True):
     """Compare named device terminals and R-collapsed nets, not raw M order."""
     problems = check(netlist)
@@ -128,14 +174,20 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('report', type=Path, help='completed core checker report directory')
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--cell', choices=('pll_core', 'slot_13'), default='pll_core')
     parser.add_argument('--mode', choices=('CC', 'RC'), default='RC',
                         help='C-only screens loading/coupling; it cannot qualify full RC')
+    parser.add_argument('--skip-resistance-net', action='append', default=[], metavar='NAME',
+                        help='repeat for exact ideal-supply net names; skip only their R '
+                             'extraction, preserving capacitance/devices (RC mode only)')
     parser.add_argument('--memory-gib', type=int, default=8,
                         help='virtual-memory ceiling, 1..10 GiB; check VM/host headroom first')
     parser.add_argument('--kpex-python', type=Path,
                         default=ROOT / 'macros/pll_analog/layout/build/cic-kpex-env-034/bin/python',
                         help='isolated KPEX 0.6.10 interpreter; runtime/wheel provenance is recorded')
     args = parser.parse_args()
+    if args.skip_resistance_net and args.mode != 'RC':
+        parser.error('--skip-resistance-net requires --mode RC')
     if not 1 <= args.memory_gib <= 10:
         parser.error('memory ceiling must be 1..10 GiB')
     report, output = args.report.resolve(), args.output.resolve()
@@ -144,7 +196,7 @@ def main():
     summary = json.loads((report / 'summary.json').read_text())
     if any(summary[key]['status'] != 'PASS' for key in ('drc-magic', 'drc-klayout-full', 'lvs-klayout')):
         parser.error('require passing physical DRC/density/antenna and independent GDS LVS first')
-    source = report / 'pll_core.gds'
+    source = report / f'{args.cell}.gds'
     if sha(source) != json.loads((report / 'cmom_annotations.json').read_text())['annotated_sha256']:
         parser.error('source stream changed after annotation audit')
     geometry = json.loads((report / 'digital_geometry.json').read_text())
@@ -154,7 +206,7 @@ def main():
     layout, original = db.Layout(), db.Layout()
     layout.read(str(source))
     original.read(str(source))
-    top = layout.cell('pll_core')
+    top = layout.cell(args.cell)
     # Remove child labels only in an extraction copy: flattened child text
     # otherwise becomes thousands of false external ports. Keep all polygons.
     for cell in layout.each_cell():
@@ -164,30 +216,32 @@ def main():
                     if shape.is_text():
                         shape.delete()
     top.flatten(True)
-    flat = output / 'pll_core_flat.gds'
+    flat = output / f'{args.cell}_flat.gds'
     layout.write(str(flat))
     actual = db.Layout()
     actual.read(str(flat))
     for info in original.layer_infos():
         # Materialize polygon unions: lazy Regions on text-only layers can
         # report nonempty despite containing zero polygons after text removal.
-        before = db.Region(original.cell('pll_core').begin_shapes_rec(original.layer(info))).merged()
-        after = db.Region(actual.cell('pll_core').begin_shapes_rec(actual.layer(info))).merged()
+        before = db.Region(original.cell(args.cell).begin_shapes_rec(original.layer(info))).merged()
+        after = db.Region(actual.cell(args.cell).begin_shapes_rec(actual.layer(info))).merged()
         if not (before ^ after).is_empty():
             raise ValueError(f'extraction preparation changed physical/recognition layer {info}')
     # KPEX's "LVS succeeded" means its subprocess produced a database, not
     # that schematic comparison matched. Require the ordinary PDK LVS flow
     # on this exact extraction copy before starting the parasitic engine.
     from check_integration import CoreChecks, PDK
+    from check_slot13 import SlotChecks
     os.environ.update(PDK_ROOT=str(PDK.parent), PDK=PDK.name, PDKPATH=str(PDK),
                       STD_CELL_LIBRARY='sg13cmos5l_stdcell')
-    verification = CoreChecks('pll_core', report / 'mag', report / 'schematic',
-                              work_root=output / 'verification')
+    checker = SlotChecks if args.cell == 'slot_13' else CoreChecks
+    verification = checker(args.cell, report / 'mag', report / 'schematic',
+                           work_root=output / 'verification')
     verification.run('lvs-klayout', lambda: verification.lvs(True, flat))
     (verification.work / 'summary.json').write_text(json.dumps(verification.results, indent=2) + '\n')
     if verification.results['lvs-klayout']['status'] != 'PASS':
         raise ValueError(f'extraction-input LVS failed; see {verification.work}')
-    schematic = report / 'lvs-klayout/pll_core.cdl'
+    schematic = report / f'lvs-klayout/{args.cell}.cdl'
     python = args.kpex_python.absolute()
     env = dict(os.environ, OPENBLAS_NUM_THREADS='1', OMP_NUM_THREADS='1')
     env.pop('PYTHONPATH', None)
@@ -205,13 +259,20 @@ print(json.dumps(dict(python=sys.executable, kpex_version=version("klayout-pex")
     command = list(map(str, [python, '-m', 'klayout_pex', 'extract', '--pdk', 'ihp-sg13cmos5l',
         '--log-level', 'debug', '--lvs-verbose', 'True',
         '--2.5D', '--mode', args.mode, '--blackbox', 'True', '--threads', '1', '--gds', flat,
-        '--cell', 'pll_core', '--schematic', schematic, '--out-dir', output / 'extraction',
+        '--cell', args.cell, '--schematic', schematic, '--out-dir', output / 'extraction',
         '--out-netlist', netlist]))
+    if args.skip_resistance_net:
+        worker = [str(python), str(Path(__file__).resolve()), '--kpex-worker',
+                  '--audit', str(output / 'ideal_nets_audit.json')]
+        for net in args.skip_resistance_net:
+            worker.extend(['--skip-resistance-net', net])
+        command = worker + ['--', *command[3:]]
     (output / 'input_audit.json').write_text(json.dumps(dict(source_sha256=sha(source),
         flat_sha256=sha(flat), schematic_sha256=sha(schematic), all_polygon_xor='empty',
         change='flatten extraction copy; remove child text only', kpex_version=version,
         independent_flat_lvs_report=str(verification.work),
         command=command, extraction_mode=args.mode,
+        skipped_resistance_nets=sorted(set(args.skip_resistance_net)),
         virtual_memory_limit_gib=args.memory_gib, runtime=runtime), indent=2) + '\n')
     print(f'Running native {args.mode}; log:', output / 'extract.log', flush=True)
     def limit_memory():
@@ -226,13 +287,14 @@ print(json.dumps(dict(python=sys.executable, kpex_version=version("klayout-pex")
     if result.returncode:
         return 1
     # Select the output database, not the duplicate under .kpex_cache.
-    database = output / 'extraction' / f'{flat.stem}__pll_core' / 'pll_core.lvsdb.gz'
+    database = output / 'extraction' / f'{flat.stem}__{args.cell}' / f'{args.cell}.lvsdb.gz'
     checked = audit(netlist, database, require_resistance=args.mode == 'RC')
     (output / 'export_audit.json').write_text(json.dumps(checked, indent=2) + '\n')
     subprocess.run([sys.executable, ROOT / 'macros/pll_analog/cic/restore_cap_stack.py',
                     netlist, '--magic-dir', report / 'mag',
                     '--output', netlist.with_stem(netlist.stem + '_stack')], check=True)
-    status.update(status='PASS', full_rc_export_passed=args.mode == 'RC',
+    status.update(status='PASS', full_rc_export_passed=args.mode == 'RC' and not args.skip_resistance_net,
+                  skipped_resistance_nets=sorted(set(args.skip_resistance_net)),
                   limitations=f'{args.mode} export/stack checks only; not electrical/tapeout qualification')
     (output / 'result.json').write_text(json.dumps(status, indent=2) + '\n')
     print(json.dumps(checked, indent=2), flush=True)
@@ -240,4 +302,6 @@ print(json.dumps(dict(python=sys.executable, kpex_version=version("klayout-pex")
 
 
 if __name__ == '__main__':
+    if len(sys.argv) > 1 and sys.argv[1] == '--kpex-worker':
+        sys.exit(kpex_worker(sys.argv[2:]))
     sys.exit(main())

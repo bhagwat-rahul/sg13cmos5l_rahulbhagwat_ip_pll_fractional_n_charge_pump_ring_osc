@@ -354,7 +354,32 @@ python3 scripts/pll/native_rc.py \
 python3 scripts/pll/native_rc.py \
   layout/build/pll-core-008/checks/pll_core/20261021-051216-069582 \
   --mode CC --output layout/build/pll-core-native-cc-next
+# Signal RC with ideal supply rails (exact core net names):
+python3 scripts/pll/native_rc.py \
+  layout/build/pll-core-008/checks/pll_core/20261021-051216-069582 \
+  --mode RC --skip-resistance-net VDD --skip-resistance-net VSS \
+  --output layout/build/pll-core-signal-rc-next
 ```
+
+`--skip-resistance-net NAME` is repeatable and opt-in; the default still
+extracts every net's resistance. Use `--cell slot_13` with a completed slot
+checker report instead of a core report, and use its exact internal supply
+names (`vdd_1v2` / `vss_1v2` in the routed slot). Names are case-sensitive;
+unknown names fail rather than silently extracting an unintended network.
+The same physical/LVS input gates still apply to slot reports.
+
+KPEX 0.6.10 has no native CLI switch for ideal rails. The launcher therefore
+uses an isolated, version-pinned worker to omit only the selected per-net
+resistance requests, before resistance extraction and netlist expansion.
+It does not edit the installed package or remove supply geometry, modeled
+devices, bulk connections, decaps or signal-to-supply capacitance.
+`ideal_nets_audit.json` records the omitted names and request counts;
+`input_audit.json` records the complete command. Upstream RC consistency
+checks and the launcher's independent connectivity audit remain enabled.
+Such a result assumes ideal supply rails: `full_rc_export_passed` stays
+false, even when export audits pass. It does not qualify supply IR drop,
+ground bounce or supply-noise-induced PLL performance. The option applies
+only to `--mode RC` and is independent of Magic's capacitance-accounting issue.
 
 It requires a completed physically passing report and passing frozen-macro
 geometry audit of that exact stream, makes an extraction-only
